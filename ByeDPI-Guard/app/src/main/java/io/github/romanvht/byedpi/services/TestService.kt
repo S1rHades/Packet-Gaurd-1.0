@@ -18,7 +18,7 @@ import androidx.core.content.edit
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.romanvht.byedpi.R
-import io.github.romanvht.byedpi.activities.TestActivity
+import io.github.romanvht.byedpi.ui.ModernActivity
 import io.github.romanvht.byedpi.data.*
 import io.github.romanvht.byedpi.utility.*
 import kotlinx.coroutines.*
@@ -403,7 +403,11 @@ class TestService : Service() {
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setSilent(true)
-            .setContentIntent(PendingIntent.getActivity(this, 0, Intent(this, TestActivity::class.java), PendingIntent.FLAG_IMMUTABLE))
+            .setContentIntent(PendingIntent.getActivity(this, 0,
+                Intent(this, ModernActivity::class.java)
+                    .putExtra(ModernActivity.EXTRA_OPEN_TAB, "benchmark")
+                    .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP),
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT))
             .addAction(0, getString(R.string.test_stop), PendingIntent.getService(this, 0,
                 Intent(this, TestService::class.java).setAction(STOP_ACTION), PendingIntent.FLAG_IMMUTABLE))
             .build()

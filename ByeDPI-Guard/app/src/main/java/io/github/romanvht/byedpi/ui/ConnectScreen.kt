@@ -1,6 +1,13 @@
 package io.github.romanvht.byedpi.ui
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,19 +19,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -48,70 +56,108 @@ fun ConnectScreen(
             .padding(horizontal = 20.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            "ByeDPI Guard",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.align(Alignment.Start)
-        )
-        Spacer(Modifier.height(28.dp))
-        StatusHeadline(state)
-        Spacer(Modifier.height(24.dp))
-        PowerButton(state = state, onClick = onToggle)
-        Spacer(Modifier.height(28.dp))
-        StatusCard(state, metrics, profile)
+        BrandHeader(Modifier.align(Alignment.Start).staggeredEnter(0))
+        Spacer(Modifier.height(20.dp))
+        StatusHeadline(state, Modifier.staggeredEnter(1))
+        Spacer(Modifier.height(8.dp))
+        ShieldButton(state = state, onClick = onToggle, modifier = Modifier.staggeredEnter(2))
+        Spacer(Modifier.height(8.dp))
+        StatusCard(state, metrics, profile, Modifier.staggeredEnter(3))
     }
 }
 
 @Composable
-private fun StatusHeadline(state: ConnectionState) {
-    val (label, color, sub) = when (state) {
-        is ConnectionState.Connected -> Triple(
-            "BYPASS ACTIVE", Palette.Success,
-            if (state.mode == Mode.VPN) "All apps are using the bypass profile" else "Local proxy is running"
-        )
-        ConnectionState.Connecting -> Triple("CONNECTING…", Palette.Glow, "Starting engine and tunnel")
-        ConnectionState.Disconnected -> Triple("NOT ACTIVE", Palette.TextSecondary, "Tap the button to start")
-        is ConnectionState.Failed -> Triple("CONNECTION FAILED", Palette.Error, state.message)
+fun BrandMark(size: Int = 28, modifier: Modifier = Modifier) {
+    Box(
+        modifier
+            .size((size * 17.2f / 21.1f).dp, size.dp)
+            .clip(ShieldShape)
+            .background(Brush.verticalGradient(listOf(Palette.Sky, Palette.AccentBlue)))
+    )
+}
+
+@Composable
+private fun BrandHeader(modifier: Modifier = Modifier) {
+    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+        BrandMark(26)
+        Spacer(Modifier.width(10.dp))
+        Text("Packet Guard", style = MaterialTheme.typography.titleLarge)
     }
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+}
+
+private data class Headline(val label: String, val sub: String, val kind: Int)
+
+@Composable
+private fun StatusHeadline(state: ConnectionState, modifier: Modifier = Modifier) {
+    val headline = when (state) {
+        is ConnectionState.Connected -> Headline(
+            "PROTECTED",
+            if (state.mode == Mode.VPN) "All apps are using the bypass profile" else "Local proxy is running",
+            2
+        )
+        ConnectionState.Connecting -> Headline("CONNECTING…", "Starting engine and tunnel", 1)
+        ConnectionState.Disconnected -> Headline("NOT PROTECTED", "Tap the shield to start", 0)
+        is ConnectionState.Failed -> Headline("CONNECTION FAILED", state.message, 3)
+    }
+    val color by animateColorAsState(
+        when (headline.kind) {
+            2 -> Palette.Success
+            1 -> Palette.Glow
+            3 -> Palette.Error
+            else -> Palette.TextSecondary
+        },
+        tween(Motion.SLOW), label = "headlineColor"
+    )
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(8.dp).background(color, CircleShape))
             Spacer(Modifier.size(8.dp))
-            Text(label, color = color, style = MaterialTheme.typography.labelLarge)
+            AnimatedContent(
+                targetState = headline,
+                transitionSpec = {
+                    (slideInVertically(tween(Motion.MEDIUM)) { it } + fadeIn(tween(Motion.MEDIUM))) togetherWith
+                        (slideOutVertically(tween(Motion.FAST)) { -it } + fadeOut(tween(Motion.FAST)))
+                },
+                label = "headline"
+            ) { h ->
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(h.label, color = color, style = MaterialTheme.typography.labelLarge)
+                }
+            }
         }
         Spacer(Modifier.height(6.dp))
-        Text(sub, color = Palette.TextSecondary, fontSize = 13.sp, textAlign = TextAlign.Center)
+        AnimatedContent(
+            targetState = headline.sub,
+            transitionSpec = { fadeIn(tween(Motion.MEDIUM)) togetherWith fadeOut(tween(Motion.FAST)) },
+            label = "headlineSub"
+        ) { sub ->
+            Text(sub, color = Palette.TextSecondary, fontSize = 13.sp, textAlign = TextAlign.Center)
+        }
     }
 }
 
 @Composable
-private fun StatusCard(state: ConnectionState, metrics: LiveMetrics, profile: ActiveProfile) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Palette.Surface),
-        border = BorderStroke(1.dp, Palette.Border)
-    ) {
-        Column(Modifier.padding(20.dp)) {
-            InfoRow("Status", statusText(state))
-            HorizontalDivider(Modifier.padding(vertical = 14.dp), color = Palette.Border)
-            InfoRow("Mode", profile.modeLabel)
-            HorizontalDivider(Modifier.padding(vertical = 14.dp), color = Palette.Border)
-            InfoRow("Profile", profile.name)
-            Text(
-                profile.args,
-                color = Palette.TextSecondary,
-                fontSize = 12.sp,
-                fontFamily = FontFamily.Monospace,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(top = 4.dp)
-            )
-            HorizontalDivider(Modifier.padding(vertical = 14.dp), color = Palette.Border)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                MetricTile("Latency", metrics.latencyMs?.let { "$it ms" } ?: "—", Modifier.weight(1f))
-                MetricTile("Success rate", metrics.successRate?.let { "$it%" } ?: "—", Modifier.weight(1f))
-            }
+private fun StatusCard(state: ConnectionState, metrics: LiveMetrics, profile: ActiveProfile, modifier: Modifier = Modifier) {
+    val active = state is ConnectionState.Connected
+    AppCard(modifier, borderColor = if (active) Palette.Glow.copy(alpha = 0.55f) else Palette.Border) {
+        InfoRow("Status", statusText(state))
+        HorizontalDivider(Modifier.padding(vertical = 14.dp), color = Palette.Border)
+        InfoRow("Mode", profile.modeLabel)
+        HorizontalDivider(Modifier.padding(vertical = 14.dp), color = Palette.Border)
+        InfoRow("Profile", profile.name)
+        Text(
+            profile.args,
+            color = Palette.TextSecondary,
+            fontSize = 12.sp,
+            fontFamily = FontFamily.Monospace,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(top = 4.dp)
+        )
+        HorizontalDivider(Modifier.padding(vertical = 14.dp), color = Palette.Border)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            MetricTile("Latency", metrics.latencyMs?.let { "$it ms" } ?: "—", Modifier.weight(1f))
+            MetricTile("Success rate", metrics.successRate?.let { "$it%" } ?: "—", Modifier.weight(1f))
         }
     }
 }
@@ -125,9 +171,13 @@ private fun statusText(s: ConnectionState) = when (s) {
 
 @Composable
 private fun InfoRow(label: String, value: String) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Text(label, color = Palette.TextSecondary)
-        Text(value, fontWeight = FontWeight.SemiBold)
+        AnimatedContent(
+            targetState = value,
+            transitionSpec = { fadeIn(tween(Motion.MEDIUM)) togetherWith fadeOut(tween(Motion.FAST)) },
+            label = "infoValue"
+        ) { v -> Text(v, fontWeight = FontWeight.SemiBold) }
     }
 }
 
@@ -140,6 +190,6 @@ private fun MetricTile(label: String, value: String, modifier: Modifier = Modifi
     ) {
         Text(label, color = Palette.TextSecondary, fontSize = 12.sp)
         Spacer(Modifier.height(4.dp))
-        Text(value, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
+        RollingText(value, fontSize = 22.sp)
     }
 }

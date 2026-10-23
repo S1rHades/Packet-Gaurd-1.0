@@ -162,7 +162,7 @@ class ConnectViewModel(app: Application) : AndroidViewModel(app) {
         val prefs = appCtx.getPreferences()
         val modeLabel = if (prefs.mode() == Mode.VPN) "System-wide (VPN)" else "Local proxy"
         if (!prefs.getCmdEnable()) {
-            return ActiveProfile("Custom UI settings", "Configured in full settings", modeLabel)
+            return ActiveProfile("Engine options", "Configured in Settings → Engine", modeLabel)
         }
         val args = prefs.getCmdArgs()
         val name = HistoryUtils(appCtx).getHistory()

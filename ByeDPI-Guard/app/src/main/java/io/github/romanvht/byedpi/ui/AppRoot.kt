@@ -8,9 +8,10 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Speed
-import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -50,7 +51,7 @@ import kotlinx.coroutines.launch
 enum class Tab(val label: String, val icon: ImageVector) {
     Connect("Connect", Icons.Filled.Shield),
     Benchmark("Benchmark", Icons.Filled.Speed),
-    Advanced("Advanced", Icons.Filled.Tune)
+    Settings("Settings", Icons.Filled.Settings)
 }
 
 private const val BATTERY_REQUESTED = "battery_optimization_requested"
@@ -64,7 +65,7 @@ private fun requestBatteryOnce(ctx: Context) {
 }
 
 @Composable
-fun AppRoot() {
+fun AppRoot(requestedTab: Tab? = null, onTabRequestHandled: () -> Unit = {}) {
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbar = remember { SnackbarHostState() }
@@ -78,6 +79,12 @@ fun AppRoot() {
     val benchUi by benchVm.ui.collectAsStateWithLifecycle()
 
     var tab by rememberSaveable { mutableStateOf(Tab.Connect) }
+    LaunchedEffect(requestedTab) {
+        if (requestedTab != null) {
+            tab = requestedTab
+            onTabRequestHandled()
+        }
+    }
     val bypassActive = state is ConnectionState.Connected || state is ConnectionState.Connecting
 
     fun say(text: String) {
@@ -142,7 +149,7 @@ fun AppRoot() {
         containerColor = Palette.Background,
         snackbarHost = { SnackbarHost(snackbar) },
         bottomBar = {
-            NavigationBar(containerColor = Palette.Surface) {
+            NavigationBar(containerColor = Palette.Surface, tonalElevation = 0.dp) {
                 Tab.entries.forEach { t ->
                     NavigationBarItem(
                         selected = tab == t,
@@ -151,7 +158,7 @@ fun AppRoot() {
                         label = { Text(t.label) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = Color.White,
-                            selectedTextColor = Palette.Glow,
+                            selectedTextColor = Palette.Sky,
                             indicatorColor = Palette.AccentBlue,
                             unselectedIconColor = Palette.TextSecondary,
                             unselectedTextColor = Palette.TextSecondary
@@ -161,16 +168,21 @@ fun AppRoot() {
             }
         }
     ) { padding ->
-        val content = Modifier.padding(padding)
-        when (tab) {
-            Tab.Connect -> ConnectScreen(state, metrics, profile, onToggle = toggle, modifier = content)
-            Tab.Benchmark -> BenchmarkScreen(benchVm, bypassActive = bypassActive, modifier = content)
-            Tab.Advanced -> AdvancedScreen(
-                bypassActive = bypassActive,
-                onChanged = { connectVm.refreshProfile() },
-                onMessage = { say(it) },
-                modifier = content
-            )
+        AnimatedContent(
+            targetState = tab,
+            transitionSpec = { tabTransition() },
+            label = "mainTab",
+            modifier = Modifier.padding(padding)
+        ) { current ->
+            when (current) {
+                Tab.Connect -> ConnectScreen(state, metrics, profile, onToggle = toggle)
+                Tab.Benchmark -> BenchmarkScreen(benchVm, bypassActive = bypassActive)
+                Tab.Settings -> SettingsScreen(
+                    bypassActive = bypassActive,
+                    onChanged = { connectVm.refreshProfile() },
+                    onMessage = { say(it) }
+                )
+            }
         }
     }
 }

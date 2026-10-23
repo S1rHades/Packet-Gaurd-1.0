@@ -14,13 +14,13 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        // Different id from upstream ByeByeDPI so both can be installed side by side.
-        applicationId = "io.github.romanvht.byedpi.guard"
+        // Packet Guard has its own id (the Kotlin namespace stays upstream's because the native JNI symbols depend on it).
+        applicationId = "com.packetguard.app"
         minSdk = 21
         //noinspection OldTargetApi
         targetSdk = 34
-        versionCode = 1820
-        versionName = "1.8.2"
+        versionCode = 2000
+        versionName = "2.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -31,7 +31,6 @@ android {
 
     buildFeatures {
         buildConfig = true
-        viewBinding = true
         compose = true
     }
 
@@ -93,7 +92,7 @@ dependencies {
     implementation("com.google.android.material:material:1.13.0")
     implementation("com.google.code.gson:gson:2.14.0")
 
-    // Jetpack Compose UI (ByeDPI Guard front-end)
+    // Jetpack Compose UI (Packet Guard front-end)
     implementation(platform("androidx.compose:compose-bom:2025.09.01"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.foundation:foundation")

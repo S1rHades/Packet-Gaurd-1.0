@@ -1,47 +1,19 @@
 <resources>
-    <style name="Theme.ByeDPI" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="colorPrimary">#5976DF</item>
-        <item name="colorPrimaryVariant">#3C52A3</item>
+    <!-- Base theme for system surfaces (notifications, the toggle shortcut). The UI itself is Compose. -->
+    <style name="Theme.PacketGuard" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#1E40AF</item>
+        <item name="colorPrimaryVariant">#1E3A8A</item>
         <item name="colorOnPrimary">#FFFFFF</item>
-
-        <item name="colorSecondary">#5976DF</item>
-        <item name="colorSecondaryVariant">#3C52A3</item>
+        <item name="colorSecondary">#3B82F6</item>
         <item name="colorOnSecondary">#FFFFFF</item>
-
-        <item name="android:statusBarColor">#3C52A3</item>
-
-        <item name="colorSurface">#F5F5F5</item>
-        <item name="colorOnSurface">#212121</item>
-
-        <item name="materialCardViewStyle">@style/SmallShadowCard</item>
+        <item name="android:windowBackground">#0F172A</item>
+        <item name="android:statusBarColor">#0F172A</item>
     </style>
 
-    <style name="Theme.ByeDPI.Guard" parent="Theme.ByeDPI">
+    <style name="Theme.PacketGuard.Main">
         <item name="android:windowBackground">#0F172A</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLightStatusBar">false</item>
-    </style>
-
-    <style name="AppToolbar" parent="Widget.MaterialComponents.Toolbar.Primary" />
-
-    <style name="SmallShadowCard" parent="Widget.MaterialComponents.CardView">
-        <item name="cardElevation">1dp</item>
-    </style>
-
-    <style name="CircleButton" parent="Widget.MaterialComponents.Button">
-        <item name="cornerRadius">60dp</item>
-        <item name="android:textSize">0sp</item>
-        <item name="backgroundTint">?attr/colorPrimary</item>
-        <item name="iconTint">?attr/colorOnPrimary</item>
-    </style>
-
-    <style name="CustomAlertDialog" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
-        <!-- -->
-    </style>
-
-    <style name="PillCard">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">50%</item>
     </style>
 </resources>

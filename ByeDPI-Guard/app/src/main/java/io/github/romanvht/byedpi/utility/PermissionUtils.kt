@@ -16,11 +16,9 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
-import androidx.fragment.app.Fragment
 
 object PermissionUtils {
     private const val TAG = "PermissionUtils"
-    private const val STORAGE_PERMISSION_REQUEST = 1001
 
     private val legacyStoragePermissions = arrayOf(
         Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -104,26 +102,5 @@ object PermissionUtils {
 
     fun getLegacyStoragePermissions(): Array<String> {
         return legacyStoragePermissions.copyOf()
-    }
-
-    fun requestStorageAccess(fragment: Fragment) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            try {
-                fragment.startActivity(storageAccessIntent(fragment.requireContext()))
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to request storage access", e)
-                try {
-                    fragment.startActivity(storageAccessFallbackIntent())
-                } catch (fallbackException: Exception) {
-                    Log.e(TAG, "Failed to open storage settings", fallbackException)
-                }
-            }
-        } else {
-            ActivityCompat.requestPermissions(
-                fragment.requireActivity(),
-                getLegacyStoragePermissions(),
-                STORAGE_PERMISSION_REQUEST
-            )
-        }
     }
 }

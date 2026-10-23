@@ -2,15 +2,10 @@ package io.github.romanvht.byedpi.utility
 
 import android.content.Context
 import android.content.SharedPreferences
-import androidx.preference.Preference
-import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import io.github.romanvht.byedpi.data.Mode
 
 private const val DEFAULT_CMD_ARGS = "-o1 -a1 -r-5+se"
-
-val PreferenceFragmentCompat.sharedPreferences
-    get() = preferenceScreen.sharedPreferences
 
 fun Context.getPreferences(): SharedPreferences =
     PreferenceManager.getDefaultSharedPreferences(this)
@@ -26,9 +21,6 @@ fun SharedPreferences.getStringNotNull(key: String, defValue: String): String =
 
 fun SharedPreferences.mode(): Mode =
     Mode.fromString(getStringNotNull("byedpi_mode", "vpn"))
-
-fun <T : Preference> PreferenceFragmentCompat.findPreferenceNotNull(key: CharSequence): T =
-    findPreference(key) ?: throw IllegalStateException("Preference $key not found")
 
 fun SharedPreferences.getSelectedApps(): List<String> {
     return getStringSet("selected_apps", emptySet())?.toList() ?: emptyList()

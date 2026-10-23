@@ -1,4 +1,4 @@
-name: Build APK
+name: Build Packet Guard APK
 
 on: [push, workflow_dispatch]
 
@@ -32,17 +32,28 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
 
+      - name: Name the APKs
+        run: |
+          VERSION=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts)
+          mkdir -p ../dist
+          for f in app/build/outputs/apk/debug/*.apk; do
+            abi=$(basename "$f" .apk | sed -e 's/^app-//' -e 's/-debug$//')
+            cp "$f" "../dist/PacketGuard-v${VERSION}-${abi}.apk"
+          done
+          ls -l ../dist
+
       - uses: actions/upload-artifact@v4
         with:
-          name: ByeDPI-Guard-apk
-          path: ByeDPI-Guard/app/build/outputs/apk/debug/*.apk
+          name: Packet-Guard-apk
+          path: dist/*.apk
           if-no-files-found: error
 
       - name: Publish APK to Releases
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "apk-${{ github.run_number }}" app/build/outputs/apk/debug/*.apk \
+          VERSION=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts)
+          gh release create "v${VERSION}-build${{ github.run_number }}" ../dist/*.apk \
             --repo "${{ github.repository }}" \
-            --title "ByeDPI Guard APK #${{ github.run_number }}" \
-            --notes "Download the APK file below and install it on your Android phone."
+            --title "Packet Guard v${VERSION} (build ${{ github.run_number }})" \
+            --notes "Download PacketGuard-v${VERSION}-universal.apk below and install it on your Android phone. It works on every device; the other files are smaller per-processor builds."
