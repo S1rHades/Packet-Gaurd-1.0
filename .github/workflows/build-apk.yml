@@ -6,10 +6,11 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: ByeDPI-Guard
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
 
       - uses: actions/setup-java@v5
         with:
@@ -32,5 +33,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: ByeDPI-Guard-apk
-          path: app/build/outputs/apk/debug/*.apk
+          path: ByeDPI-Guard/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
