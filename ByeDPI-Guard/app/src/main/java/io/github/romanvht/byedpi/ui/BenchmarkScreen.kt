@@ -208,12 +208,25 @@ fun BenchmarkScreen(
             }
         }
 
-        // 3 — best profile per domain
+        // 3 — results dashboard: takes over from the old leaderboard, right under the run controls
+        if (!dashboard.isEmpty) {
+            item(key = "dashboard") {
+                ResultsDashboard(
+                    dash = dashboard,
+                    appliedCommand = ui.applied,
+                    canApply = !running,
+                    onApply = { p -> vm.apply(p.command, ctx.getString(R.string.pg_bench_result_label, p.name)) },
+                    modifier = Modifier.animateItem()
+                )
+            }
+        }
+
+        // 4 — best profile per domain
         item(key = "domains") {
             DomainTable(perDomain, Modifier.animateItem().staggeredEnter(3))
         }
 
-        // 4 — link lists
+        // 5 — link lists
         item(key = "lists") {
             AppCard(Modifier.animateItem().staggeredEnter(4)) {
                 SectionTitle(stringResource(R.string.pg_link_lists)) {
@@ -263,7 +276,7 @@ fun BenchmarkScreen(
             }
         }
 
-        // 5 — profiles to test
+        // 6 — profiles to test
         item(key = "profiles") {
             AppCard(Modifier.animateItem().staggeredEnter(5)) {
                 SectionTitle(stringResource(R.string.pg_profiles_to_test)) {
@@ -318,18 +331,6 @@ fun BenchmarkScreen(
             }
         }
 
-        // 6 — results dashboard
-        if (!dashboard.isEmpty) {
-            item(key = "dashboard") {
-                ResultsDashboard(
-                    dash = dashboard,
-                    appliedCommand = ui.applied,
-                    canApply = !running,
-                    onApply = { p -> vm.apply(p.command, ctx.getString(R.string.pg_bench_result_label, p.name)) },
-                    modifier = Modifier.animateItem().padding(top = 6.dp)
-                )
-            }
-        }
     }
 
     editor?.let { state ->

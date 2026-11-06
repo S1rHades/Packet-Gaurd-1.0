@@ -6,7 +6,8 @@ replaces the whole interface with a single Jetpack Compose app.
 
 ## Version 2.2.0
 
-- **Results dashboard:** the Benchmark screen's "All results" leaderboard is replaced by a glass-style dashboard:
+- **Results dashboard:** the Benchmark screen's "All results" leaderboard is replaced by a glass-style dashboard,
+  shown right under Start Optimization so results are the first thing after a run:
   - headline cards for the fastest profile, sites unlocked, the most reliable profile and how many profiles work,
     each with a trend sparkline;
   - a chart comparing the 8 best profiles by latency, reach or success rate; tap a bar to see that profile's
