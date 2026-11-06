@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import io.github.romanvht.byedpi.R
 
 sealed interface ConnectionState {
     data object Disconnected : ConnectionState
@@ -83,7 +84,7 @@ class ConnectViewModel(app: Application) : AndroidViewModel(app) {
 
                 FAILED_BROADCAST -> {
                     stopHealth()
-                    _state.value = ConnectionState.Failed("The bypass service stopped unexpectedly")
+                    _state.value = ConnectionState.Failed(appCtx.getString(R.string.pg_err_service_stopped))
                 }
 
                 else -> syncFromService()
@@ -110,7 +111,7 @@ class ConnectViewModel(app: Application) : AndroidViewModel(app) {
     /** VPN permission must already be granted (the UI handles that step). */
     fun connect() {
         if (TestService.isRunning) {
-            say("A benchmark is running. Stop it first.")
+            say(appCtx.getString(R.string.pg_benchmark_running))
             return
         }
         if (connectJob?.isActive == true) return
@@ -129,7 +130,7 @@ class ConnectViewModel(app: Application) : AndroidViewModel(app) {
                 _state.value = ConnectionState.Connected(mode)
                 startHealth()
             } else {
-                _state.value = ConnectionState.Failed("Could not start the bypass engine")
+                _state.value = ConnectionState.Failed(appCtx.getString(R.string.pg_err_engine_start))
             }
         }
     }
@@ -160,14 +161,18 @@ class ConnectViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun readProfile(): ActiveProfile {
         val prefs = appCtx.getPreferences()
-        val modeLabel = if (prefs.mode() == Mode.VPN) "System-wide (VPN)" else "Local proxy"
+        val modeLabel = appCtx.getString(if (prefs.mode() == Mode.VPN) R.string.pg_mode_vpn_long else R.string.pg_mode_proxy)
         if (!prefs.getCmdEnable()) {
-            return ActiveProfile("Engine options", "Configured in Settings → Engine", modeLabel)
+            return ActiveProfile(
+                appCtx.getString(R.string.pg_profile_engine),
+                appCtx.getString(R.string.pg_profile_engine_desc),
+                modeLabel
+            )
         }
         val args = prefs.getCmdArgs()
         val name = HistoryUtils(appCtx).getHistory()
             .firstOrNull { it.text == args }?.name?.takeIf { it.isNotBlank() }
-        return ActiveProfile(name ?: "Custom strategy", args, modeLabel)
+        return ActiveProfile(name ?: appCtx.getString(R.string.pg_custom_strategy), args, modeLabel)
     }
 
     // ---- live latency / success rate -----------------------------------------------------

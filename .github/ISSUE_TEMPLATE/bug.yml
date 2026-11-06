@@ -1,0 +1,53 @@
+name: Bug report / Сообщение об ошибке
+description: Something in Packet Guard doesn't work / Что-то в Packet Guard не работает
+labels: [ bug ]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        If a particular site stays blocked, first run **Benchmark → Start Optimization** and apply the winning profile. Report it here if no profile works or the app itself misbehaves.
+        Если какой-то сайт не открывается, сначала запустите **Тест → Начать подбор** и примените лучший профиль. Пишите сюда, если не помогает ни один профиль или сбоит само приложение.
+  - type: textarea
+    id: bug
+    attributes:
+      label: What happened? / Что произошло?
+      description: A clear description of the bug / Чёткое описание ошибки
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce / Как воспроизвести
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior / Ожидаемое поведение
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostic report / Диагностический отчёт
+      description: |
+        Settings → About → Copy diagnostic report, then paste it here. It lists your device, Android version, app version, mode and strategy.
+        Настройки → О приложении → Скопировать диагностический отчёт, затем вставьте сюда.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots / Скриншоты
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Before you submit / Прежде чем отправить
+      options:
+        - label: I searched open and closed issues for duplicates / Я поискал(а) дубликаты среди открытых и закрытых задач
+          required: true

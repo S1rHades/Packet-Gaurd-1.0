@@ -61,6 +61,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import io.github.romanvht.byedpi.utility.getPreferences
+import androidx.compose.ui.res.stringResource
+import io.github.romanvht.byedpi.R
 
 // ---------------------------------------------------------------------------------------------
 // Containers
@@ -226,7 +228,7 @@ fun <T> PillTabs(
     items: List<T>,
     selected: T,
     onSelect: (T) -> Unit,
-    label: (T) -> String,
+    label: @Composable (T) -> String,
     modifier: Modifier = Modifier,
     icon: ((T) -> ImageVector?)? = null,
     enabled: Boolean = true
@@ -294,7 +296,7 @@ fun <T> Segmented(
     items: List<T>,
     selected: T,
     onSelect: (T) -> Unit,
-    label: (T) -> String,
+    label: @Composable (T) -> String,
     modifier: Modifier = Modifier,
     enabled: Boolean = true
 ) {
@@ -438,7 +440,7 @@ fun PrefTextField(
     monospace: Boolean = false,
     enabled: Boolean = true,
     maxLength: Int = Int.MAX_VALUE,
-    error: String = "Invalid value",
+    error: String? = null,
     hint: String? = null,
     validate: (String) -> Boolean = { true }
 ) {
@@ -447,7 +449,7 @@ fun PrefTextField(
     var value by remember(key) { mutableStateOf(prefs.getString(key, default) ?: default) }
     var invalid by remember(key) { mutableStateOf(false) }
     val support: (@Composable () -> Unit)? = when {
-        invalid -> { { Text(error) } }
+        invalid -> { { Text(error ?: stringResource(R.string.pg_err_invalid)) } }
         hint != null -> { { Text(hint) } }
         else -> null
     }
@@ -511,6 +513,10 @@ fun rememberStringPref(key: String, default: String): MutableState<String> {
         PrefBackedState(mutableStateOf(prefs.getString(key, default) ?: default)) { prefs.edit { putString(key, it) } }
     }
 }
+
+/** "Between [min] and [max]", the standard range error for numeric fields. */
+@Composable
+fun between(min: Int, max: Int): String = stringResource(R.string.pg_err_between, min, max)
 
 @Composable
 fun Gap(height: Int = 8) = Spacer(Modifier.height(height.dp))

@@ -57,6 +57,8 @@ import io.github.romanvht.byedpi.utility.getPreferences
 import io.github.romanvht.byedpi.utility.getSelectedApps
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import androidx.compose.ui.res.stringResource
+import io.github.romanvht.byedpi.R
 
 private data class InstalledApp(val label: String, val packageName: String)
 
@@ -110,16 +112,16 @@ fun AppPickerDialog(onDismiss: () -> Unit) {
                     Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = onDismiss) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") }
+                    IconButton(onClick = onDismiss) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.pg_back)) }
                     Column(Modifier.weight(1f)) {
-                        Text("Choose apps", style = MaterialTheme.typography.titleLarge)
-                        HelperText("${selected.size} selected")
+                        Text(stringResource(R.string.pg_choose_apps), style = MaterialTheme.typography.titleLarge)
+                        HelperText(stringResource(R.string.pg_n_selected, selected.size))
                     }
                 }
                 OutlinedTextField(
                     value = query,
                     onValueChange = { query = it },
-                    placeholder = { Text("Search apps") },
+                    placeholder = { Text(stringResource(R.string.pg_search_apps)) },
                     leadingIcon = { Icon(Icons.Filled.Search, null, tint = Palette.TextSecondary) },
                     singleLine = true,
                     shape = RoundedCornerShape(16.dp),

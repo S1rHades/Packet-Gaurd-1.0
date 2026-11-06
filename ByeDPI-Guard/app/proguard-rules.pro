@@ -10,10 +10,6 @@
 -keep,allowoptimization class io.github.romanvht.byedpi.services.** { *; }
 -keep,allowoptimization class io.github.romanvht.byedpi.receiver.** { *; }
 
--keep class io.github.romanvht.byedpi.fragments.** {
-    <init>();
-}
-
 -keep,allowoptimization class io.github.romanvht.byedpi.data.** {
     <fields>;
 }

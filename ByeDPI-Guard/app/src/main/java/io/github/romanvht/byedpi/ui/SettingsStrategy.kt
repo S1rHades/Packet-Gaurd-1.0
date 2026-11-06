@@ -57,6 +57,8 @@ import io.github.romanvht.byedpi.utility.ClipboardUtils
 import io.github.romanvht.byedpi.utility.HistoryUtils
 import io.github.romanvht.byedpi.utility.getCmdArgs
 import io.github.romanvht.byedpi.utility.getPreferences
+import androidx.compose.ui.res.stringResource
+import io.github.romanvht.byedpi.R
 
 @Composable
 fun StrategySettings(onChanged: () -> Unit, onMessage: (String) -> Unit) {
@@ -84,25 +86,24 @@ fun StrategySettings(onChanged: () -> Unit, onMessage: (String) -> Unit) {
         refresh()
     }
 
-    SettingsGroup("Strategy source") {
+    SettingsGroup(stringResource(R.string.pg_strategy_source)) {
         SwitchRow(
-            "Use a command-line strategy",
+            stringResource(R.string.pg_strategy_use_cmd),
             cmdEnabled,
             {
                 cmdEnabled = it
                 onChanged()
             },
-            subtitle = if (cmdEnabled) "The ciadpi arguments below are used. Benchmark winners land here."
-            else "The options in the Engine tab are used instead."
+            subtitle = stringResource(if (cmdEnabled) R.string.pg_strategy_cmd_on else R.string.pg_strategy_cmd_off)
         )
     }
 
     AnimatedVisibility(cmdEnabled, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
-        SettingsGroup("Active strategy") {
+        SettingsGroup(stringResource(R.string.pg_strategy_active)) {
             OutlinedTextField(
                 value = args,
                 onValueChange = { args = it },
-                label = { Text("ciadpi arguments") },
+                label = { Text(stringResource(R.string.pg_ciadpi_args)) },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 96.dp),
                 textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
                 shape = RoundedCornerShape(14.dp),
@@ -110,7 +111,7 @@ fun StrategySettings(onChanged: () -> Unit, onMessage: (String) -> Unit) {
             )
             Row(Modifier.padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                 PrimaryButton(
-                    text = if (args.trim() == active) "Active" else "Save and apply",
+                    text = stringResource(if (args.trim() == active) R.string.pg_active else R.string.pg_save_apply),
                     onClick = { applyNow(args.trim()) },
                     enabled = args.isNotBlank() && args.trim() != active,
                     modifier = Modifier.weight(1f),
@@ -119,13 +120,13 @@ fun StrategySettings(onChanged: () -> Unit, onMessage: (String) -> Unit) {
                 Spacer(Modifier.width(8.dp))
                 IconButton(onClick = {
                     ClipboardUtils.paste(ctx)?.takeIf { it.isNotBlank() }?.let { args = it.trim() }
-                }) { Icon(Icons.Filled.ContentPaste, "Paste", tint = Palette.TextSecondary) }
+                }) { Icon(Icons.Filled.ContentPaste, stringResource(R.string.pg_paste), tint = Palette.TextSecondary) }
                 IconButton(onClick = { args = "" }) {
-                    Icon(Icons.Filled.Clear, "Clear", tint = Palette.TextSecondary)
+                    Icon(Icons.Filled.Clear, stringResource(R.string.pg_clear), tint = Palette.TextSecondary)
                 }
             }
             HelperText(
-                "Separate options with spaces, for example  -o1 -a1 -r-5+se",
+                stringResource(R.string.pg_strategy_help),
                 Modifier.padding(top = 8.dp)
             )
         }
@@ -133,23 +134,23 @@ fun StrategySettings(onChanged: () -> Unit, onMessage: (String) -> Unit) {
 
     AnimatedVisibility(cmdEnabled && items.isNotEmpty(), enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
         SettingsGroup(
-            "Saved strategies",
+            stringResource(R.string.pg_saved_strategies),
             trailing = {
                 Box {
                     IconButton(onClick = { clearMenu = true }) {
-                        Icon(Icons.Filled.DeleteSweep, "Clear history", tint = Palette.TextSecondary)
+                        Icon(Icons.Filled.DeleteSweep, stringResource(R.string.pg_clear_history), tint = Palette.TextSecondary)
                     }
                     DropdownMenu(
                         expanded = clearMenu,
                         onDismissRequest = { clearMenu = false },
                         containerColor = Palette.SurfaceHigh
                     ) {
-                        DropdownMenuItem(text = { Text("Delete unpinned") }, onClick = {
+                        DropdownMenuItem(text = { Text(stringResource(R.string.pg_delete_unpinned)) }, onClick = {
                             history.clearUnpinnedHistory()
                             clearMenu = false
                             refresh()
                         })
-                        DropdownMenuItem(text = { Text("Delete all") }, onClick = {
+                        DropdownMenuItem(text = { Text(stringResource(R.string.pg_delete_all)) }, onClick = {
                             history.clearAllHistory()
                             clearMenu = false
                             refresh()
@@ -185,8 +186,8 @@ fun StrategySettings(onChanged: () -> Unit, onMessage: (String) -> Unit) {
 
     renaming?.let { cmd ->
         TextInputDialog(
-            title = "Rename strategy",
-            label = "Name",
+            title = stringResource(R.string.pg_rename_strategy),
+            label = stringResource(R.string.pg_name),
             initial = cmd.name.orEmpty(),
             onDismiss = { renaming = null },
             onConfirm = { name ->
@@ -198,8 +199,8 @@ fun StrategySettings(onChanged: () -> Unit, onMessage: (String) -> Unit) {
     }
     editing?.let { cmd ->
         TextInputDialog(
-            title = "Edit strategy",
-            label = "ciadpi arguments",
+            title = stringResource(R.string.pg_edit_strategy),
+            label = stringResource(R.string.pg_ciadpi_args),
             initial = cmd.text,
             monospace = true,
             onDismiss = { editing = null },
@@ -244,11 +245,11 @@ private fun HistoryRow(
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (cmd.pinned) {
-                    Icon(Icons.Filled.PushPin, "Pinned", tint = Palette.Sky, modifier = Modifier.size(14.dp))
+                    Icon(Icons.Filled.PushPin, stringResource(R.string.pg_pinned), tint = Palette.Sky, modifier = Modifier.size(14.dp))
                     Spacer(Modifier.width(6.dp))
                 }
                 Text(
-                    cmd.name?.takeIf { it.isNotBlank() } ?: "Unnamed strategy",
+                    cmd.name?.takeIf { it.isNotBlank() } ?: stringResource(R.string.pg_unnamed_strategy),
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,
                     maxLines = 1,
@@ -258,7 +259,7 @@ private fun HistoryRow(
                 if (isActive) {
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        "ACTIVE",
+                        stringResource(R.string.pg_active_badge),
                         color = Color.White,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
@@ -276,18 +277,19 @@ private fun HistoryRow(
             )
         }
         Box {
-            IconButton(onClick = { menu = true }) { Icon(Icons.Filled.MoreVert, "More", tint = Palette.TextSecondary) }
+            IconButton(onClick = { menu = true }) { Icon(Icons.Filled.MoreVert, stringResource(R.string.pg_more), tint = Palette.TextSecondary) }
             DropdownMenu(expanded = menu, onDismissRequest = { menu = false }, containerColor = Palette.SurfaceHigh) {
+                val deleteLabel = stringResource(R.string.pg_delete)
                 listOf(
-                    "Apply" to onApply,
-                    (if (cmd.pinned) "Unpin" else "Pin") to onTogglePin,
-                    "Rename" to onRename,
-                    "Edit" to onEdit,
-                    "Copy" to onCopy,
-                    "Delete" to onDelete
+                    stringResource(R.string.pg_apply) to onApply,
+                    stringResource(if (cmd.pinned) R.string.pg_unpin else R.string.pg_pin) to onTogglePin,
+                    stringResource(R.string.pg_rename) to onRename,
+                    stringResource(R.string.pg_edit) to onEdit,
+                    stringResource(R.string.pg_copy) to onCopy,
+                    deleteLabel to onDelete
                 ).forEach { (label, action) ->
                     DropdownMenuItem(
-                        text = { Text(label, color = if (label == "Delete") Palette.Error else Color.White) },
+                        text = { Text(label, color = if (label == deleteLabel) Palette.Error else Color.White) },
                         onClick = {
                             menu = false
                             action()
@@ -325,7 +327,7 @@ fun TextInputDialog(
                 colors = fieldColors()
             )
         },
-        confirmButton = { TextButton(onClick = { onConfirm(text) }) { Text("Save") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+        confirmButton = { TextButton(onClick = { onConfirm(text) }) { Text(stringResource(R.string.pg_save)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.pg_cancel)) } }
     )
 }

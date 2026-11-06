@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="applist_types">
+        <item name="disable">Нет</item>
+        <item name="blacklist">Черный список</item>
+        <item name="whitelist">Белый список</item>
+    </array>
+</resources>

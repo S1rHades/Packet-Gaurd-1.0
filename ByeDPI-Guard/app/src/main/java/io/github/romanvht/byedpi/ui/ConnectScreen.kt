@@ -40,6 +40,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.romanvht.byedpi.data.Mode
+import androidx.compose.ui.res.stringResource
+import io.github.romanvht.byedpi.R
 
 @Composable
 fun ConnectScreen(
@@ -91,13 +93,13 @@ private data class Headline(val label: String, val sub: String, val kind: Int)
 private fun StatusHeadline(state: ConnectionState, modifier: Modifier = Modifier) {
     val headline = when (state) {
         is ConnectionState.Connected -> Headline(
-            "PROTECTED",
-            if (state.mode == Mode.VPN) "All apps are using the bypass profile" else "Local proxy is running",
+            stringResource(R.string.pg_connect_protected),
+            if (state.mode == Mode.VPN) stringResource(R.string.pg_connect_protected_vpn) else stringResource(R.string.pg_connect_protected_proxy),
             2
         )
-        ConnectionState.Connecting -> Headline("CONNECTING…", "Starting engine and tunnel", 1)
-        ConnectionState.Disconnected -> Headline("NOT PROTECTED", "Tap the shield to start", 0)
-        is ConnectionState.Failed -> Headline("CONNECTION FAILED", state.message, 3)
+        ConnectionState.Connecting -> Headline(stringResource(R.string.pg_connect_connecting), stringResource(R.string.pg_connect_connecting_sub), 1)
+        ConnectionState.Disconnected -> Headline(stringResource(R.string.pg_connect_unprotected), stringResource(R.string.pg_connect_unprotected_sub), 0)
+        is ConnectionState.Failed -> Headline(stringResource(R.string.pg_connect_failed), state.message, 3)
     }
     val color by animateColorAsState(
         when (headline.kind) {
@@ -140,11 +142,11 @@ private fun StatusHeadline(state: ConnectionState, modifier: Modifier = Modifier
 private fun StatusCard(state: ConnectionState, metrics: LiveMetrics, profile: ActiveProfile, modifier: Modifier = Modifier) {
     val active = state is ConnectionState.Connected
     AppCard(modifier, borderColor = if (active) Palette.Glow.copy(alpha = 0.55f) else Palette.Border) {
-        InfoRow("Status", statusText(state))
+        InfoRow(stringResource(R.string.pg_connect_status), statusText(state))
         HorizontalDivider(Modifier.padding(vertical = 14.dp), color = Palette.Border)
-        InfoRow("Mode", profile.modeLabel)
+        InfoRow(stringResource(R.string.pg_connect_mode), profile.modeLabel)
         HorizontalDivider(Modifier.padding(vertical = 14.dp), color = Palette.Border)
-        InfoRow("Profile", profile.name)
+        InfoRow(stringResource(R.string.pg_profile), profile.name)
         Text(
             profile.args,
             color = Palette.TextSecondary,
@@ -156,17 +158,18 @@ private fun StatusCard(state: ConnectionState, metrics: LiveMetrics, profile: Ac
         )
         HorizontalDivider(Modifier.padding(vertical = 14.dp), color = Palette.Border)
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            MetricTile("Latency", metrics.latencyMs?.let { "$it ms" } ?: "—", Modifier.weight(1f))
-            MetricTile("Success rate", metrics.successRate?.let { "$it%" } ?: "—", Modifier.weight(1f))
+            MetricTile(stringResource(R.string.pg_latency), metrics.latencyMs?.let { stringResource(R.string.pg_ms, it) } ?: "—", Modifier.weight(1f))
+            MetricTile(stringResource(R.string.pg_success_rate), metrics.successRate?.let { stringResource(R.string.pg_percent, it) } ?: "—", Modifier.weight(1f))
         }
     }
 }
 
+@Composable
 private fun statusText(s: ConnectionState) = when (s) {
-    is ConnectionState.Connected -> "Running"
-    ConnectionState.Connecting -> "Connecting"
-    ConnectionState.Disconnected -> "Disconnected"
-    is ConnectionState.Failed -> "Error"
+    is ConnectionState.Connected -> stringResource(R.string.pg_status_running)
+    ConnectionState.Connecting -> stringResource(R.string.pg_status_connecting)
+    ConnectionState.Disconnected -> stringResource(R.string.pg_status_disconnected)
+    is ConnectionState.Failed -> stringResource(R.string.pg_status_error)
 }
 
 @Composable

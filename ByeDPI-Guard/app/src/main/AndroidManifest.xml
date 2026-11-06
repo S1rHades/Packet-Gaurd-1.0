@@ -72,10 +72,15 @@
                 android:value="vpn" />
         </service>
 
+        <!-- specialUse rather than dataSync: Android 15 stops dataSync services after 6 hours a day
+             and won't start them from BOOT_COMPLETED, and the proxy has to run all day and on boot. -->
         <service android:name=".services.ByeDpiProxyService"
             android:process=":native"
-            android:foregroundServiceType="dataSync"
+            android:foregroundServiceType="specialUse"
             android:exported="false">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Local SOCKS5 proxy that applies DPI-bypass techniques to the user's own connections" />
         </service>
 
         <service

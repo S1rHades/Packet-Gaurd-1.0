@@ -2,11 +2,13 @@ package io.github.romanvht.byedpi.ui
 
 import io.github.romanvht.byedpi.data.SiteResult
 import io.github.romanvht.byedpi.data.StrategyResult
+import androidx.annotation.StringRes
+import io.github.romanvht.byedpi.R
 
-enum class ProfilePack(val label: String) {
-    Basic("Basic"),
-    Community("Community"),
-    Custom("Custom")
+enum class ProfilePack(@StringRes val label: Int) {
+    Basic(R.string.pg_pack_basic),
+    Community(R.string.pg_pack_community),
+    Custom(R.string.pg_pack_custom)
 }
 
 data class ProfileItem(val command: String, val name: String, val pack: ProfilePack)
@@ -121,13 +123,19 @@ fun parseDomains(raw: String): List<String> =
         .filter { it.isNotEmpty() && '.' in it }
         .distinct()
 
-/** One profile per line; "Name | command" or just the command. */
-fun parseCustomProfiles(text: String): List<Pair<String, String>> =
+/**
+ * One profile per line; "Name | command" or just the command. Unnamed lines are called
+ * [defaultName] of their 1-based line number among the non-blank lines.
+ */
+fun parseCustomProfiles(
+    text: String,
+    defaultName: (Int) -> String = { "Custom $it" }
+): List<Pair<String, String>> =
     text.lines().map { it.trim() }.filter { it.isNotEmpty() }.mapIndexed { i, line ->
         if ('|' in line) {
-            val name = line.substringBefore('|').trim().ifEmpty { "Custom ${i + 1}" }
+            val name = line.substringBefore('|').trim().ifEmpty { defaultName(i + 1) }
             name to line.substringAfter('|').trim()
         } else {
-            "Custom ${i + 1}" to line
+            defaultName(i + 1) to line
         }
     }.filter { it.second.isNotEmpty() }

@@ -1,0 +1,27 @@
+name: Feature request / Предложить функцию
+description: Suggest an idea for Packet Guard / Предложить идею для Packet Guard
+labels: [ enhancement ]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does it solve? / Какую проблему это решает?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: The solution you'd like / Какое решение вы предлагаете
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you've considered / Какие альтернативы вы рассматривали
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Before you submit / Прежде чем отправить
+      options:
+        - label: I searched open and closed issues for duplicates / Я поискал(а) дубликаты среди открытых и закрытых задач
+          required: true
