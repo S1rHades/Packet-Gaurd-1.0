@@ -17,7 +17,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Terminal
@@ -44,10 +43,12 @@ import androidx.annotation.StringRes
 import androidx.compose.ui.res.stringResource
 import io.github.romanvht.byedpi.R
 
+/** Shows expert-only settings (proxy address, engine limits, test timing). Off by default. */
+const val PREF_SHOW_ADVANCED = "pg_show_advanced"
+
 enum class SettingsTab(@StringRes val label: Int, val icon: ImageVector) {
     General(R.string.pg_settings_general, Icons.Filled.Tune),
     Strategy(R.string.pg_settings_strategy, Icons.Filled.Terminal),
-    Engine(R.string.pg_settings_engine, Icons.Filled.Memory),
     Benchmark(R.string.pg_tab_benchmark, Icons.Filled.Speed),
     About(R.string.pg_settings_about, Icons.Filled.Info)
 }
@@ -117,7 +118,6 @@ fun SettingsScreen(
                 when (current) {
                     SettingsTab.General -> GeneralSettings(bypassActive, changed)
                     SettingsTab.Strategy -> StrategySettings(changed, onMessage)
-                    SettingsTab.Engine -> EngineSettings(changed)
                     SettingsTab.Benchmark -> BenchmarkSettings()
                     SettingsTab.About -> AboutSettings(onMessage)
                 }

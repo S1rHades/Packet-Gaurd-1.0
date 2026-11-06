@@ -25,7 +25,10 @@ fun BenchmarkSettings() {
     var custom by rememberStringPref(PREF_CUSTOM_PROFILES, "")
     val parsed = remember(custom) { parseCustomProfiles(custom).size }
 
-    SettingsGroup(stringResource(R.string.pg_bench_params)) {
+    val showAdvanced by rememberBoolPref(PREF_SHOW_ADVANCED, false)
+
+    // Request counts and timeouts only matter to experts; the defaults suit everyone else.
+    if (showAdvanced) SettingsGroup(stringResource(R.string.pg_bench_params)) {
         PrefTextField(
             stringResource(R.string.pg_bench_requests), "byedpi_proxytest_requests", "1", numeric = true,
             validate = intIn(1, 50), error = between(1, 50)

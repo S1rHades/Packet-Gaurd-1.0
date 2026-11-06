@@ -41,6 +41,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material3.TextButton
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -271,7 +273,10 @@ private fun CompareCard(
     onApply: (ProfileStat) -> Unit
 ) {
     var metric by rememberSaveable { mutableStateOf(DashMetric.Reach) }
-    val bars = remember(dash, metric) { chartBars(dash.profiles, metric) }
+    // Five bars at first: about as many as anyone compares at a glance.
+    var showAll by rememberSaveable { mutableStateOf(false) }
+    val allBars = remember(dash, metric) { chartBars(dash.profiles, metric, limit = 12) }
+    val bars = if (showAll) allBars else allBars.take(5)
     var selected by remember(dash, metric) { mutableStateOf(bars.firstOrNull()?.profile?.command) }
     val current = bars.firstOrNull { it.profile.command == selected }?.profile
 
@@ -289,6 +294,14 @@ private fun CompareCard(
             return@Column
         }
         BarChart(bars, metric, selected, onSelect = { selected = it }, Modifier.padding(top = 16.dp))
+        if (allBars.size > 5) {
+            TextButton(onClick = { showAll = !showAll }, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text(
+                    if (showAll) stringResource(R.string.pg_show_fewer) else stringResource(R.string.pg_show_all, allBars.size),
+                    color = Palette.Sky
+                )
+            }
+        }
         if (current != null) {
             AnimatedContent(
                 targetState = current,
@@ -485,7 +498,11 @@ private fun ListsCard(dash: Dashboard) {
     Column(Modifier.fillMaxWidth().staggeredEnter(5).glass().padding(16.dp)) {
         Text(stringResource(R.string.pg_dash_lists), style = MaterialTheme.typography.titleSmall)
         HelperText(stringResource(R.string.pg_dash_lists_help), Modifier.padding(top = 2.dp, bottom = 6.dp))
-        dash.lists.forEachIndexed { i, list ->
+        // Weakest lists first, three at a time: the ones that need attention.
+        var expanded by rememberSaveable { mutableStateOf(false) }
+        val ordered = remember(dash.lists) { dash.lists.sortedBy { it.reachPercent } }
+        val shown = if (expanded) ordered else ordered.take(3)
+        shown.forEachIndexed { i, list ->
             if (i > 0) HorizontalDivider(color = Color.White.copy(alpha = 0.06f))
             Column(Modifier.fillMaxWidth().padding(vertical = 10.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -525,6 +542,14 @@ private fun ListsCard(dash: Dashboard) {
                         modifier = Modifier.padding(start = 8.dp)
                     )
                 }
+            }
+        }
+        if (ordered.size > 3) {
+            TextButton(onClick = { expanded = !expanded }, modifier = Modifier.heightIn(min = 48.dp)) {
+                Text(
+                    if (expanded) stringResource(R.string.pg_show_fewer) else stringResource(R.string.pg_show_all, ordered.size),
+                    color = Palette.Sky
+                )
             }
         }
     }

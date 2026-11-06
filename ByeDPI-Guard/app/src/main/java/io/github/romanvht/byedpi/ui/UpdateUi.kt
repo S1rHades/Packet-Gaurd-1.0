@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -126,7 +128,11 @@ fun UpdateBanner(modifier: Modifier = Modifier) {
                     }
                 }
                 if (state.phase == UpdatePhase.Available) {
-                    androidx.compose.material3.TextButton(onClick = { hidden = true }) {
+                    // A full 48 dp target: a small "Later" is easy to miss with a thumb.
+                    androidx.compose.material3.TextButton(
+                        onClick = { hidden = true },
+                        modifier = Modifier.heightIn(min = 48.dp).widthIn(min = 64.dp)
+                    ) {
                         Text(stringResource(R.string.pg_upd_later), color = Palette.TextSecondary)
                     }
                 }

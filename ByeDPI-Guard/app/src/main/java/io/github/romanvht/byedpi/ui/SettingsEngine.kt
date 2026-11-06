@@ -46,6 +46,7 @@ fun EngineSettings(onChanged: () -> Unit) {
     var https by rememberBoolPref("byedpi_desync_https", true)
     var udp by rememberBoolPref("byedpi_desync_udp", true)
     var tlsrec by rememberBoolPref("byedpi_tlsrec_enabled", false)
+    val showAdvanced by rememberBoolPref(PREF_SHOW_ADVANCED, false)
 
     val editable = !cmdEnabled
     val dim by animateFloatAsState(if (editable) 1f else 0.55f, tween(Motion.MEDIUM), label = "engineDim")
@@ -201,8 +202,9 @@ fun EngineSettings(onChanged: () -> Unit) {
             }
         }
 
-        Gap(14)
-        SettingsGroup(stringResource(R.string.pg_engine_proxy)) {
+        // Connection limits and buffers are for experts: only with "Show advanced settings".
+        if (showAdvanced) Gap(14)
+        if (showAdvanced) SettingsGroup(stringResource(R.string.pg_engine_proxy)) {
             PrefTextField(
                 stringResource(R.string.pg_engine_max_conn), "byedpi_max_connections", "512", numeric = true, enabled = editable,
                 validate = intIn(1, Short.MAX_VALUE.toInt()), error = between(1, 32767)
