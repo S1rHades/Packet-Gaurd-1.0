@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Context
 import android.net.VpnService
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
@@ -84,6 +85,7 @@ fun AppRoot(requestedTab: Tab? = null, onTabRequestHandled: () -> Unit = {}) {
     val state by connectVm.state.collectAsStateWithLifecycle()
     val metrics by connectVm.metrics.collectAsStateWithLifecycle()
     val profile by connectVm.profile.collectAsStateWithLifecycle()
+    val refreshing by connectVm.refreshing.collectAsStateWithLifecycle()
     val benchUi by benchVm.ui.collectAsStateWithLifecycle()
 
     var tab by rememberSaveable { mutableStateOf(Tab.Connect) }
@@ -94,6 +96,9 @@ fun AppRoot(requestedTab: Tab? = null, onTabRequestHandled: () -> Unit = {}) {
         }
     }
     val bypassActive = state is ConnectionState.Connected || state is ConnectionState.Connecting
+
+    // Android habit (Jakob's law): Back from another tab goes to Connect before leaving the app.
+    BackHandler(enabled = tab != Tab.Connect) { tab = Tab.Connect }
 
     fun say(text: String) {
         scope.launch { snackbar.showSnackbar(text) }
@@ -212,7 +217,10 @@ fun AppRoot(requestedTab: Tab? = null, onTabRequestHandled: () -> Unit = {}) {
             modifier = Modifier.padding(padding)
         ) { current ->
             when (current) {
-                Tab.Connect -> ConnectScreen(state, metrics, profile, onToggle = toggle)
+                Tab.Connect -> ConnectScreen(
+                    state, metrics, profile, onToggle = toggle,
+                    refreshing = refreshing, onRefresh = connectVm::refreshNow
+                )
                 Tab.Benchmark -> BenchmarkScreen(benchVm, bypassActive = bypassActive)
                 Tab.Settings -> SettingsScreen(
                     bypassActive = bypassActive,

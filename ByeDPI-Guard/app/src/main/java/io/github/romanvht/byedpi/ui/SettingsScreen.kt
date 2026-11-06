@@ -2,6 +2,7 @@ package io.github.romanvht.byedpi.ui
 
 import android.content.Context
 import android.net.VpnService
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -67,6 +68,7 @@ fun SettingsScreen(
     val ctx = LocalContext.current
     var tab by rememberSaveable { mutableStateOf(SettingsTab.General) }
     var dirty by rememberSaveable { mutableStateOf(false) }
+    BackHandler(enabled = tab != SettingsTab.General) { tab = SettingsTab.General }
     val changed: () -> Unit = {
         dirty = true
         onChanged()

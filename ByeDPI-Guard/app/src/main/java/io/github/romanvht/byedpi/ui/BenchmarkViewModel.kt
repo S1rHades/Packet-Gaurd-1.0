@@ -11,6 +11,7 @@ import io.github.romanvht.byedpi.data.TestState
 import io.github.romanvht.byedpi.services.TestService
 import io.github.romanvht.byedpi.services.appStatus
 import io.github.romanvht.byedpi.utility.DomainListUtils
+import io.github.romanvht.byedpi.utility.SettingsUtils
 import io.github.romanvht.byedpi.utility.getCmdArgs
 import io.github.romanvht.byedpi.utility.getCmdEnable
 import io.github.romanvht.byedpi.utility.getPreferences
@@ -146,9 +147,10 @@ class BenchmarkViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             val (lists, profiles) = withContext(Dispatchers.IO) {
                 DomainListUtils.syncLists(ctx)
-                val lists = DomainListUtils.getLists(ctx).map {
-                    ListItemUi(it.id, it.name, it.domains, it.isActive, it.isBuiltIn)
-                }
+                val lists = orderLists(
+                    DomainListUtils.getLists(ctx).map { ListItemUi(it.id, it.name, it.domains, it.isActive, it.isBuiltIn) },
+                    SettingsUtils.getCurrentLanguage(ctx)
+                )
                 val community = ctx.assets.open("proxytest_strategies.list").bufferedReader()
                     .useLines { seq -> seq.map { it.trim() }.filter { it.isNotEmpty() }.toList() }
                 val custom = parseCustomProfiles(prefs.getString(PREF_CUSTOM_PROFILES, "") ?: "") {

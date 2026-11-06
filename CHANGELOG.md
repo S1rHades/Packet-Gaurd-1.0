@@ -6,6 +6,21 @@ from 2.5.0 on (**Settings → About → Updates**); earlier versions are install
 
 The first lines under each version are what the app shows as "What's new", so keep them short.
 
+## 2.8.0 (November 2026)
+
+- Colours mean the same everywhere: green works, amber partly, red failed, blue is best
+- Back goes to the Connect screen instead of closing the app
+- Pull down on the Connect screen to check the connection now
+- YouTube and the other popular site lists come first in the Benchmark
+
+The rest, in more detail:
+
+- **One meaning per colour.** The winner in step 3 and the generator's result use the accent blue rather than amber. "Nothing worked" is red. The dashboard's headline cards no longer use status colours as decoration, so only the fastest profile carries the accent.
+- **No false buttons.** The small arrow on the dashboard's cards suggested they could be tapped; it's gone.
+- **Back works the Android way.** From Benchmark or Settings it returns to Connect; inside Settings it returns to General first.
+- **List order.** Built-in lists were shown alphabetically, which put YouTube last. Now the most used come first (Türkiye first in Turkish), and your own lists come last.
+- **A usability test script** for five people, in [docs/usability-test.md](docs/usability-test.md).
+
 ## 2.7.0 (November 2026)
 
 - Every command line is explained in plain words, one line per option
