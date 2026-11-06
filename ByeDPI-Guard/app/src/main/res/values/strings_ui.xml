@@ -393,6 +393,14 @@
     <string name="pg_ex_proto">Only for %1$s traffic</string>
     <string name="pg_ex_hosts">Only for the listed sites</string>
     <string name="pg_ex_md5">Marks fake packets so the site ignores them</string>
+    <string name="pg_gen_probing">Trying each basic technique to learn what gets through</string>
+    <string name="pg_gen_building">Building new command lines from what worked</string>
+    <string name="pg_gen_new_badge">New · built from your test</string>
+    <string name="pg_gen_how_tuned">Tuned from what worked best</string>
+    <string name="pg_gen_how_combined">Combines two lines that opened different sites</string>
+    <string name="pg_gen_how_fallback">Switches to a second setting when a site is blocked</string>
+    <string name="pg_gen_how_explored">Drawn from what the test learned</string>
+    <string name="pg_gen_how_from">%1$s: %2$s</string>
     <plurals name="pg_sites">
         <item quantity="one">%d site</item>
         <item quantity="other">%d sites</item>
@@ -424,5 +432,9 @@
     <plurals name="pg_list_preview">
         <item quantity="one">%d site will be tested</item>
         <item quantity="other">%d sites will be tested</item>
+    </plurals>
+    <plurals name="pg_gen_probe_won">
+        <item quantity="one">A basic technique worked best; the %d new line built didn’t beat it.</item>
+        <item quantity="other">A basic technique worked best; none of the %d new lines built beat it.</item>
     </plurals>
 </resources>

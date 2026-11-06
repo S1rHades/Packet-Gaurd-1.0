@@ -66,10 +66,17 @@ Below the steps, the **results dashboard** compares every profile tested: the fa
 
 In step 2, choose **Make one just for me** instead of the ready-made profiles, then **Quick** (about 3 minutes) or **Thorough** (about 10). Packet Guard then writes its own command line, and explains each part of it in plain words:
 
-1. It checks your sites with no bypass at all, and only searches for the ones your provider actually blocks. If none are blocked, it says so.
-2. It tries each basic technique: splitting the first packet, sending parts out of order, out-of-band bytes, a fake packet with a short TTL, and splitting the TLS record, at the positions that usually matter.
-3. It varies the best three, round by round: other positions, another technique, a different fake TTL, adding or removing a second step.
-4. It tests the top three again so a lucky moment can't win, and shows the best with two runner-ups, each one tap to use.
+1. **Which sites are blocked?** It checks your sites with no bypass at all, and only searches for the ones your provider actually blocks. If none are blocked, it says so.
+2. **Probes.** It sends one of each basic technique (splitting the first packet, sending parts out of order, out-of-band bytes, a fake packet, splitting the TLS record). These are experiments, not answers: they show which techniques get which of your sites through.
+3. **Learning.** Every result is recorded site by site, and each ingredient of a command line (the technique, where it splits, the fake's TTL, the TLS record split) gets credit for the sites it opened.
+4. **Building new lines.** Each round it writes new command lines from what it learned:
+   - **targeted**: adds to the best line the ingredient most likely to open the sites it still misses, including ideas not tried yet, like a TTL range no probe used;
+   - **combined**: merges two lines that open different sites into one;
+   - **fallback**: gives the best line a second setting that ciadpi switches to when a site looks blocked (`-At,s`);
+   - **tuned and explored**: new positions, techniques and TTLs, chosen by what worked, plus one line drawn from the learning alone.
+5. **Re-test.** The top three are tested again so a lucky moment can't win.
+
+The result says whether it is a **new** line and how it was made ("Combines two lines that opened different sites: -d1+s + -f-1 -t4"). If a basic probe still turns out best, it says that too, with how many new lines it tried.
 
 The result fits the network you ran it on. If you switch between Wi-Fi and mobile data, or sites stop opening, run it again.
 

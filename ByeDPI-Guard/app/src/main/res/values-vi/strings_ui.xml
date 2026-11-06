@@ -393,6 +393,14 @@
     <string name="pg_ex_proto">Chỉ cho lưu lượng %1$s</string>
     <string name="pg_ex_hosts">Chỉ cho các trang trong danh sách</string>
     <string name="pg_ex_md5">Đánh dấu gói giả để trang bỏ qua chúng</string>
+    <string name="pg_gen_probing">Đang thử từng kỹ thuật cơ bản để biết cái nào lọt qua</string>
+    <string name="pg_gen_building">Đang tạo dòng lệnh mới từ những gì đã hiệu quả</string>
+    <string name="pg_gen_new_badge">Mới · tạo từ bài kiểm tra của bạn</string>
+    <string name="pg_gen_how_tuned">Tinh chỉnh từ dòng tốt nhất</string>
+    <string name="pg_gen_how_combined">Kết hợp hai dòng mở được các trang khác nhau</string>
+    <string name="pg_gen_how_fallback">Chuyển sang cài đặt thứ hai khi trang bị chặn</string>
+    <string name="pg_gen_how_explored">Rút ra từ những gì bài kiểm tra học được</string>
+    <string name="pg_gen_how_from">%1$s: %2$s</string>
     <plurals name="pg_sites">
         <item quantity="other">%d trang</item>
     </plurals>
@@ -416,5 +424,8 @@
     </plurals>
     <plurals name="pg_list_preview">
         <item quantity="other">Sẽ kiểm tra %d trang</item>
+    </plurals>
+    <plurals name="pg_gen_probe_won">
+        <item quantity="other">Một kỹ thuật cơ bản hiệu quả nhất; không dòng nào trong %d dòng mới vượt qua được.</item>
     </plurals>
 </resources>

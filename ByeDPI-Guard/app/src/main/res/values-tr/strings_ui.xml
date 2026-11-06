@@ -393,6 +393,14 @@
     <string name="pg_ex_proto">Yalnızca %1$s trafiği için</string>
     <string name="pg_ex_hosts">Yalnızca listedeki siteler için</string>
     <string name="pg_ex_md5">Sahte paketleri sitenin yok sayacağı şekilde işaretler</string>
+    <string name="pg_gen_probing">Neyin geçtiğini öğrenmek için her temel teknik deneniyor</string>
+    <string name="pg_gen_building">İşe yarayanlardan yeni komut satırları oluşturuluyor</string>
+    <string name="pg_gen_new_badge">Yeni · testinizden oluşturuldu</string>
+    <string name="pg_gen_how_tuned">En iyi çalışandan geliştirildi</string>
+    <string name="pg_gen_how_combined">Farklı siteleri açan iki satırı birleştirir</string>
+    <string name="pg_gen_how_fallback">Bir site engellenirse ikinci bir ayara geçer</string>
+    <string name="pg_gen_how_explored">Testin öğrendiklerinden çıkarıldı</string>
+    <string name="pg_gen_how_from">%1$s: %2$s</string>
     <plurals name="pg_sites">
         <item quantity="one">%d site</item>
         <item quantity="other">%d site</item>
@@ -424,5 +432,9 @@
     <plurals name="pg_list_preview">
         <item quantity="one">%d site denenecek</item>
         <item quantity="other">%d site denenecek</item>
+    </plurals>
+    <plurals name="pg_gen_probe_won">
+        <item quantity="one">En iyi temel bir teknik çalıştı; oluşturulan %d yeni satır onu geçemedi.</item>
+        <item quantity="other">En iyi temel bir teknik çalıştı; oluşturulan %d yeni satırın hiçbiri onu geçemedi.</item>
     </plurals>
 </resources>
