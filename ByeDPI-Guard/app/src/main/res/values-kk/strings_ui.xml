@@ -301,6 +301,26 @@
     <string name="pg_adv_title">Қосымша параметрлер</string>
     <string name="pg_adv_subtitle">Профильдер, сайт тізімдері, әр сайттың нәтижесі</string>
     <string name="pg_adv_lists">Сайт тізімдерін өзгерту</string>
+    <string name="pg_mode_ready_title">Дайын профильдерді байқау</string>
+    <string name="pg_mode_ready_sub">Ең жылдамы. Қолданбадағы профильдерді тексереді.</string>
+    <string name="pg_mode_gen_title">Маған арнап жасау</string>
+    <string name="pg_mode_gen_sub">Қосылымыңызға жаңа командалық жолдар құрып, тексеріп, ең жақсысын қалдырады.</string>
+    <string name="pg_gen_quick">Жылдам · шамамен 3 мин</string>
+    <string name="pg_gen_thorough">Мұқият · шамамен 10 мин</string>
+    <string name="pg_gen_start">Командалық жолымды жасау</string>
+    <string name="pg_gen_checking">Қай сайттар бұғатталғаны тексерілуде…</string>
+    <string name="pg_gen_round">%2$d раундтың %1$d-сі</string>
+    <string name="pg_gen_verifying">Ең жақсылары қайта тексерілуде…</string>
+    <string name="pg_gen_failed">Іздеу аяқталмай тоқтады. Қайталап көріңіз.</string>
+    <string name="pg_gen_best_so_far_opens">Әзірге ең жақсысы %2$d бұғатталған сайттың %1$d-ін ашады</string>
+    <string name="pg_gen_idle">Іздеуден кейін командалық жолыңыз осында шығады.</string>
+    <string name="pg_gen_nothing_blocked">Жақсы жаңалық: қазір сайттарыңыздың ешқайсысы бұғатталмаған, айналып өту қажет емес.</string>
+    <string name="pg_gen_none_help">Бірде-бір командалық жол бұғатталған сайттарды аша алмады. Провайдер оларды Packet Guard айналып өте алмайтын тәсілмен бұғаттауы мүмкін.</string>
+    <string name="pg_gen_title_result">Сіздің командалық жолыңыз</string>
+    <string name="pg_gen_made">Сізге арнап жасалды</string>
+    <string name="pg_gen_opens">%2$d бұғатталған сайттың %1$d-ін ашады</string>
+    <string name="pg_gen_others">Жұмыс істейтін басқа командалық жолдар</string>
+    <string name="pg_gen_use">Осы командалық жолды пайдалану</string>
     <plurals name="pg_sites">
         <item quantity="one">%d сайт</item>
         <item quantity="other">%d сайт</item>
@@ -316,5 +336,13 @@
     <plurals name="pg_bench_finished">
         <item quantity="one">Дайын · %d профиль тексерілді</item>
         <item quantity="other">Дайын · %d профиль тексерілді</item>
+    </plurals>
+    <plurals name="pg_gen_tried">
+        <item quantity="one">%d командалық жол тексерілді</item>
+        <item quantity="other">%d командалық жол тексерілді</item>
+    </plurals>
+    <plurals name="pg_gen_finished">
+        <item quantity="one">Дайын · %d командалық жол тексерілді</item>
+        <item quantity="other">Дайын · %d командалық жол тексерілді</item>
     </plurals>
 </resources>

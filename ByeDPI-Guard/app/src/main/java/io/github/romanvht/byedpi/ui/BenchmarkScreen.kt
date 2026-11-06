@@ -36,6 +36,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
@@ -46,6 +47,7 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.HourglassTop
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.SentimentDissatisfied
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Tune
@@ -104,8 +106,13 @@ fun BenchmarkScreen(
 ) {
     val ctx = LocalContext.current
     val ui by vm.ui.collectAsStateWithLifecycle()
+    val gen by vm.generator.collectAsStateWithLifecycle()
+    val mode by vm.mode.collectAsStateWithLifecycle()
+    val plan by vm.plan.collectAsStateWithLifecycle()
     val test = ui.test
-    val running = test.isRunning
+    // Either kind of run blocks editing; the generator drives TestService itself.
+    val running = test.isRunning || gen.running
+    val generate = mode == BenchMode.Generate
 
     var editor by remember { mutableStateOf<ListEditorState?>(null) }
     var deleting by remember { mutableStateOf<ListItemUi?>(null) }
@@ -156,6 +163,8 @@ fun BenchmarkScreen(
         // Step 2 — run
         item(key = "step2") {
             StepCard(2, stringResource(R.string.pg_step2_title), Modifier.animateItem().staggeredEnter(2)) {
+                ModeChoice(mode, plan, enabled = !running, onMode = vm::selectMode, onPlan = vm::selectPlan)
+                Spacer(Modifier.height(14.dp))
                 AnimatedVisibility(
                     visible = bypassActive && !running,
                     enter = expandVertically() + fadeIn(),
@@ -169,25 +178,34 @@ fun BenchmarkScreen(
                 }
                 PrimaryButton(
                     text = when {
-                        test.isStopping -> stringResource(R.string.pg_stopping)
+                        test.isStopping || gen.stopping -> stringResource(R.string.pg_stopping)
                         running -> stringResource(R.string.pg_stop)
+                        generate -> stringResource(R.string.pg_gen_start)
                         else -> stringResource(R.string.pg_step2_start)
                     },
-                    icon = if (running) Icons.Filled.Stop else Icons.Filled.PlayArrow,
+                    icon = if (running) Icons.Filled.Stop else if (generate) Icons.Filled.AutoAwesome else Icons.Filled.PlayArrow,
                     onClick = { if (running) vm.stop() else vm.start() },
-                    enabled = !test.isStopping,
+                    enabled = !test.isStopping && !gen.stopping,
                     container = if (running) Palette.SurfaceHigher else Palette.AccentBlue,
                     modifier = Modifier.fillMaxWidth(),
                     height = 64
                 )
-                AnimatedVisibility(
-                    visible = running || test.strategies.isNotEmpty(),
-                    enter = expandVertically() + fadeIn(),
-                    exit = shrinkVertically() + fadeOut()
-                ) {
-                    BigProgress(test, ui, sni, customName)
+                if (generate) {
+                    AnimatedVisibility(
+                        visible = gen.running || gen.result != null || gen.failed,
+                        enter = expandVertically() + fadeIn(),
+                        exit = shrinkVertically() + fadeOut()
+                    ) { GenProgress(gen) }
+                } else {
+                    AnimatedVisibility(
+                        visible = running || test.strategies.isNotEmpty(),
+                        enter = expandVertically() + fadeIn(),
+                        exit = shrinkVertically() + fadeOut()
+                    ) {
+                        BigProgress(test, ui, sni, customName)
+                    }
                 }
-                if (!running && test.strategies.isEmpty()) {
+                if (!running && (if (generate) gen.result == null && !gen.failed else test.strategies.isEmpty())) {
                     BigHint(stringResource(R.string.pg_step2_keep_open), Modifier.padding(top = 12.dp))
                 }
             }
@@ -197,9 +215,15 @@ fun BenchmarkScreen(
         item(key = "step3") {
             StepCard(
                 3, stringResource(R.string.pg_step3_title), Modifier.animateItem().staggeredEnter(3),
-                highlight = winner != null && !running
+                highlight = !running && if (generate) gen.result?.command != null else winner != null
             ) {
-                ResultPanel(
+                if (generate) {
+                    GenResultPanel(
+                        gen = gen,
+                        applied = ui.applied,
+                        onApply = { command -> vm.apply(command, ctx.getString(R.string.pg_gen_made)) }
+                    )
+                } else ResultPanel(
                     winner = winner,
                     finished = anyDone && !running,
                     running = running,
@@ -210,7 +234,7 @@ fun BenchmarkScreen(
         }
 
         // Details for anyone who wants them
-        if (!dashboard.isEmpty) {
+        if (!generate && !dashboard.isEmpty) {
             item(key = "dashboard") {
                 ResultsDashboard(
                     dash = dashboard,
@@ -739,3 +763,235 @@ private fun checkboxColors() = CheckboxDefaults.colors(
     checkedColor = Palette.AccentBlue,
     uncheckedColor = Palette.Gray
 )
+
+// ---- command line generator -------------------------------------------------------------------
+
+/** Step 2's two ways to test, as big tiles; the generator also offers a quick or thorough search. */
+@Composable
+private fun ModeChoice(
+    mode: BenchMode,
+    plan: SearchPlan,
+    enabled: Boolean,
+    onMode: (BenchMode) -> Unit,
+    onPlan: (SearchPlan) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        ModeTile(
+            icon = Icons.Filled.PlayArrow,
+            title = stringResource(R.string.pg_mode_ready_title),
+            subtitle = stringResource(R.string.pg_mode_ready_sub),
+            selected = mode == BenchMode.ReadyMade,
+            enabled = enabled,
+            onClick = { onMode(BenchMode.ReadyMade) }
+        )
+        ModeTile(
+            icon = Icons.Filled.AutoAwesome,
+            title = stringResource(R.string.pg_mode_gen_title),
+            subtitle = stringResource(R.string.pg_mode_gen_sub),
+            selected = mode == BenchMode.Generate,
+            enabled = enabled,
+            onClick = { onMode(BenchMode.Generate) }
+        )
+        AnimatedVisibility(
+            visible = mode == BenchMode.Generate,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            Segmented(
+                items = SearchPlan.entries.toList(),
+                selected = plan,
+                onSelect = onPlan,
+                label = { stringResource(if (it == SearchPlan.Quick) R.string.pg_gen_quick else R.string.pg_gen_thorough) },
+                enabled = enabled
+            )
+        }
+    }
+}
+
+@Composable
+private fun ModeTile(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    selected: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit
+) {
+    val accent by animateFloatAsState(if (selected) 1f else 0f, tween(Motion.MEDIUM), label = "modeOn")
+    val border by animateColorAsState(if (selected) Palette.Glow else Glass.InsetBorder, tween(Motion.MEDIUM), label = "modeBorder")
+    val shape = RoundedCornerShape(18.dp)
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(Glass.Inset)
+            .background(Palette.Glow.copy(alpha = 0.16f * accent))
+            .border(if (selected) 2.dp else 1.dp, border, shape)
+            .clickable(enabled = enabled, role = Role.RadioButton, onClick = onClick)
+            .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(Palette.Sky.copy(alpha = 0.16f)),
+            contentAlignment = Alignment.Center
+        ) { Icon(icon, null, tint = Palette.Sky, modifier = Modifier.size(22.dp)) }
+        Spacer(Modifier.width(12.dp))
+        Column(Modifier.weight(1f)) {
+            Text(title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+            Text(subtitle, color = Palette.TextSecondary, fontSize = 13.sp, lineHeight = 18.sp)
+        }
+        Spacer(Modifier.width(8.dp))
+        Icon(
+            if (selected) Icons.Filled.CheckCircle else Icons.Filled.RadioButtonUnchecked,
+            null,
+            tint = if (selected) Palette.Success else Palette.TextSecondary,
+            modifier = Modifier.size(26.dp)
+        )
+    }
+}
+
+/** The search's progress: a big percentage, a thick bar and what it's doing in plain words. */
+@Composable
+private fun GenProgress(gen: GenState) {
+    val fraction = if (gen.budget == 0) 0f else (gen.done.toFloat() / gen.budget).coerceIn(0f, 1f)
+    val animated by animateFloatAsState(fraction, tween(Motion.SLOW), label = "genProgress")
+    val tried = (gen.done - 1).coerceAtLeast(0)
+    Column(Modifier.fillMaxWidth().padding(top = 18.dp)) {
+        Row(verticalAlignment = Alignment.Bottom) {
+            RollingText(stringResource(R.string.pg_percent, (animated * 100).toInt()), fontSize = 34.sp)
+            Spacer(Modifier.width(10.dp))
+            if (gen.running) {
+                Icon(Icons.Filled.HourglassTop, null, tint = Palette.Sky, modifier = Modifier.padding(bottom = 8.dp).size(20.dp))
+            }
+        }
+        ProgressBar(animated, Modifier.padding(vertical = 10.dp))
+        val label = when {
+            gen.stopping -> stringResource(R.string.pg_stopping)
+            gen.failed && !gen.running -> stringResource(R.string.pg_gen_failed)
+            gen.phase == GenPhase.Checking -> stringResource(R.string.pg_gen_checking)
+            gen.phase == GenPhase.Searching ->
+                stringResource(R.string.pg_gen_round, gen.round, gen.rounds) + "\n" +
+                    pluralStringResource(R.plurals.pg_gen_tried, tried, tried)
+            gen.phase == GenPhase.Verifying -> stringResource(R.string.pg_gen_verifying)
+            gen.result != null -> pluralStringResource(R.plurals.pg_gen_finished, gen.result.tested, gen.result.tested)
+            else -> ""
+        }
+        AnimatedContent(
+            targetState = label,
+            transitionSpec = { fadeIn(tween(Motion.MEDIUM)) togetherWith fadeOut(tween(Motion.FAST)) },
+            label = "genStatus"
+        ) { BigHint(it, color = if (gen.failed && !gen.running) Palette.Warning else Color.White) }
+        val leader = gen.leader
+        if (gen.running && leader != null) {
+            BigHint(
+                stringResource(R.string.pg_gen_best_so_far_opens, leader.opened, leader.sites),
+                Modifier.padding(top = 6.dp),
+                color = Palette.Sky
+            )
+        }
+    }
+}
+
+/** Step 3 for the generator: the command line it made, in plain words, with one big button. */
+@Composable
+private fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) -> Unit) {
+    val result = gen.result
+    val state = when {
+        gen.running -> 0
+        result == null -> 0
+        result.nothingBlocked -> 1
+        result.command == null -> 2
+        else -> 3
+    }
+    AnimatedContent(
+        targetState = state,
+        transitionSpec = {
+            (fadeIn(tween(Motion.SLOW)) + scaleIn(tween(Motion.SLOW), initialScale = 0.96f)) togetherWith fadeOut(tween(Motion.FAST))
+        },
+        label = "genResult"
+    ) { st ->
+        when (st) {
+            0 -> BigNote(Icons.Filled.AutoAwesome, Palette.TextSecondary, stringResource(R.string.pg_gen_idle))
+            1 -> BigNote(Icons.Filled.CheckCircle, Palette.Success, stringResource(R.string.pg_gen_nothing_blocked), bold = true)
+            2 -> Column {
+                BigNote(Icons.Filled.SentimentDissatisfied, Palette.Warning, stringResource(R.string.pg_step3_none_title), bold = true)
+                BigHint(stringResource(R.string.pg_gen_none_help), Modifier.padding(top = 8.dp))
+            }
+            else -> {
+                val r = result ?: return@AnimatedContent
+                val command = r.command ?: return@AnimatedContent
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            Modifier.size(52.dp).clip(RoundedCornerShape(16.dp)).background(Palette.Warning.copy(alpha = 0.16f)),
+                            contentAlignment = Alignment.Center
+                        ) { Icon(Icons.Filled.AutoAwesome, null, tint = Palette.Warning, modifier = Modifier.size(28.dp)) }
+                        Spacer(Modifier.width(14.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(stringResource(R.string.pg_gen_made), color = Palette.TextSecondary, fontSize = 14.sp)
+                            Text(stringResource(R.string.pg_gen_title_result), fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    Text(
+                        command,
+                        fontFamily = FontFamily.Monospace, fontSize = 15.sp, color = Palette.Sky,
+                        modifier = Modifier.fillMaxWidth().padding(top = 14.dp).glassInset().padding(horizontal = 14.dp, vertical = 12.dp)
+                    )
+                    Fact(
+                        Icons.Filled.CheckCircle,
+                        scoreColor(percentOf(r.opened, r.blocked)),
+                        stringResource(R.string.pg_gen_opens, r.opened, r.blocked),
+                        Modifier.padding(top = 10.dp)
+                    )
+                    r.latencyMs?.let { ms ->
+                        val speed = Speed.of(ms)
+                        Fact(
+                            Icons.Filled.Bolt,
+                            when (speed) {
+                                Speed.Fast -> Palette.Success
+                                Speed.Ok -> Palette.Warning
+                                Speed.Slow -> Palette.Error
+                            },
+                            stringResource(R.string.pg_step3_speed, stringResource(speed.label)) + "  ·  " +
+                                stringResource(R.string.pg_ms, ms),
+                            Modifier.padding(top = 8.dp)
+                        )
+                    }
+                    val inUse = applied == command
+                    PrimaryButton(
+                        text = stringResource(if (inUse) R.string.pg_step3_in_use else R.string.pg_gen_use),
+                        icon = if (inUse) Icons.Filled.Check else null,
+                        onClick = { onApply(command) },
+                        enabled = !inUse,
+                        modifier = Modifier.fillMaxWidth().padding(top = 18.dp),
+                        height = 60
+                    )
+                    if (r.alternatives.isNotEmpty()) {
+                        Text(
+                            stringResource(R.string.pg_gen_others), color = Palette.TextSecondary, fontSize = 14.sp,
+                            modifier = Modifier.padding(top = 18.dp, bottom = 6.dp)
+                        )
+                        r.alternatives.forEach { alt ->
+                            Row(
+                                Modifier.fillMaxWidth().padding(vertical = 4.dp).glassInset().padding(start = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(Modifier.weight(1f).padding(vertical = 8.dp)) {
+                                    Text(alt.command, fontFamily = FontFamily.Monospace, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                    Text(
+                                        stringResource(R.string.pg_gen_opens, alt.opened, alt.sites) +
+                                            (alt.latencyMs?.let { "  ·  " + stringResource(R.string.pg_ms, it) } ?: ""),
+                                        color = Palette.TextSecondary, fontSize = 12.sp
+                                    )
+                                }
+                                TextButton(onClick = { onApply(alt.command) }, enabled = applied != alt.command) {
+                                    Text(stringResource(if (applied == alt.command) R.string.pg_step3_in_use else R.string.pg_apply))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

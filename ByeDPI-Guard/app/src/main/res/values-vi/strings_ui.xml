@@ -301,6 +301,26 @@
     <string name="pg_adv_title">Tùy chọn nâng cao</string>
     <string name="pg_adv_subtitle">Chọn cấu hình, sửa danh sách trang, xem từng trang</string>
     <string name="pg_adv_lists">Sửa danh sách trang</string>
+    <string name="pg_mode_ready_title">Thử cấu hình có sẵn</string>
+    <string name="pg_mode_ready_sub">Nhanh nhất. Kiểm tra các cấu hình đi kèm ứng dụng.</string>
+    <string name="pg_mode_gen_title">Tạo riêng cho tôi</string>
+    <string name="pg_mode_gen_sub">Tạo các dòng lệnh mới cho kết nối của bạn, kiểm tra và giữ dòng lệnh tốt nhất.</string>
+    <string name="pg_gen_quick">Nhanh · khoảng 3 phút</string>
+    <string name="pg_gen_thorough">Kỹ · khoảng 10 phút</string>
+    <string name="pg_gen_start">Tạo dòng lệnh của tôi</string>
+    <string name="pg_gen_checking">Đang kiểm tra trang nào bị chặn…</string>
+    <string name="pg_gen_round">Vòng %1$d / %2$d</string>
+    <string name="pg_gen_verifying">Đang kiểm tra lại các lựa chọn tốt nhất…</string>
+    <string name="pg_gen_failed">Quá trình tìm kiếm đã dừng trước khi xong. Vui lòng thử lại.</string>
+    <string name="pg_gen_best_so_far_opens">Tốt nhất hiện tại mở được %1$d / %2$d trang bị chặn</string>
+    <string name="pg_gen_idle">Dòng lệnh của bạn sẽ hiện ở đây sau khi tìm xong.</string>
+    <string name="pg_gen_nothing_blocked">Tin vui: hiện không trang nào của bạn bị chặn, nên không cần vượt chặn.</string>
+    <string name="pg_gen_none_help">Không dòng lệnh nào mở được các trang bị chặn. Nhà mạng có thể chặn chúng theo cách Packet Guard không vượt qua được.</string>
+    <string name="pg_gen_title_result">Dòng lệnh của bạn</string>
+    <string name="pg_gen_made">Tạo riêng cho bạn</string>
+    <string name="pg_gen_opens">Mở được %1$d / %2$d trang bị chặn</string>
+    <string name="pg_gen_others">Các dòng lệnh khác cũng hoạt động</string>
+    <string name="pg_gen_use">Dùng dòng lệnh này</string>
     <plurals name="pg_sites">
         <item quantity="other">%d trang</item>
     </plurals>
@@ -312,5 +332,11 @@
     </plurals>
     <plurals name="pg_bench_finished">
         <item quantity="other">Xong · đã kiểm tra %d cấu hình</item>
+    </plurals>
+    <plurals name="pg_gen_tried">
+        <item quantity="other">Đã thử %d dòng lệnh</item>
+    </plurals>
+    <plurals name="pg_gen_finished">
+        <item quantity="other">Xong · đã thử %d dòng lệnh</item>
     </plurals>
 </resources>

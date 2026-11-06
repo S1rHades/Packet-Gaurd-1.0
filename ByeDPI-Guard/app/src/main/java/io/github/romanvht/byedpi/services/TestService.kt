@@ -38,6 +38,9 @@ class TestService : Service() {
         private const val CHANNEL = "Proxy test"
         private const val RESULTS_FILE = "proxy_test_results.json"
         private const val NOTIFICATION_ID = 4
+
+        /** When set (one domain per line), a run tests these sites instead of the active link lists. */
+        const val SITES_OVERRIDE_PREF = "bb_test_sites_override"
         private val mutableState = MutableStateFlow(TestState())
         private val resultsLock = Any()
         val state: StateFlow<TestState> = mutableState.asStateFlow()
@@ -352,7 +355,10 @@ class TestService : Service() {
         val requestTimeout = prefs.getLongStringNotNull("byedpi_proxytest_timeout", 5).coerceAtLeast(1)
         val requestLimit = prefs.getIntStringNotNull("byedpi_proxytest_limit", 20).coerceAtLeast(1)
         DomainListUtils.syncLists(this)
-        return TestSettings(DomainListUtils.getActiveDomains(this).toList(), commands, host, port,
+        // The command line generator narrows a run to the sites that are actually blocked.
+        val override = prefs.getStringNotNull(SITES_OVERRIDE_PREF, "").lines().map { it.trim() }.filter { it.isNotEmpty() }
+        val sites = override.ifEmpty { DomainListUtils.getActiveDomains(this).toList() }
+        return TestSettings(sites, commands, host, port,
             delaySec, requestsCount, requestTimeout, requestLimit)
     }
 
