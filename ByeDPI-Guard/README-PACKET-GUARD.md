@@ -4,6 +4,20 @@ Packet Guard is an Android DPI-bypass app built on [ByeByeDPI](https://github.co
 (GPL-3.0). It keeps upstream's native engine (ByeDPI + hev-socks5-tunnel) and service layer, and
 replaces the whole interface with a single Jetpack Compose app.
 
+## Version 2.5.0
+
+- In-app updates: Packet Guard finds, downloads and installs new versions itself
+- A banner on the Connect screen when an update is out, with one Update button
+- Settings → About → Updates shows your version, what's new, and an automatic-check switch
+
+Details: the app reads this repository's latest GitHub release (`update/Updater.kt`), downloads its
+`PacketGuard-v<version>-universal.apk` and hands it to Android's package installer, which asks you to
+confirm; the system install screen is the fallback. Releases are signed with the same key, so updates
+install in place and keep your settings. It checks shortly after the app opens and every 6 hours while
+it's open, unless the switch is off. CI now copies each version's section of this changelog into its
+release description, which is where "What's new" comes from. The repository must be public for phones
+to see its releases.
+
 ## Version 2.4.0
 
 - **Command line generator:** Benchmark step 2 now offers *Make one just for me* next to the ready-made
