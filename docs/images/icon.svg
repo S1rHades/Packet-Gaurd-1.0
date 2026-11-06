@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="108" height="108" viewBox="0 0 108 108" role="img" aria-label="Packet Guard app icon">
+  <title>Packet Guard</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#16213B"/>
+      <stop offset="1" stop-color="#0F172A"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.45" r="0.5">
+      <stop offset="0" stop-color="#3B82F6" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#3B82F6" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="shield" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#60A5FA"/>
+      <stop offset="1" stop-color="#1E40AF"/>
+    </linearGradient>
+  </defs>
+  <rect width="108" height="108" rx="26" fill="url(#bg)"/>
+  <rect x="0.5" y="0.5" width="107" height="107" rx="25.5" fill="none" stroke="#ffffff" stroke-opacity="0.12"/>
+  <circle cx="54" cy="50" r="44" fill="url(#glow)"/>
+  <path d="M54,26.7L73.76,34.5Q76.36,35.54 76.36,38.14L76.36,51.4C76.36,65.18 67.26,76.62 54,81.56C40.74,76.62 31.64,65.18 31.64,51.4L31.64,38.14Q31.64,35.54 34.24,34.5Z" fill="url(#shield)"/>
+  <path d="M54,26.7L34.24,34.5Q31.64,35.54 31.64,38.14L31.64,51.4C31.64,65.18 40.74,76.62 54,81.56Z" fill="#ffffff" fill-opacity="0.13"/>
+  <path d="M43.86,54.26L50.88,61.28L64.4,47.5" fill="none" stroke="#ffffff" stroke-width="4.94" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

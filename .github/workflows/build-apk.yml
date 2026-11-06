@@ -83,6 +83,11 @@ jobs:
             abi=$(basename "$f" .apk | sed -e 's/^app-//' -e "s/-$VARIANT\$//")
             cp "$f" "../dist/PacketGuard-v${{ steps.version.outputs.name }}-${abi}${SUFFIX}.apk"
           done
+          # A copy under a name that never changes, for the README's download link
+          # (releases/latest/download/PacketGuard.apk).
+          if [ "$VARIANT" = release ]; then
+            cp "../dist/PacketGuard-v${{ steps.version.outputs.name }}-universal.apk" ../dist/PacketGuard.apk
+          fi
           ls -l ../dist
 
       - uses: actions/upload-artifact@v4
@@ -102,11 +107,11 @@ jobs:
             exit 0
           fi
           # The app's updater shows the first bullets under "## What's new", so copy this
-          # version's section of the changelog in README-PACKET-GUARD.md.
-          NOTES=$(awk -v v="## Version ${{ steps.version.outputs.name }}" '
-            $0 == v { on = 1; next }
+          # version's section of CHANGELOG.md ("## 2.5.1 (November 2026)").
+          NOTES=$(awk -v v="## ${{ steps.version.outputs.name }} " '
+            index($0, v) == 1 || $0 == substr(v, 1, length(v) - 1) { on = 1; next }
             on && /^## / { exit }
-            on { print }' README-PACKET-GUARD.md)
+            on { print }' ../CHANGELOG.md)
           {
             echo "## What's new"
             echo
@@ -114,7 +119,7 @@ jobs:
             echo
             echo "## Install"
             echo
-            echo "Download PacketGuard-$TAG-universal.apk below and install it on your Android phone. It works on every device; the other files are smaller per-processor builds. Packet Guard 2.5.0 and later can also update themselves: Settings → About → Updates."
+            echo "Download PacketGuard.apk below and install it on your Android phone; it works on every device. The other files are the same version: one named after it, and smaller per-processor builds. Packet Guard 2.5.0 and later update themselves: Settings → About → Updates."
           } > "$RUNNER_TEMP/notes.md"
           gh release create "$TAG" ../dist/*.apk \
             --repo "${{ github.repository }}" \

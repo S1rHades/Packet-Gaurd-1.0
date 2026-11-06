@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="190" height="56" viewBox="0 0 190 56" role="img" aria-label="What's new: the changelog">
+  <title>What's new</title>
+  <rect width="190" height="56" rx="28" fill="#131C31" fill-opacity="0.9"/>
+  <rect x="0.5" y="0.5" width="189" height="55" rx="27.5" fill="none" stroke="#ffffff" stroke-opacity="0.22"/>
+  <g fill="none" stroke="#60A5FA" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" transform="translate(24 16)">
+    <path d="M12 2.5l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 8.8l6.1-.7z"/>
+  </g>
+  <g fill="#ffffff" font-family="Inter, 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif">
+    <text x="60" y="26" font-size="17" font-weight="700" textLength="100" lengthAdjust="spacingAndGlyphs">What’s new</text>
+    <text x="60" y="43" font-size="12" fill-opacity="0.8" textLength="80" lengthAdjust="spacingAndGlyphs">The changelog</text>
+  </g>
+</svg>
