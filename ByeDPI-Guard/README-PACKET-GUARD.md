@@ -4,6 +4,18 @@ Packet Guard is an Android DPI-bypass app built on [ByeByeDPI](https://github.co
 (GPL-3.0). It keeps upstream's native engine (ByeDPI + hev-socks5-tunnel) and service layer, and
 replaces the whole interface with a single Jetpack Compose app.
 
+## Version 2.2.0
+
+- **Results dashboard:** the Benchmark screen's "All results" leaderboard is replaced by a glass-style dashboard,
+  shown right under Start Optimization so results are the first thing after a run:
+  - headline cards for the fastest profile, sites unlocked, the most reliable profile and how many profiles work,
+    each with a trend sparkline;
+  - a chart comparing the 8 best profiles by latency, reach or success rate; tap a bar to see that profile's
+    numbers, how many sites of each link list it opens, and apply it;
+  - a link list breakdown showing how much of each list could be opened, its average latency and best profile,
+    with "Most open" and "Fastest" badges.
+- Dashboard numbers come from `DashboardModel.kt` and are covered by unit tests.
+
 ## Version 2.1.0
 
 - **Signed releases:** release APKs are signed with a fixed key from repository secrets, so they update in place.
@@ -48,6 +60,7 @@ app/src/main/java/io/github/romanvht/byedpi/
     ├── ShieldButton        shield shape + animated connect control
     ├── ConnectScreen + ConnectViewModel
     ├── BenchmarkScreen + BenchmarkViewModel + BenchModel (ranking, per-domain best)
+    ├── Dashboard + DashboardModel   results dashboard (KPI cards, profile chart, list breakdown)
     ├── SettingsScreen      tab host + reconnect banner
     │   ├── SettingsGeneral    mode, behavior, DNS, IPv6, per-app routing, proxy address, system
     │   ├── SettingsStrategy   command-line strategy editor + saved strategy history
