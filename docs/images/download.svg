@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="56" viewBox="0 0 300 56" role="img" aria-label="Download Packet Guard: latest APK for Android">
+  <title>Download Packet Guard</title>
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#1E40AF"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="56" rx="28" fill="url(#g)"/>
+  <rect x="0.5" y="0.5" width="299" height="55" rx="27.5" fill="none" stroke="#ffffff" stroke-opacity="0.25"/>
+  <g fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" transform="translate(26 16)">
+    <path d="M12 3v13M6.5 10.5 12 16l5.5-5.5M4 21h16"/>
+  </g>
+  <g fill="#ffffff" font-family="Inter, 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif">
+    <text x="64" y="26" font-size="17" font-weight="700" textLength="200" lengthAdjust="spacingAndGlyphs">Download Packet Guard</text>
+    <text x="64" y="43" font-size="12" fill-opacity="0.85" textLength="150" lengthAdjust="spacingAndGlyphs">Android 5+ · latest APK</text>
+  </g>
+</svg>

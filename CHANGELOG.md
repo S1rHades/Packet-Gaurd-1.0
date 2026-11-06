@@ -1,10 +1,20 @@
-# Packet Guard
+# Changelog
 
-Packet Guard is an Android DPI-bypass app built on [ByeByeDPI](https://github.com/romanvht/ByeDPIAndroid)
-(GPL-3.0). It keeps upstream's native engine (ByeDPI + hev-socks5-tunnel) and service layer, and
-replaces the whole interface with a single Jetpack Compose app.
+Every version is built from `main` and published as a signed release on the
+[Releases page](https://github.com/S1rHades/Packet-Gaurd-1.0/releases). The app can update itself
+from 2.5.0 on (**Settings → About → Updates**); earlier versions are installed by hand.
 
-## Version 2.5.0
+The first lines under each version are what the app shows as "What's new", so keep them short.
+
+## 2.5.1 (November 2026)
+
+- A new README with a tour of the app and screenshots
+- A download link that always gets the newest version
+- The changelog now has its own page
+
+No changes to the app itself; this release also tries out in-app updates from 2.5.0.
+
+## 2.5.0 (November 2026)
 
 - In-app updates: Packet Guard finds, downloads and installs new versions itself
 - A banner on the Connect screen when an update is out, with one Update button
@@ -15,10 +25,9 @@ Details: the app reads this repository's latest GitHub release (`update/Updater.
 confirm; the system install screen is the fallback. Releases are signed with the same key, so updates
 install in place and keep your settings. It checks shortly after the app opens and every 6 hours while
 it's open, unless the switch is off. CI now copies each version's section of this changelog into its
-release description, which is where "What's new" comes from. The repository must be public for phones
-to see its releases.
+release description, which is where "What's new" comes from.
 
-## Version 2.4.0
+## 2.4.0 (November 2026)
 
 - **Command line generator:** Benchmark step 2 now offers *Make one just for me* next to the ready-made
   profiles. It builds a ciadpi command line for your connection:
@@ -34,7 +43,7 @@ to see its releases.
   Candidates are built only from options the bundled ByeDPI 17.3 supports (`CommandSearch.kt`, unit-tested);
   `CommandGenerator.kt` runs the rounds through the existing test service.
 
-## Version 2.3.0
+## 2.3.0 (November 2026)
 
 - **One look everywhere:** every screen now uses the dashboard's glass design: translucent panels over soft blue
   glows (`Glass.kt`), accent-gradient buttons, pills and tabs, glass inputs and a glass navigation bar.
@@ -47,7 +56,7 @@ to see its releases.
   The results dashboard follows, and profile packs, list editing and per-site results are in a collapsed
   *Advanced options* section.
 
-## Version 2.2.0
+## 2.2.0 (November 2026)
 
 - **Results dashboard:** the Benchmark screen's "All results" leaderboard is replaced by a glass-style dashboard,
   shown right under Start Optimization so results are the first thing after a run:
@@ -59,7 +68,7 @@ to see its releases.
     with "Most open" and "Fastest" badges.
 - Dashboard numbers come from `DashboardModel.kt` and are covered by unit tests.
 
-## Version 2.1.0
+## 2.1.0 (November 2026)
 
 - **Signed releases:** release APKs are signed with a fixed key from repository secrets, so they update in place.
   Releases are published only from `main`, once per version. See [Release signing](#release-signing).
@@ -72,7 +81,7 @@ to see its releases.
 - **Clean-up:** removed resources, dependencies and placeholder tests that only the old View interface used,
   plus upstream's nested `.github` folder. Bug and feature templates now live in the repository's `.github`.
 
-## Version 2.0.0
+## 2.0.0 (October 2026)
 
 - **Rebrand:** the app is named Packet Guard, with application id `com.packetguard.app`, and has a new shield launcher, notification and tile icon.
   The Kotlin namespace stays `io.github.romanvht.byedpi` because the native JNI symbols are bound to it.
@@ -85,80 +94,3 @@ to see its releases.
   menus, preference XML) and the unused storage permissions.
 - **Motion:** tab and screen transitions, staggered card entry, press feedback, animated progress,
   rolling metrics, expand/collapse for conditional settings.
-
-## Architecture
-
-```
-app/src/main/java/io/github/romanvht/byedpi/
-├── core/        native bridges (ByeDpiProxy, TProxyService) – upstream
-├── services/    ByeDpiVpnService, ByeDpiProxyService, ServiceManager, TestService, QuickTile – upstream
-├── data/        settings models, TestState/TestResult (latency + HTTP code added)
-├── utility/     preferences, history, domain lists, site checks, settings backup – upstream
-├── receiver/    boot + notification actions – upstream
-├── activities/  ToggleActivity (home-screen shortcuts) – upstream
-└── ui/          Packet Guard (Compose)
-    ├── ModernActivity      single activity; handles "open_tab" intents
-    ├── AppRoot             scaffold, bottom navigation, permissions, auto-connect
-    ├── Theme / Glass / Motion / Components   palette, glass surfaces, typography, animation, shared controls
-    ├── ShieldButton        shield shape + animated connect control
-    ├── ConnectScreen + ConnectViewModel
-    ├── BenchmarkScreen + BenchmarkViewModel + BenchModel (ranking, per-domain best)
-    ├── Dashboard + DashboardModel   results dashboard (KPI cards, profile chart, list breakdown)
-    ├── SettingsScreen      tab host + reconnect banner
-    │   ├── SettingsGeneral    mode, behavior, DNS, IPv6, per-app routing, proxy address, system
-    │   ├── SettingsStrategy   command-line strategy editor + saved strategy history
-    │   ├── SettingsEngine     visual desync editor (upstream "UI settings")
-    │   ├── SettingsBenchmark  test parameters + custom profiles
-    │   └── SettingsAbout      backup/restore/reset, diagnostics, credits
-    ├── AppPicker           per-app routing selector
-    └── StrategyApplier     saves + applies a strategy, restarts the service if running
-```
-
-All settings use upstream's SharedPreferences keys and value types, so the engine reads them unchanged.
-
-## Languages
-
-The interface ships in English (the default), Russian, Turkish, Kazakh and Vietnamese, following the
-phone's language. Compose screens read their text from `res/values*/strings_ui.xml` (keys start with
-`pg_`); notifications, the tile and the diagnostic report use the remaining upstream strings in
-`strings.xml`. Add a key to every locale when you add one to `values/strings_ui.xml`.
-
-## Building and releases
-
-`.github/workflows/build-apk.yml` runs on every push and pull request. It runs the unit tests and lint,
-builds the APKs and attaches them to the run as an artifact.
-
-A GitHub release is published only from `main`, and only once per `versionName`: bump `versionName`
-and `versionCode` in `app/build.gradle.kts` to ship a new one (tag `v<versionName>`). Releases contain
-`PacketGuard-v<version>-universal.apk` plus per-ABI builds.
-
-### Release signing
-
-Android installs an update only when it has the same signature as the installed app, so every release
-must be signed with the same key. The workflow reads it from these repository secrets
-(Settings → Secrets and variables → Actions):
-
-| Secret | Value |
-| --- | --- |
-| `KEYSTORE_BASE64` | the keystore file, base64-encoded (`base64 -w0 release.jks`) |
-| `KEYSTORE_PASSWORD` | the keystore password |
-| `KEY_ALIAS` | the key alias |
-| `KEY_PASSWORD` | the key password |
-
-Create the keystore once and keep a backup: losing it means users have to uninstall to update.
-
-```
-keytool -genkeypair -v -keystore release.jks -alias packetguard -keyalg RSA -keysize 4096 -validity 10000
-```
-
-Without these secrets the workflow builds debug-signed APKs and does not publish a release. Builds
-released before signing was set up (`v2.0.0-buildN`) are debug-signed, so moving to the first signed
-release needs one uninstall; settings can be carried over with Settings → About → Export settings.
-
-To build locally: `./gradlew testDebugUnitTest lintDebug assembleDebug`. For a signed release, set
-`PG_KEYSTORE_FILE`, `PG_KEYSTORE_PASSWORD`, `PG_KEY_ALIAS` and `PG_KEY_PASSWORD`, then run
-`./gradlew assembleRelease`.
-
-## License
-
-GPL-3.0, inherited from ByeByeDPI and ByeDPI. hev-socks5-tunnel is MIT.
