@@ -126,7 +126,7 @@ fun AppRoot(requestedTab: Tab? = null, onTabRequestHandled: () -> Unit = {}) {
         when (state) {
             is ConnectionState.Connected, ConnectionState.Connecting -> connectVm.disconnect()
             else -> when {
-                TestService.isRunning -> say(ctx.getString(R.string.pg_benchmark_running))
+                TestService.isRunning || CommandGenerator.isRunning -> say(ctx.getString(R.string.pg_benchmark_running))
                 else -> {
                     val consent = if (ctx.getPreferences().mode() == Mode.VPN) VpnService.prepare(ctx) else null
                     if (consent != null) vpnPermission.launch(consent) else connectVm.connect()
@@ -146,7 +146,7 @@ fun AppRoot(requestedTab: Tab? = null, onTabRequestHandled: () -> Unit = {}) {
             requestBatteryOnce(ctx)
         }
         if (ctx.getPreferences().getBoolean("auto_connect", false) &&
-            state is ConnectionState.Disconnected && !TestService.isRunning
+            state is ConnectionState.Disconnected && !TestService.isRunning && !CommandGenerator.isRunning
         ) toggle()
     }
 

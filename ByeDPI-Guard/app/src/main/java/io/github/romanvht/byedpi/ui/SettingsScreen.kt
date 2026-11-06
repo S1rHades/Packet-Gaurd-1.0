@@ -128,7 +128,7 @@ fun SettingsScreen(
 
 /** Restarts the running service so it picks up new preferences. */
 fun reconnect(ctx: Context): String {
-    if (TestService.isRunning) return ctx.getString(R.string.pg_reconnect_stop_bench)
+    if (TestService.isRunning || CommandGenerator.isRunning) return ctx.getString(R.string.pg_reconnect_stop_bench)
     if (appStatus.first != AppStatus.Running) return ctx.getString(R.string.pg_reconnect_later)
     val mode = ctx.getPreferences().mode()
     if (mode == Mode.VPN && VpnService.prepare(ctx) != null) return ctx.getString(R.string.pg_reconnect_grant_vpn)

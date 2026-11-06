@@ -301,6 +301,26 @@
     <string name="pg_adv_title">Gelişmiş seçenekler</string>
     <string name="pg_adv_subtitle">Profil seçimi, site listeleri, site bazında sonuçlar</string>
     <string name="pg_adv_lists">Site listelerini düzenle</string>
+    <string name="pg_mode_ready_title">Hazır profilleri dene</string>
+    <string name="pg_mode_ready_sub">En hızlısı. Uygulamayla gelen profilleri test eder.</string>
+    <string name="pg_mode_gen_title">Bana özel oluştur</string>
+    <string name="pg_mode_gen_sub">Bağlantınız için yeni komut satırları oluşturur, test eder ve en iyisini tutar.</string>
+    <string name="pg_gen_quick">Hızlı · yaklaşık 3 dk</string>
+    <string name="pg_gen_thorough">Kapsamlı · yaklaşık 10 dk</string>
+    <string name="pg_gen_start">Komut satırımı oluştur</string>
+    <string name="pg_gen_checking">Hangi sitelerin engellendiği kontrol ediliyor…</string>
+    <string name="pg_gen_round">Tur %1$d / %2$d</string>
+    <string name="pg_gen_verifying">En iyiler yeniden kontrol ediliyor…</string>
+    <string name="pg_gen_failed">Arama bitmeden durdu. Lütfen tekrar deneyin.</string>
+    <string name="pg_gen_best_so_far_opens">Şimdilik en iyisi %2$d engelli sitenin %1$d tanesini açıyor</string>
+    <string name="pg_gen_idle">Arama bitince komut satırınız burada görünecek.</string>
+    <string name="pg_gen_nothing_blocked">İyi haber: şu anda sitelerinizin hiçbiri engelli değil, atlatmaya gerek yok.</string>
+    <string name="pg_gen_none_help">Hiçbir komut satırı engelli sitelerinizi açamadı. Sağlayıcınız onları Packet Guard’ın aşamayacağı bir yolla engelliyor olabilir.</string>
+    <string name="pg_gen_title_result">Komut satırınız</string>
+    <string name="pg_gen_made">Size özel</string>
+    <string name="pg_gen_opens">%2$d engelli sitenin %1$d tanesini açıyor</string>
+    <string name="pg_gen_others">Çalışan diğer komut satırları</string>
+    <string name="pg_gen_use">Bu komut satırını kullan</string>
     <plurals name="pg_sites">
         <item quantity="one">%d site</item>
         <item quantity="other">%d site</item>
@@ -316,5 +336,13 @@
     <plurals name="pg_bench_finished">
         <item quantity="one">Bitti · %d profil test edildi</item>
         <item quantity="other">Bitti · %d profil test edildi</item>
+    </plurals>
+    <plurals name="pg_gen_tried">
+        <item quantity="one">%d komut satırı denendi</item>
+        <item quantity="other">%d komut satırı denendi</item>
+    </plurals>
+    <plurals name="pg_gen_finished">
+        <item quantity="one">Bitti · %d komut satırı denendi</item>
+        <item quantity="other">Bitti · %d komut satırı denendi</item>
     </plurals>
 </resources>

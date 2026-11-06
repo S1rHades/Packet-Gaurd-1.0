@@ -1,0 +1,202 @@
+package io.github.romanvht.byedpi.ui
+
+import android.content.Context
+import android.util.Log
+import androidx.core.content.edit
+import com.google.gson.Gson
+import io.github.romanvht.byedpi.data.StrategyResult
+import io.github.romanvht.byedpi.services.TestService
+import io.github.romanvht.byedpi.utility.getPreferences
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+enum class GenPhase { Idle, Checking, Searching, Verifying, Done }
+
+/** Another command line that also worked, offered next to the winner. */
+data class GenAlternative(val command: String, val opened: Int, val sites: Int, val latencyMs: Long?)
+
+/** What a finished search found. Counts are over the sites that were blocked without a bypass. */
+data class GenResult(
+    /** The winning command line; null when nothing worked or nothing was blocked. */
+    val command: String?,
+    val opened: Int,
+    val blocked: Int,
+    val latencyMs: Long?,
+    /** All sites checked, blocked or not. */
+    val totalSites: Int,
+    val tested: Int,
+    val alternatives: List<GenAlternative> = emptyList()
+) {
+    val nothingBlocked: Boolean get() = blocked == 0
+}
+
+data class GenState(
+    val running: Boolean = false,
+    val stopping: Boolean = false,
+    val phase: GenPhase = GenPhase.Idle,
+    val round: Int = 0,
+    val rounds: Int = 0,
+    /** Candidates finished so far and the most the plan will test (for the progress bar). */
+    val done: Int = 0,
+    val budget: Int = 0,
+    val leader: Scored? = null,
+    val result: GenResult? = null,
+    val failed: Boolean = false
+)
+
+/**
+ * Runs a [CommandSearch] through the regular [TestService]: each round is one test run with the
+ * round's candidates as its command list, limited to the sites that were blocked without a bypass.
+ * Lives outside any screen so the search survives leaving the Benchmark tab.
+ */
+object CommandGenerator {
+    private const val TAG = "CommandGenerator"
+    private const val PREF_RESULT = "bb_gen_result"
+    private const val PREF_USER_COMMANDS = "byedpi_proxytest_usercommands"
+    private const val PREF_TEST_COMMANDS = "byedpi_proxytest_commands"
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val gson = Gson()
+    private val mutable = MutableStateFlow(GenState())
+    val state: StateFlow<GenState> = mutable.asStateFlow()
+    private var job: Job? = null
+    @Volatile private var stopRequested = false
+
+    val isRunning: Boolean get() = job?.isActive == true
+
+    /** Restores the last result after the app was closed. */
+    fun load(ctx: Context) {
+        if (isRunning || mutable.value.result != null) return
+        val json = ctx.getPreferences().getString(PREF_RESULT, null) ?: return
+        runCatching { gson.fromJson(json, GenResult::class.java) }.getOrNull()?.let { saved ->
+            mutable.value = GenState(phase = GenPhase.Done, result = saved)
+        }
+    }
+
+    /** Forgets the last result, e.g. when a regular benchmark starts. */
+    fun clear(ctx: Context) {
+        if (isRunning) return
+        ctx.getPreferences().edit { remove(PREF_RESULT) }
+        mutable.value = GenState()
+    }
+
+    fun start(ctx: Context, plan: SearchPlan) {
+        if (isRunning || TestService.isRunning) return
+        val app = ctx.applicationContext
+        stopRequested = false
+        mutable.value = GenState(running = true, phase = GenPhase.Checking, rounds = plan.rounds, budget = plan.budget + 1)
+        job = scope.launch {
+            try {
+                search(app, plan)
+            } catch (e: CancellationException) {
+                mutable.update { it.copy(phase = GenPhase.Idle, leader = null) }
+            } catch (e: Exception) {
+                Log.e(TAG, "Command line search failed", e)
+                mutable.update { it.copy(phase = GenPhase.Idle, failed = true) }
+            } finally {
+                withContext(NonCancellable) {
+                    app.getPreferences().edit(commit = true) { remove(TestService.SITES_OVERRIDE_PREF) }
+                    mutable.update { it.copy(running = false, stopping = false) }
+                }
+            }
+        }
+    }
+
+    fun stop() {
+        if (!isRunning) return
+        stopRequested = true
+        mutable.update { it.copy(stopping = true) }
+        TestService.stop()
+    }
+
+    private suspend fun search(app: Context, plan: SearchPlan) {
+        // 1. Which sites are blocked at all?
+        val baseline = runBatch(app, listOf(BASELINE_COMMAND), sites = null)
+            .firstOrNull { it.command == BASELINE_COMMAND && it.isCompleted }
+            ?: throw IllegalStateException("The no-bypass check did not run")
+        val allSites = baseline.siteResults.size
+        val blocked = blockedSites(baseline)
+        if (blocked.isEmpty()) {
+            finish(app, GenResult(null, 0, 0, null, allSites, 0))
+            return
+        }
+
+        // 2. Rounds of candidates, each built from what worked so far.
+        val search = CommandSearch(plan)
+        var batch = search.firstRound()
+        for (round in 1..plan.rounds) {
+            if (batch.isEmpty()) break
+            mutable.update { it.copy(phase = GenPhase.Searching, round = round) }
+            search.recordAll(batch, runBatch(app, batch.map { it.command }, blocked))
+            mutable.update { it.copy(leader = search.best()) }
+            if (round >= 2 && search.solved()) break
+            batch = search.nextRound()
+        }
+
+        // 3. Re-test the best few so a lucky run can't win.
+        val verify = search.verificationRound()
+        if (verify.isNotEmpty()) {
+            mutable.update { it.copy(phase = GenPhase.Verifying) }
+            search.recordAll(verify, runBatch(app, verify.map { it.command }, blocked))
+        }
+
+        val working = search.ranking().filter { it.works }
+        val best = working.firstOrNull()
+        finish(
+            app,
+            GenResult(
+                command = best?.command,
+                opened = best?.opened ?: 0,
+                blocked = blocked.size,
+                latencyMs = best?.latencyMs,
+                totalSites = allSites,
+                tested = search.tested,
+                alternatives = working.drop(1).take(2).map { GenAlternative(it.command, it.opened, it.sites, it.latencyMs) }
+            )
+        )
+    }
+
+    private fun finish(app: Context, result: GenResult) {
+        app.getPreferences().edit { putString(PREF_RESULT, gson.toJson(result)) }
+        mutable.update { it.copy(phase = GenPhase.Done, result = result, done = it.budget, leader = null) }
+    }
+
+    /** One test run of [commands] on [sites] (or the active link lists); returns its results. */
+    private suspend fun runBatch(app: Context, commands: List<String>, sites: List<String>?): List<StrategyResult> {
+        if (stopRequested) throw CancellationException("Search stopped")
+        app.getPreferences().edit(commit = true) {
+            putBoolean(PREF_USER_COMMANDS, true)
+            putString(PREF_TEST_COMMANDS, commands.joinToString("\n"))
+            if (sites == null) remove(TestService.SITES_OVERRIDE_PREF)
+            else putString(TestService.SITES_OVERRIDE_PREF, sites.joinToString("\n"))
+        }
+        TestService.start(app)
+        if (!TestService.isRunning) throw IllegalStateException("The test could not start")
+
+        val before = mutable.value.done
+        val progress = scope.launch {
+            TestService.state.collect { st ->
+                mutable.update { it.copy(done = (before + st.strategies.count { s -> s.isCompleted }).coerceAtMost(it.budget)) }
+            }
+        }
+        try {
+            TestService.awaitStopped()
+        } finally {
+            progress.cancel()
+        }
+        if (stopRequested) throw CancellationException("Search stopped")
+        val final = TestService.state.value
+        if (final.failed && final.strategies.none { it.isCompleted }) throw IllegalStateException("The test failed")
+        return final.strategies
+    }
+}

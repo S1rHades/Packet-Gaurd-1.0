@@ -110,7 +110,7 @@ class ConnectViewModel(app: Application) : AndroidViewModel(app) {
 
     /** VPN permission must already be granted (the UI handles that step). */
     fun connect() {
-        if (TestService.isRunning) {
+        if (TestService.isRunning || CommandGenerator.isRunning) {
             say(appCtx.getString(R.string.pg_benchmark_running))
             return
         }

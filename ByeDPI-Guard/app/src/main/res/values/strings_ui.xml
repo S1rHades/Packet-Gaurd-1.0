@@ -301,6 +301,26 @@
     <string name="pg_adv_title">Advanced options</string>
     <string name="pg_adv_subtitle">Choose profiles, edit site lists, see each site</string>
     <string name="pg_adv_lists">Edit site lists</string>
+    <string name="pg_mode_ready_title">Try ready-made profiles</string>
+    <string name="pg_mode_ready_sub">Quickest. Tests the profiles that come with the app.</string>
+    <string name="pg_mode_gen_title">Make one just for me</string>
+    <string name="pg_mode_gen_sub">Builds new command lines for your connection, tests them and keeps the best.</string>
+    <string name="pg_gen_quick">Quick · about 3 min</string>
+    <string name="pg_gen_thorough">Thorough · about 10 min</string>
+    <string name="pg_gen_start">Make my command line</string>
+    <string name="pg_gen_checking">Checking which sites are blocked…</string>
+    <string name="pg_gen_round">Round %1$d of %2$d</string>
+    <string name="pg_gen_verifying">Double-checking the best ones…</string>
+    <string name="pg_gen_failed">The search stopped before it finished. Please try again.</string>
+    <string name="pg_gen_best_so_far_opens">Best so far opens %1$d of %2$d blocked sites</string>
+    <string name="pg_gen_idle">Your command line will appear here after the search.</string>
+    <string name="pg_gen_nothing_blocked">Good news: none of your sites are blocked right now, so they don’t need a bypass.</string>
+    <string name="pg_gen_none_help">None of the command lines opened your blocked sites. Your provider may block them in a way Packet Guard can’t get around.</string>
+    <string name="pg_gen_title_result">Your command line</string>
+    <string name="pg_gen_made">Made for you</string>
+    <string name="pg_gen_opens">Opens %1$d of %2$d blocked sites</string>
+    <string name="pg_gen_others">Other command lines that also worked</string>
+    <string name="pg_gen_use">Use this command line</string>
     <plurals name="pg_sites">
         <item quantity="one">%d site</item>
         <item quantity="other">%d sites</item>
@@ -316,5 +336,13 @@
     <plurals name="pg_bench_finished">
         <item quantity="one">Finished · %d profile tested</item>
         <item quantity="other">Finished · %d profiles tested</item>
+    </plurals>
+    <plurals name="pg_gen_tried">
+        <item quantity="one">%d command line tried</item>
+        <item quantity="other">%d command lines tried</item>
+    </plurals>
+    <plurals name="pg_gen_finished">
+        <item quantity="one">Finished · %d command line tried</item>
+        <item quantity="other">Finished · %d command lines tried</item>
     </plurals>
 </resources>

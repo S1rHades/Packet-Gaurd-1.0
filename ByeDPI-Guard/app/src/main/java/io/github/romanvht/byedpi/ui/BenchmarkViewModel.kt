@@ -31,6 +31,11 @@ const val PREF_CUSTOM_PROFILES = "bb_custom_profiles"
 private const val PREF_SELECTED = "bb_selected_profiles"
 private const val PREF_USER_COMMANDS = "byedpi_proxytest_usercommands"
 private const val PREF_TEST_COMMANDS = "byedpi_proxytest_commands"
+private const val PREF_MODE = "bb_bench_mode"
+private const val PREF_PLAN = "bb_gen_plan"
+
+/** Step 2's choice: test the ready-made profiles, or let the generator build a command line. */
+enum class BenchMode { ReadyMade, Generate }
 
 private data class BenchLocal(
     val lists: List<ListItemUi> = emptyList(),
@@ -77,9 +82,32 @@ class BenchmarkViewModel(app: Application) : AndroidViewModel(app) {
     private val _messages = MutableSharedFlow<String>(extraBufferCapacity = 4)
     val messages: SharedFlow<String> = _messages.asSharedFlow()
 
+    val generator: StateFlow<GenState> = CommandGenerator.state
+
+    private val _mode = MutableStateFlow(
+        runCatching { BenchMode.valueOf(prefs.getStringNotNull(PREF_MODE, BenchMode.ReadyMade.name)) }.getOrDefault(BenchMode.ReadyMade)
+    )
+    val mode: StateFlow<BenchMode> = _mode
+
+    private val _plan = MutableStateFlow(
+        runCatching { SearchPlan.valueOf(prefs.getStringNotNull(PREF_PLAN, SearchPlan.Quick.name)) }.getOrDefault(SearchPlan.Quick)
+    )
+    val plan: StateFlow<SearchPlan> = _plan
+
     init {
         reload()
         viewModelScope.launch { TestService.loadResults(ctx) }
+        CommandGenerator.load(ctx)
+    }
+
+    fun selectMode(mode: BenchMode) {
+        _mode.value = mode
+        prefs.edit { putString(PREF_MODE, mode.name) }
+    }
+
+    fun selectPlan(plan: SearchPlan) {
+        _plan.value = plan
+        prefs.edit { putString(PREF_PLAN, plan.name) }
     }
 
     val sni: String get() = prefs.getStringNotNull("byedpi_proxytest_sni", "google.com")
@@ -165,23 +193,32 @@ class BenchmarkViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---- run ----------------------------------------------------------------------------
 
+    /** Starts whichever test step 2 has selected. */
     fun start() {
         val s = ui.value
-        val commands = s.profiles.filter { it.command in s.selected }.map { it.command }
-        when {
-            commands.isEmpty() -> return say(ctx.getString(R.string.pg_err_no_profile))
-            s.activeSites == 0 -> return say(ctx.getString(R.string.pg_err_no_list))
+        if (s.activeSites == 0) return say(ctx.getString(R.string.pg_err_no_list))
+        if (_mode.value == BenchMode.Generate) {
+            if (appStatus.first == AppStatus.Running) say(ctx.getString(R.string.pg_bench_paused))
+            CommandGenerator.start(ctx, _plan.value)
+            return
         }
+        val commands = s.profiles.filter { it.command in s.selected }.map { it.command }
+        if (commands.isEmpty()) return say(ctx.getString(R.string.pg_err_no_profile))
+        // A regular run tests every active list and replaces the generator's last answer.
+        CommandGenerator.clear(ctx)
         // TestService reads its profile list from these two upstream preferences.
         prefs.edit(commit = true) {
             putBoolean(PREF_USER_COMMANDS, true)
             putString(PREF_TEST_COMMANDS, commands.joinToString("\n"))
+            remove(TestService.SITES_OVERRIDE_PREF)
         }
         if (appStatus.first == AppStatus.Running) say(ctx.getString(R.string.pg_bench_paused))
         TestService.start(ctx)
     }
 
-    fun stop() = TestService.stop()
+    fun stop() {
+        if (CommandGenerator.isRunning) CommandGenerator.stop() else TestService.stop()
+    }
 
     // ---- apply --------------------------------------------------------------------------
 

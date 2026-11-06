@@ -36,7 +36,7 @@ object StrategyApplier {
 
         val mode = prefs.mode()
         return when {
-            appStatus.first != AppStatus.Running || TestService.isRunning ->
+            appStatus.first != AppStatus.Running || TestService.isRunning || CommandGenerator.isRunning ->
                 ctx.getString(R.string.pg_applied_connect)
 
             mode == Mode.VPN && VpnService.prepare(ctx) != null ->

@@ -301,6 +301,26 @@
     <string name="pg_adv_title">Дополнительно</string>
     <string name="pg_adv_subtitle">Выбор профилей, списки сайтов, каждый сайт отдельно</string>
     <string name="pg_adv_lists">Изменить списки сайтов</string>
+    <string name="pg_mode_ready_title">Готовые профили</string>
+    <string name="pg_mode_ready_sub">Быстрее всего. Проверяет профили, которые есть в приложении.</string>
+    <string name="pg_mode_gen_title">Создать для меня</string>
+    <string name="pg_mode_gen_sub">Составляет новые командные строки под ваше подключение, проверяет их и оставляет лучшую.</string>
+    <string name="pg_gen_quick">Быстро · около 3 мин</string>
+    <string name="pg_gen_thorough">Тщательно · около 10 мин</string>
+    <string name="pg_gen_start">Создать командную строку</string>
+    <string name="pg_gen_checking">Проверяю, какие сайты заблокированы…</string>
+    <string name="pg_gen_round">Раунд %1$d из %2$d</string>
+    <string name="pg_gen_verifying">Перепроверяю лучшие варианты…</string>
+    <string name="pg_gen_failed">Поиск остановился, не закончив. Попробуйте ещё раз.</string>
+    <string name="pg_gen_best_so_far_opens">Лучший вариант открывает %1$d из %2$d заблокированных сайтов</string>
+    <string name="pg_gen_idle">Здесь появится ваша командная строка после поиска.</string>
+    <string name="pg_gen_nothing_blocked">Хорошие новости: сейчас ни один из ваших сайтов не заблокирован, обход им не нужен.</string>
+    <string name="pg_gen_none_help">Ни одна командная строка не открыла заблокированные сайты. Возможно, провайдер блокирует их способом, который Packet Guard не может обойти.</string>
+    <string name="pg_gen_title_result">Ваша командная строка</string>
+    <string name="pg_gen_made">Создано для вас</string>
+    <string name="pg_gen_opens">Открывает %1$d из %2$d заблокированных сайтов</string>
+    <string name="pg_gen_others">Другие рабочие командные строки</string>
+    <string name="pg_gen_use">Использовать эту командную строку</string>
     <plurals name="pg_sites">
         <item quantity="one">%d сайт</item>
         <item quantity="few">%d сайта</item>
@@ -324,5 +344,17 @@
         <item quantity="few">Готово · проверено %d профиля</item>
         <item quantity="many">Готово · проверено %d профилей</item>
         <item quantity="other">Готово · проверено %d профиля</item>
+    </plurals>
+    <plurals name="pg_gen_tried">
+        <item quantity="one">Проверена %d командная строка</item>
+        <item quantity="few">Проверено %d командные строки</item>
+        <item quantity="many">Проверено %d командных строк</item>
+        <item quantity="other">Проверено %d командной строки</item>
+    </plurals>
+    <plurals name="pg_gen_finished">
+        <item quantity="one">Готово · проверена %d командная строка</item>
+        <item quantity="few">Готово · проверено %d командные строки</item>
+        <item quantity="many">Готово · проверено %d командных строк</item>
+        <item quantity="other">Готово · проверено %d командной строки</item>
     </plurals>
 </resources>

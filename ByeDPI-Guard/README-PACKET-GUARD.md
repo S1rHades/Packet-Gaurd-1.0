@@ -4,6 +4,22 @@ Packet Guard is an Android DPI-bypass app built on [ByeByeDPI](https://github.co
 (GPL-3.0). It keeps upstream's native engine (ByeDPI + hev-socks5-tunnel) and service layer, and
 replaces the whole interface with a single Jetpack Compose app.
 
+## Version 2.4.0
+
+- **Command line generator:** Benchmark step 2 now offers *Make one just for me* next to the ready-made
+  profiles. It builds a ciadpi command line for your connection:
+  1. a no-bypass check finds which of your sites are actually blocked (only those are searched);
+  2. a first round tries each basic technique (split, disorder, OOB, disordered OOB, fake packet with TTL,
+     TLS record split) at the positions that usually matter;
+  3. later rounds try small variations of the best three (positions, techniques, fake TTL, adding or
+     removing a TLS record split or a second step);
+  4. the top three are re-tested so a lucky run can't win.
+
+  *Quick* tests about 30 command lines (a few minutes), *Thorough* about 50. The result shows the command
+  line, how many blocked sites it opens, a speed rating and two runner-ups, each one tap to apply.
+  Candidates are built only from options the bundled ByeDPI 17.3 supports (`CommandSearch.kt`, unit-tested);
+  `CommandGenerator.kt` runs the rounds through the existing test service.
+
 ## Version 2.3.0
 
 - **One look everywhere:** every screen now uses the dashboard's glass design: translucent panels over soft blue
