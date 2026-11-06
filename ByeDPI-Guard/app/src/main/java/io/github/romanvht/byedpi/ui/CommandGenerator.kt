@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 import kotlinx.coroutines.withContext
 
 enum class GenPhase { Idle, Checking, Searching, Verifying, Done }
@@ -35,7 +36,14 @@ data class GenResult(
     /** All sites checked, blocked or not. */
     val totalSites: Int,
     val tested: Int,
-    val alternatives: List<GenAlternative> = emptyList()
+    val alternatives: List<GenAlternative> = emptyList(),
+    /** True when the winner is a command line the search built, not one of its probes. */
+    val generated: Boolean = false,
+    /** How the winner was made (an [Origin] name) and the lines it was built from. */
+    val how: String? = null,
+    val madeFrom: List<String>? = null,
+    /** How many new command lines the search built and tested. */
+    val built: Int = 0
 ) {
     val nothingBlocked: Boolean get() = blocked == 0
 }
@@ -138,14 +146,15 @@ object CommandGenerator {
         }
 
         // 2. Rounds of candidates, each built from what worked so far.
-        val search = CommandSearch(plan)
+        val search = CommandSearch(plan, Random(System.nanoTime()))
         var batch = search.firstRound()
         for (round in 1..plan.rounds) {
             if (batch.isEmpty()) break
             mutable.update { it.copy(phase = GenPhase.Searching, round = round) }
             search.recordAll(batch, runBatch(app, batch.map { it.command }, blocked))
             mutable.update { it.copy(leader = search.best()) }
-            if (round >= 2 && search.solved()) break
+            // Learn for at least two rounds of new lines before settling, even if a probe works.
+            if (round >= 3 && search.solved()) break
             batch = search.nextRound()
         }
 
@@ -167,7 +176,11 @@ object CommandGenerator {
                 latencyMs = best?.latencyMs,
                 totalSites = allSites,
                 tested = search.tested,
-                alternatives = working.drop(1).take(2).map { GenAlternative(it.command, it.opened, it.sites, it.latencyMs) }
+                alternatives = working.drop(1).take(2).map { GenAlternative(it.command, it.opened, it.sites, it.latencyMs) },
+                generated = best != null && isGenerated(best.command),
+                how = best?.recipe?.origin?.name,
+                madeFrom = best?.recipe?.parents?.take(2),
+                built = search.ranking().count { isGenerated(it.command) }
             )
         )
     }

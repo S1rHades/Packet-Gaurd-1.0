@@ -6,6 +6,21 @@ from 2.5.0 on (**Settings → About → Updates**); earlier versions are install
 
 The first lines under each version are what the app shows as "What's new", so keep them short.
 
+## 2.9.0 (November 2026)
+
+- "Make one just for me" now learns from the test and builds new command lines
+- It combines what opened different sites, and adds fallbacks for the rest
+- The result says whether it is new and how it was made
+- The search keeps learning for longer before it settles
+
+The rest, in more detail:
+
+- **Probes, then learning.** Round 1 is a set of probes. Every result is now kept site by site, and each ingredient (technique, position, fake TTL, TLS record split, fake packet type) is credited with the sites it opened.
+- **New lines each round.** Targeted additions for the sites still missing (including untried ideas such as a new TTL range), combinations of lines that open different sites, fallbacks with `-At,s`, and tuning with fresh positions and TTLs instead of a fixed menu. Every line is new and uses only options the engine accepts.
+- **No early exit on a probe.** Even if a basic technique works at once, the search runs at least two rounds of new lines.
+- **Honest results.** A "New · built from your test" badge and a line on how it was made, or, when a probe was still best, how many new lines were tried.
+- In a simulated network that no probe could fully get past, the Thorough search built a line opening every site in 19 of 20 runs (unit test).
+
 ## 2.8.0 (November 2026)
 
 - Colours mean the same everywhere: green works, amber partly, red failed, blue is best

@@ -393,6 +393,14 @@
     <string name="pg_ex_proto">Только для трафика %1$s</string>
     <string name="pg_ex_hosts">Только для сайтов из списка</string>
     <string name="pg_ex_md5">Помечает поддельные пакеты, чтобы сайт их отбросил</string>
+    <string name="pg_gen_probing">Пробую каждый базовый приём, чтобы понять, что проходит</string>
+    <string name="pg_gen_building">Собираю новые командные строки из того, что сработало</string>
+    <string name="pg_gen_new_badge">Новая · собрана по вашему тесту</string>
+    <string name="pg_gen_how_tuned">Доработана из лучшей</string>
+    <string name="pg_gen_how_combined">Объединяет две строки, открывшие разные сайты</string>
+    <string name="pg_gen_how_fallback">Переключается на вторую настройку, если сайт заблокирован</string>
+    <string name="pg_gen_how_explored">Составлена по тому, что выяснил тест</string>
+    <string name="pg_gen_how_from">%1$s: %2$s</string>
     <plurals name="pg_sites">
         <item quantity="one">%d сайт</item>
         <item quantity="few">%d сайта</item>
@@ -440,5 +448,11 @@
         <item quantity="few">Будет проверено %d сайта</item>
         <item quantity="many">Будет проверено %d сайтов</item>
         <item quantity="other">Будет проверено %d сайта</item>
+    </plurals>
+    <plurals name="pg_gen_probe_won">
+        <item quantity="one">Лучше всего сработал базовый приём; %d новая строка его не превзошла.</item>
+        <item quantity="few">Лучше всего сработал базовый приём; ни одна из %d новых строк его не превзошла.</item>
+        <item quantity="many">Лучше всего сработал базовый приём; ни одна из %d новых строк его не превзошла.</item>
+        <item quantity="other">Лучше всего сработал базовый приём; ни одна из %d новой строки его не превзошла.</item>
     </plurals>
 </resources>

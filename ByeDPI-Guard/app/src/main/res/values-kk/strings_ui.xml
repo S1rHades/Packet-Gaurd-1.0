@@ -393,6 +393,14 @@
     <string name="pg_ex_proto">Тек %1$s трафигі үшін</string>
     <string name="pg_ex_hosts">Тек тізімдегі сайттар үшін</string>
     <string name="pg_ex_md5">Жалған пакеттерді сайт елемейтіндей белгілейді</string>
+    <string name="pg_gen_probing">Не өтетінін білу үшін әр негізгі тәсіл тексерілуде</string>
+    <string name="pg_gen_building">Жұмыс істегендерден жаңа командалық жолдар құрылуда</string>
+    <string name="pg_gen_new_badge">Жаңа · тестіңіз бойынша құрылды</string>
+    <string name="pg_gen_how_tuned">Ең жақсысынан жетілдірілді</string>
+    <string name="pg_gen_how_combined">Әртүрлі сайттарды ашқан екі жолды біріктіреді</string>
+    <string name="pg_gen_how_fallback">Сайт бұғатталса, екінші баптауға ауысады</string>
+    <string name="pg_gen_how_explored">Тест анықтаған нәрселерден құрылды</string>
+    <string name="pg_gen_how_from">%1$s: %2$s</string>
     <plurals name="pg_sites">
         <item quantity="one">%d сайт</item>
         <item quantity="other">%d сайт</item>
@@ -424,5 +432,9 @@
     <plurals name="pg_list_preview">
         <item quantity="one">%d сайт тексеріледі</item>
         <item quantity="other">%d сайт тексеріледі</item>
+    </plurals>
+    <plurals name="pg_gen_probe_won">
+        <item quantity="one">Ең жақсы нәтижені негізгі тәсіл берді; құрылған %d жаңа жол одан озбады.</item>
+        <item quantity="other">Ең жақсы нәтижені негізгі тәсіл берді; құрылған %d жаңа жолдың ешқайсысы одан озбады.</item>
     </plurals>
 </resources>

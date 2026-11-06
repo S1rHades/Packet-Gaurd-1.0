@@ -988,6 +988,7 @@ private fun GenProgress(gen: GenState, plan: SearchPlan) {
             gen.phase == GenPhase.Checking -> stringResource(R.string.pg_gen_checking)
             gen.phase == GenPhase.Searching ->
                 stringResource(R.string.pg_gen_round, gen.round, gen.rounds) + "\n" +
+                    stringResource(if (gen.round <= 1) R.string.pg_gen_probing else R.string.pg_gen_building) + "\n" +
                     pluralStringResource(R.plurals.pg_gen_tried, tried, tried)
             gen.phase == GenPhase.Verifying -> stringResource(R.string.pg_gen_verifying)
             gen.result != null -> pluralStringResource(R.plurals.pg_gen_finished, gen.result.tested, gen.result.tested)
@@ -1064,6 +1065,7 @@ private fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) ->
                         fontFamily = FontFamily.Monospace, fontSize = 15.sp, color = Palette.Sky,
                         modifier = Modifier.fillMaxWidth().padding(top = 14.dp).glassInset().padding(horizontal = 14.dp, vertical = 12.dp)
                     )
+                    HowItWasMade(r, Modifier.padding(top = 10.dp))
                     CommandExplainer(command, Modifier.padding(top = 10.dp), max = 4)
                     Fact(
                         Icons.Filled.CheckCircle,
@@ -1123,3 +1125,31 @@ private fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) ->
         }
     }
 }
+
+/** Whether the winner is new, and what it was built from, in one or two plain lines. */
+@Composable
+private fun HowItWasMade(r: GenResult, modifier: Modifier = Modifier) {
+    Column(modifier.fillMaxWidth()) {
+        if (r.generated) {
+            MetricPill(stringResource(R.string.pg_gen_new_badge), Palette.Glow)
+            val how = when (r.how) {
+                Origin.Combined.name -> stringResource(R.string.pg_gen_how_combined)
+                Origin.Fallback.name -> stringResource(R.string.pg_gen_how_fallback)
+                Origin.Explored.name -> stringResource(R.string.pg_gen_how_explored)
+                else -> stringResource(R.string.pg_gen_how_tuned)
+            }
+            val from = r.madeFrom.orEmpty()
+            Text(
+                if (from.isEmpty()) how else stringResource(R.string.pg_gen_how_from, how, from.joinToString("  +  ")),
+                color = Palette.TextSecondary, fontSize = 13.sp, lineHeight = 18.sp,
+                modifier = Modifier.padding(top = 6.dp)
+            )
+        } else {
+            Text(
+                pluralStringResource(R.plurals.pg_gen_probe_won, r.built, r.built),
+                color = Palette.TextSecondary, fontSize = 13.sp, lineHeight = 18.sp
+            )
+        }
+    }
+}
+
