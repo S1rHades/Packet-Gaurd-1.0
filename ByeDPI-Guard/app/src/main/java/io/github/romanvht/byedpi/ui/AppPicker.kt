@@ -30,7 +30,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -106,7 +106,7 @@ fun AppPickerDialog(onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
-        Surface(Modifier.fillMaxSize(), color = Palette.Background) {
+        GlassBackground {
             Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
                 Row(
                     Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp),
@@ -161,7 +161,7 @@ private fun AppRow(app: InstalledApp, checked: Boolean, onToggle: () -> Unit, mo
         }
     }
     val bg by animateColorAsState(
-        if (checked) Palette.SurfaceHigh else Palette.Background, tween(Motion.MEDIUM), label = "appRowBg"
+        if (checked) Palette.Glow.copy(alpha = 0.16f) else Color.Transparent, tween(Motion.MEDIUM), label = "appRowBg"
     )
     Row(
         modifier

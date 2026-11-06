@@ -53,13 +53,13 @@ private val DarkScheme = darkColorScheme(
 private val AppTypography = Typography(
     headlineSmall = TextStyle(fontSize = 26.sp, fontWeight = FontWeight.Bold, letterSpacing = (-0.3).sp),
     titleLarge = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.Bold, letterSpacing = (-0.2).sp),
-    titleMedium = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.SemiBold),
-    titleSmall = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.SemiBold),
-    bodyLarge = TextStyle(fontSize = 15.sp, lineHeight = 21.sp),
-    bodyMedium = TextStyle(fontSize = 14.sp, lineHeight = 20.sp),
-    bodySmall = TextStyle(fontSize = 12.sp, lineHeight = 17.sp),
+    titleMedium = TextStyle(fontSize = 17.sp, fontWeight = FontWeight.SemiBold),
+    titleSmall = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.SemiBold),
+    bodyLarge = TextStyle(fontSize = 16.sp, lineHeight = 22.sp),
+    bodyMedium = TextStyle(fontSize = 15.sp, lineHeight = 21.sp),
+    bodySmall = TextStyle(fontSize = 13.sp, lineHeight = 18.sp),
     labelLarge = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.sp),
-    labelMedium = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Medium)
+    labelMedium = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Medium)
 )
 
 private val AppShapes = Shapes(

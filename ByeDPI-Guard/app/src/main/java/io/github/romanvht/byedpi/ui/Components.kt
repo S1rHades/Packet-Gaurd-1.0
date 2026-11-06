@@ -2,6 +2,7 @@ package io.github.romanvht.byedpi.ui
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -75,20 +76,17 @@ fun AppCard(
     contentPadding: PaddingValues = PaddingValues(18.dp),
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val border by animateColorAsState(borderColor, tween(Motion.SLOW), label = "cardBorder")
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Palette.Surface),
-        border = BorderStroke(1.dp, border)
-    ) {
-        Column(
-            Modifier
-                .animateContentSize(spring(stiffness = Spring.StiffnessMediumLow))
-                .padding(contentPadding),
-            content = content
-        )
-    }
+    // The default border is the glass edge; any other color highlights the card.
+    val highlighted = borderColor != Palette.Border
+    val border by animateColorAsState(if (highlighted) borderColor else Color.Transparent, tween(Motion.SLOW), label = "cardBorder")
+    Column(
+        modifier
+            .fillMaxWidth()
+            .glass(borderColor = if (highlighted) border else null)
+            .animateContentSize(spring(stiffness = Spring.StiffnessMediumLow))
+            .padding(contentPadding),
+        content = content
+    )
 }
 
 @Composable
@@ -131,9 +129,10 @@ fun InfoBanner(
     Row(
         modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(tint.copy(alpha = 0.12f))
-            .border(1.dp, tint.copy(alpha = 0.35f), RoundedCornerShape(16.dp))
+            .clip(Glass.ControlShape)
+            .background(Palette.Surface.copy(alpha = 0.55f))
+            .background(tint.copy(alpha = 0.14f))
+            .border(1.dp, tint.copy(alpha = 0.40f), Glass.ControlShape)
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -163,15 +162,28 @@ fun PrimaryButton(
 ) {
     val interaction = remember { MutableInteractionSource() }
     val bg by animateColorAsState(container, tween(Motion.MEDIUM), label = "primaryBg")
+    // The default accent is drawn as the glass accent gradient; other colors stay solid.
+    val accent = container == Palette.AccentBlue
+    val shape = RoundedCornerShape(18.dp)
     Button(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier.pressScale(interaction).height(height.dp),
-        shape = RoundedCornerShape(16.dp),
+        modifier = modifier
+            .pressScale(interaction)
+            .height(height.dp)
+            .clip(shape)
+            .then(
+                when {
+                    !enabled -> Modifier.glassInset(shape)
+                    accent -> Modifier.background(Glass.Accent).border(1.dp, Color.White.copy(alpha = 0.25f), shape)
+                    else -> Modifier.background(bg).border(1.dp, Glass.InsetBorder, shape)
+                }
+            ),
+        shape = shape,
         colors = ButtonDefaults.buttonColors(
-            containerColor = bg,
+            containerColor = Color.Transparent,
             contentColor = Color.White,
-            disabledContainerColor = Palette.SurfaceHigh,
+            disabledContainerColor = Color.Transparent,
             disabledContentColor = Palette.TextSecondary
         ),
         interactionSource = interaction
@@ -186,7 +198,7 @@ fun PrimaryButton(
                     Icon(ic, null, Modifier.size(20.dp))
                     Spacer(Modifier.width(8.dp))
                 }
-                Text(label, fontWeight = FontWeight.SemiBold)
+                Text(label, fontWeight = FontWeight.SemiBold, fontSize = if (height >= 56) 18.sp else 15.sp)
             }
         }
     }
@@ -205,9 +217,9 @@ fun SecondaryButton(
         onClick = onClick,
         enabled = enabled,
         modifier = modifier.pressScale(interaction),
-        shape = RoundedCornerShape(14.dp),
-        border = BorderStroke(1.dp, Palette.Border),
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, Glass.InsetBorder),
+        colors = ButtonDefaults.outlinedButtonColors(containerColor = Glass.Inset, contentColor = Color.White),
         interactionSource = interaction
     ) {
         if (icon != null) {
@@ -258,9 +270,7 @@ fun Pill(
     enabled: Boolean = true
 ) {
     val interaction = remember { MutableInteractionSource() }
-    val bg by animateColorAsState(
-        if (selected) Palette.AccentBlue else Palette.SurfaceHigh, tween(Motion.MEDIUM), label = "pillBg"
-    )
+    val accent by animateFloatAsState(if (selected) 1f else 0f, tween(Motion.MEDIUM), label = "pillBg")
     val fg by animateColorAsState(
         when {
             !enabled -> Palette.Gray
@@ -270,13 +280,14 @@ fun Pill(
         tween(Motion.MEDIUM), label = "pillFg"
     )
     val border by animateColorAsState(
-        if (selected) Palette.Glow.copy(alpha = 0.6f) else Palette.Border, tween(Motion.MEDIUM), label = "pillBorder"
+        if (selected) Color.White.copy(alpha = 0.30f) else Glass.InsetBorder, tween(Motion.MEDIUM), label = "pillBorder"
     )
     Row(
         Modifier
             .pressScale(interaction)
             .clip(RoundedCornerShape(50))
-            .background(bg)
+            .background(Glass.Inset)
+            .background(Glass.Accent, alpha = accent)
             .border(1.dp, border, RoundedCornerShape(50))
             .clickable(interactionSource = interaction, indication = null, enabled = enabled, onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 9.dp),
@@ -303,16 +314,13 @@ fun <T> Segmented(
     Row(
         modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(Palette.SurfaceHigh)
+            .glassInset()
             .padding(4.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         items.forEach { item ->
             val isSelected = item == selected
-            val bg by animateColorAsState(
-                if (isSelected) Palette.AccentBlue else Color.Transparent, tween(Motion.MEDIUM), label = "segBg"
-            )
+            val accent by animateFloatAsState(if (isSelected) 1f else 0f, tween(Motion.MEDIUM), label = "segBg")
             val fg by animateColorAsState(
                 when {
                     !enabled -> Palette.Gray
@@ -324,10 +332,10 @@ fun <T> Segmented(
             Box(
                 Modifier
                     .weight(1f)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(bg)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Glass.Accent, alpha = accent)
                     .clickable(enabled = enabled) { onSelect(item) }
-                    .padding(vertical = 10.dp),
+                    .padding(vertical = 11.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(label(item), color = fg, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
@@ -395,7 +403,7 @@ fun NavRow(
     ) {
         if (icon != null) {
             Box(
-                Modifier.size(36.dp).clip(RoundedCornerShape(10.dp)).background(Palette.SurfaceHigh),
+                Modifier.size(38.dp).clip(RoundedCornerShape(12.dp)).background(Palette.Sky.copy(alpha = 0.14f)),
                 contentAlignment = Alignment.Center
             ) { Icon(icon, null, tint = Palette.Sky, modifier = Modifier.size(20.dp)) }
             Spacer(Modifier.width(12.dp))
@@ -415,11 +423,11 @@ fun NavRow(
 @Composable
 fun fieldColors() = OutlinedTextFieldDefaults.colors(
     focusedBorderColor = Palette.Glow,
-    unfocusedBorderColor = Palette.Border,
-    disabledBorderColor = Palette.Border,
-    focusedContainerColor = Palette.SurfaceHigh,
-    unfocusedContainerColor = Palette.SurfaceHigh,
-    disabledContainerColor = Palette.Surface,
+    unfocusedBorderColor = Glass.InsetBorder,
+    disabledBorderColor = Glass.InsetBorder,
+    focusedContainerColor = Color.White.copy(alpha = 0.08f),
+    unfocusedContainerColor = Glass.Inset,
+    disabledContainerColor = Color.White.copy(alpha = 0.03f),
     cursorColor = Palette.Glow,
     focusedLabelColor = Palette.Sky
 )

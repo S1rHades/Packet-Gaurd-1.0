@@ -184,3 +184,18 @@ fun sparkSeries(profiles: List<ProfileStat>, metric: DashMetric): List<Float> = 
     DashMetric.Reach -> profiles.map { it.reachable.toFloat() }
     DashMetric.Success -> profiles.map { it.successRate.toFloat() }
 }
+
+/** A plain-language speed rating for people who don't read milliseconds. */
+enum class Speed(@StringRes val label: Int) {
+    Fast(R.string.pg_speed_fast),
+    Ok(R.string.pg_speed_ok),
+    Slow(R.string.pg_speed_slow);
+
+    companion object {
+        fun of(latencyMs: Long): Speed = when {
+            latencyMs < 200 -> Fast
+            latencyMs < 500 -> Ok
+            else -> Slow
+        }
+    }
+}

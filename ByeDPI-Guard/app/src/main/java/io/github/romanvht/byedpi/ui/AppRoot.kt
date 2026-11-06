@@ -30,6 +30,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -148,11 +150,18 @@ fun AppRoot(requestedTab: Tab? = null, onTabRequestHandled: () -> Unit = {}) {
         ) toggle()
     }
 
+    GlassBackground {
     Scaffold(
-        containerColor = Palette.Background,
+        containerColor = Color.Transparent,
         snackbarHost = { SnackbarHost(snackbar) },
         bottomBar = {
-            NavigationBar(containerColor = Palette.Surface, tonalElevation = 0.dp) {
+            NavigationBar(
+                containerColor = Palette.Surface.copy(alpha = 0.78f),
+                tonalElevation = 0.dp,
+                modifier = Modifier.drawBehind {
+                    drawLine(Color.White.copy(alpha = 0.10f), Offset.Zero, Offset(size.width, 0f), 1.dp.toPx())
+                }
+            ) {
                 Tab.entries.forEach { t ->
                     NavigationBarItem(
                         selected = tab == t,
@@ -162,7 +171,7 @@ fun AppRoot(requestedTab: Tab? = null, onTabRequestHandled: () -> Unit = {}) {
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = Color.White,
                             selectedTextColor = Palette.Sky,
-                            indicatorColor = Palette.AccentBlue,
+                            indicatorColor = Palette.Glow.copy(alpha = 0.30f),
                             unselectedIconColor = Palette.TextSecondary,
                             unselectedTextColor = Palette.TextSecondary
                         )
@@ -187,5 +196,6 @@ fun AppRoot(requestedTab: Tab? = null, onTabRequestHandled: () -> Unit = {}) {
                 )
             }
         }
+    }
     }
 }

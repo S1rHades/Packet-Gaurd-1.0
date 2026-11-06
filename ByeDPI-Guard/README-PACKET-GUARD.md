@@ -4,6 +4,19 @@ Packet Guard is an Android DPI-bypass app built on [ByeByeDPI](https://github.co
 (GPL-3.0). It keeps upstream's native engine (ByeDPI + hev-socks5-tunnel) and service layer, and
 replaces the whole interface with a single Jetpack Compose app.
 
+## Version 2.3.0
+
+- **One look everywhere:** every screen now uses the dashboard's glass design: translucent panels over soft blue
+  glows (`Glass.kt`), accent-gradient buttons, pills and tabs, glass inputs and a glass navigation bar.
+  Text is slightly larger throughout.
+- **Simpler Benchmark:** the screen is now three numbered steps in plain words, with big touch targets:
+  1. *Pick what you want to open*: link lists as large on/off tiles;
+  2. *Start the test*: one big button, then a large percentage and "Trying profile 3 of 9";
+  3. *Use the best one*: the winner with "Opens 11 of 12 sites", a Fast/OK/Slow speed rating and one big button.
+
+  The results dashboard follows, and profile packs, list editing and per-site results are in a collapsed
+  *Advanced options* section.
+
 ## Version 2.2.0
 
 - **Results dashboard:** the Benchmark screen's "All results" leaderboard is replaced by a glass-style dashboard,
@@ -56,7 +69,7 @@ app/src/main/java/io/github/romanvht/byedpi/
 └── ui/          Packet Guard (Compose)
     ├── ModernActivity      single activity; handles "open_tab" intents
     ├── AppRoot             scaffold, bottom navigation, permissions, auto-connect
-    ├── Theme / Motion / Components   palette, typography, animation helpers, shared controls
+    ├── Theme / Glass / Motion / Components   palette, glass surfaces, typography, animation, shared controls
     ├── ShieldButton        shield shape + animated connect control
     ├── ConnectScreen + ConnectViewModel
     ├── BenchmarkScreen + BenchmarkViewModel + BenchModel (ranking, per-domain best)

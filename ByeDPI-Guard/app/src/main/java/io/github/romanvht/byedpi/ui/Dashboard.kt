@@ -70,42 +70,14 @@ import androidx.compose.ui.unit.sp
 import io.github.romanvht.byedpi.R
 import kotlinx.coroutines.delay
 
-// ---------------------------------------------------------------------------------------------
-// Glass surfaces: translucent navy over soft blue glows, with a light top edge.
-// ---------------------------------------------------------------------------------------------
-
-private val GlassShape = RoundedCornerShape(20.dp)
-
-fun Modifier.glass(shape: Shape = GlassShape): Modifier = this
-    .clip(shape)
-    .background(Palette.Surface.copy(alpha = 0.62f))
-    .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.08f), Color.White.copy(alpha = 0.015f))))
-    .border(
-        1.dp,
-        Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.20f), Color.White.copy(alpha = 0.04f))),
-        shape
-    )
-
-/** The colored light the glass cards sit on. */
-private fun Modifier.ambientGlow(): Modifier = drawBehind {
-    fun glow(color: Color, x: Float, y: Float, r: Float) = drawCircle(
-        Brush.radialGradient(listOf(color, Color.Transparent), center = Offset(size.width * x, size.height * y), radius = size.width * r),
-        radius = size.width * r,
-        center = Offset(size.width * x, size.height * y)
-    )
-    glow(Palette.Glow.copy(alpha = 0.22f), 0.12f, 0.10f, 0.65f)
-    glow(Palette.Sky.copy(alpha = 0.12f), 0.95f, 0.45f, 0.55f)
-    glow(Palette.AccentBlue.copy(alpha = 0.28f), 0.30f, 0.90f, 0.70f)
-}
-
 /** Green from 80 %, amber from 40 %, red below. */
-private fun scoreColor(percent: Int): Color = when {
+fun scoreColor(percent: Int): Color = when {
     percent >= 80 -> Palette.Success
     percent >= 40 -> Palette.Warning
     else -> Palette.Error
 }
 
-private fun percentOf(part: Int, whole: Int): Int = if (whole <= 0) 0 else part * 100 / whole
+fun percentOf(part: Int, whole: Int): Int = if (whole <= 0) 0 else part * 100 / whole
 
 // ---------------------------------------------------------------------------------------------
 // Dashboard
@@ -239,7 +211,7 @@ private fun KpiCard(
 }
 
 @Composable
-private fun MetricPill(text: String, color: Color, modifier: Modifier = Modifier) {
+fun MetricPill(text: String, color: Color, modifier: Modifier = Modifier) {
     Text(
         text,
         color = color,
@@ -416,7 +388,7 @@ private fun Bar(fraction: Float, selected: Boolean) {
                 )
             )
             .background(
-                Brush.verticalGradient(listOf(Palette.Sky, Palette.Glow, Palette.AccentBlue)),
+                Glass.Accent,
                 alpha = glowAlpha
             )
             .border(1.dp, Color.White.copy(alpha = 0.14f + 0.16f * glowAlpha), shape)
@@ -478,7 +450,7 @@ private fun ProfileDetail(
 
 @Composable
 private fun MiniStat(label: String, value: String, color: Color, modifier: Modifier = Modifier) {
-    Column(modifier.glass(RoundedCornerShape(12.dp)).padding(horizontal = 10.dp, vertical = 8.dp)) {
+    Column(modifier.glassInset(RoundedCornerShape(12.dp)).padding(horizontal = 10.dp, vertical = 8.dp)) {
         Text(label, color = Palette.TextSecondary, fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         RollingText(value, fontSize = 14.sp, color = color)
     }
@@ -486,7 +458,7 @@ private fun MiniStat(label: String, value: String, color: Color, modifier: Modif
 
 /** A thin rounded bar that fills to [percent] in its score color. */
 @Composable
-private fun ProgressTrack(percent: Int, modifier: Modifier = Modifier) {
+fun ProgressTrack(percent: Int, modifier: Modifier = Modifier) {
     val fill by animateFloatAsState(percent.coerceIn(0, 100) / 100f, tween(Motion.SLOW), label = "track")
     Box(
         modifier
