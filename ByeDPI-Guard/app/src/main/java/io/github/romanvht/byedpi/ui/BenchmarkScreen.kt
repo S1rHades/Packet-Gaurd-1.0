@@ -110,6 +110,9 @@ fun BenchmarkScreen(
     val perDomain = remember(test.strategies, ui.profiles) {
         bestPerDomain(test.strategies) { ui.nameFor(it, sni, customName) }
     }
+    val dashboard = remember(test.strategies, ui.profiles, ui.lists) {
+        buildDashboard(test.strategies, ui.lists) { ui.nameFor(it, sni, customName) }
+    }
 
     val hasResults = test.strategies.isNotEmpty()
     val anyDone = test.strategies.any { it.isCompleted }
@@ -315,18 +318,15 @@ fun BenchmarkScreen(
             }
         }
 
-        // 6 — full ranking
-        if (ranked.isNotEmpty()) {
-            item(key = "rankingTitle") {
-                Text(stringResource(R.string.pg_all_results), style = MaterialTheme.typography.titleMedium, modifier = Modifier.animateItem().padding(top = 6.dp))
-            }
-            items(ranked, key = { "r:" + it.result.command }) { r ->
-                RankedRow(
-                    r = r,
-                    applied = ui.applied == r.result.command,
+        // 6 — results dashboard
+        if (!dashboard.isEmpty) {
+            item(key = "dashboard") {
+                ResultsDashboard(
+                    dash = dashboard,
+                    appliedCommand = ui.applied,
                     canApply = !running,
-                    onApply = { vm.apply(r.result.command, ctx.getString(R.string.pg_bench_result_label, r.name)) },
-                    modifier = Modifier.animateItem()
+                    onApply = { p -> vm.apply(p.command, ctx.getString(R.string.pg_bench_result_label, p.name)) },
+                    modifier = Modifier.animateItem().padding(top = 6.dp)
                 )
             }
         }
@@ -491,77 +491,6 @@ private fun DomainTable(rows: List<DomainBest>, modifier: Modifier = Modifier) {
                 } else {
                     Text(stringResource(R.string.pg_not_reachable), Modifier.weight(1.9f), fontSize = 12.sp, color = Palette.Error)
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun RankedRow(
-    r: RankedStrategy,
-    applied: Boolean,
-    canApply: Boolean,
-    onApply: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var expanded by remember { mutableStateOf(false) }
-    val arrow by animateFloatAsState(if (expanded) 180f else 0f, tween(Motion.MEDIUM), label = "expandArrow")
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Palette.Surface),
-        border = BorderStroke(1.dp, Palette.Border)
-    ) {
-        Column(Modifier.animateContentSize(spring(stiffness = Spring.StiffnessMediumLow)).padding(14.dp)) {
-            Row(
-                Modifier.fillMaxWidth().clickable { expanded = !expanded },
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("#${r.rank}", color = Palette.TextSecondary, modifier = Modifier.width(34.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(r.name, fontWeight = FontWeight.SemiBold)
-                    Text(
-                        stringResource(R.string.pg_rank_ok, r.result.successCount, r.result.totalRequests) +
-                            (r.avgLatencyMs?.let { " · " + stringResource(R.string.pg_rank_avg, it) } ?: ""),
-                        color = if (r.result.successCount > 0) Color.White else Palette.TextSecondary,
-                        fontSize = 12.sp
-                    )
-                }
-                Icon(
-                    Icons.Filled.ExpandMore,
-                    contentDescription = stringResource(if (expanded) R.string.pg_collapse else R.string.pg_expand),
-                    tint = Palette.TextSecondary,
-                    modifier = Modifier.rotate(arrow)
-                )
-            }
-            if (expanded) {
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    r.result.command, color = Palette.TextSecondary, fontSize = 11.sp,
-                    fontFamily = FontFamily.Monospace
-                )
-                Spacer(Modifier.height(8.dp))
-                r.result.siteResults.sortedByDescending { it.successCount }.forEach { s ->
-                    Row(Modifier.fillMaxWidth().padding(vertical = 2.dp)) {
-                        Text(
-                            s.site, Modifier.weight(1f), fontSize = 12.sp,
-                            maxLines = 1, overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            if (s.successCount > 0)
-                                (s.latencyMs?.let { stringResource(R.string.pg_ms, it) } ?: "—") + (s.httpCode?.let { " · $it" } ?: "")
-                            else stringResource(R.string.pg_failed),
-                            fontSize = 12.sp,
-                            color = if (s.successCount > 0) Palette.Success else Palette.Error
-                        )
-                    }
-                }
-                Spacer(Modifier.height(8.dp))
-                SecondaryButton(
-                    stringResource(if (applied) R.string.pg_applied else R.string.pg_use_profile),
-                    onClick = onApply,
-                    enabled = canApply && !applied
-                )
             }
         }
     }

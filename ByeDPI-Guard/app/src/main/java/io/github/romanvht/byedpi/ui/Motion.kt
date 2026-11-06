@@ -24,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -61,6 +62,8 @@ fun Modifier.pressScale(interaction: InteractionSource, pressedScale: Float = 0.
  * so a screen assembles top to bottom instead of popping in at once.
  */
 fun Modifier.staggeredEnter(index: Int): Modifier = composed {
+    // Previews and screenshot tests show the settled layout.
+    if (LocalInspectionMode.current) return@composed this
     val progress = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
         delay((index * 45L).coerceAtMost(360L))
