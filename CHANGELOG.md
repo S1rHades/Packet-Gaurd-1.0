@@ -6,6 +6,22 @@ from 2.5.0 on (**Settings → About → Updates**); earlier versions are install
 
 The first lines under each version are what the app shows as "What's new", so keep them short.
 
+## 3.0.0 (November 2026)
+
+- Benchmark results now give one recommendation, with a reason and one button
+- Every command line gets a score out of 100 for sites, success and speed
+- Choose the fastest or most reliable instead and see what you gain and give up
+- "Use the best for each group" combines settings that suit different lists
+
+The rest, in more detail:
+
+- **Scores.** Each command line is scored out of 100: sites opened 50%, successful requests 30%, speed 20% (full marks at 100 ms or less, none at 1.5 s). Bars show the three parts. The generator's results use the same score.
+- **Recommended for you.** The best score among the settings no other one beats on sites, success and speed all at once, with a one-line reason.
+- **Care about something else?** Fastest, Most reliable and one choice per site list, each compared with the recommendation in green (gains) and red (losses), with its own button.
+- **Use the best for each group.** When lists prefer different settings, one command line applies each to its own sites (`-H … -An`). It's built from the results and offered with Undo.
+- **Results first.** After a test the setup folds into "Tested … · Test again". The Step 1, 2 and 3 headings are gone.
+- The old dashboard (headline cards, bar chart and list table) is replaced by these cards and an **All results** list sorted by score.
+
 ## 2.9.0 (November 2026)
 
 - "Make one just for me" now learns from the test and builds new command lines

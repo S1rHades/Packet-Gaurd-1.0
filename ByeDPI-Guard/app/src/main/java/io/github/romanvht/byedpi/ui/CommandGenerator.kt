@@ -24,7 +24,16 @@ import kotlinx.coroutines.withContext
 enum class GenPhase { Idle, Checking, Searching, Verifying, Done }
 
 /** Another command line that also worked, offered next to the winner. */
-data class GenAlternative(val command: String, val opened: Int, val sites: Int, val latencyMs: Long?)
+data class GenAlternative(
+    val command: String,
+    val opened: Int,
+    val sites: Int,
+    val latencyMs: Long?,
+    /** Successful requests, 0–100; null in results saved by older versions. */
+    val successRate: Int? = null
+) {
+    val score: CmdScore get() = CmdScore.of(opened, sites, successRate ?: if (opened > 0) opened * 100 / sites.coerceAtLeast(1) else 0, latencyMs)
+}
 
 /** What a finished search found. Counts are over the sites that were blocked without a bypass. */
 data class GenResult(
@@ -43,8 +52,14 @@ data class GenResult(
     val how: String? = null,
     val madeFrom: List<String>? = null,
     /** How many new command lines the search built and tested. */
-    val built: Int = 0
+    val built: Int = 0,
+    /** The winner's successful requests, 0–100; null in results saved by older versions. */
+    val successRate: Int? = null
 ) {
+    /** The winner's 0–100 score over the blocked sites, the same scale as the Benchmark's. */
+    val score: CmdScore
+        get() = CmdScore.of(opened, blocked, successRate ?: if (blocked > 0) opened * 100 / blocked else 0, latencyMs)
+
     val nothingBlocked: Boolean get() = blocked == 0
 }
 
@@ -176,7 +191,8 @@ object CommandGenerator {
                 latencyMs = best?.latencyMs,
                 totalSites = allSites,
                 tested = search.tested,
-                alternatives = working.drop(1).take(2).map { GenAlternative(it.command, it.opened, it.sites, it.latencyMs) },
+                alternatives = working.drop(1).take(2).map { GenAlternative(it.command, it.opened, it.sites, it.latencyMs, it.successRate) },
+                successRate = best?.successRate,
                 generated = best != null && isGenerated(best.command),
                 how = best?.recipe?.origin?.name,
                 madeFrom = best?.recipe?.parents?.take(2),
