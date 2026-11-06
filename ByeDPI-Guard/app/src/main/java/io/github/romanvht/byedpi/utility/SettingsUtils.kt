@@ -135,11 +135,11 @@ object SettingsUtils {
                 null
             }
         )
-        return Gson().toJson(export)
+        return toJson(export)
     }
 
     private fun parseSettings(context: Context, json: String): AppSettings? {
-        val settings = Gson().fromJson(json, AppSettings::class.java)
+        val settings = parseJson(json)
         if (settings?.app == BuildConfig.APPLICATION_ID) return settings
 
         Toast.makeText(context, R.string.import_failed, Toast.LENGTH_LONG).show()
@@ -157,6 +157,28 @@ object SettingsUtils {
         Log.e(TAG, "Failed to read settings", exception)
         Toast.makeText(context, R.string.import_failed, Toast.LENGTH_SHORT).show()
     }
+
+    /**
+     * Converts a value read back from a backup into what SharedPreferences should store.
+     * Gson reads every JSON number as a Double, so whole numbers become Int (or Long when they
+     * don't fit) and the rest Float; string arrays become string sets. Anything else is null
+     * and is skipped on import.
+     */
+    internal fun preferenceValue(value: Any?): Any? = when (value) {
+        is Int, is Long, is Float, is Boolean, is String -> value
+        is Double -> when (value) {
+            value.toInt().toDouble() -> value.toInt()
+            value.toLong().toDouble() -> value.toLong()
+            else -> value.toFloat()
+        }
+        is Collection<*> -> if (value.all { it is String }) value.filterIsInstance<String>().toSet() else null
+        else -> null
+    }
+
+    /** The backup file contents: the inverse of [parseJson]. */
+    internal fun toJson(settings: AppSettings): String = Gson().toJson(settings)
+
+    internal fun parseJson(json: String): AppSettings? = Gson().fromJson(json, AppSettings::class.java)
 
     fun getAvailableSections(settings: AppSettings): Set<Section> = buildSet {
         if (settings.settings != null) add(Section.SETTINGS)
@@ -182,31 +204,16 @@ object SettingsUtils {
 
                     import.settings
                         .filterKeys { it !in separatePreferenceKeys }
-                        .forEach { (key, value) ->
-                            when (value) {
+                        .forEach { (key, raw) ->
+                            when (val value = preferenceValue(raw)) {
                                 is Int -> putInt(key, value)
                                 is Boolean -> putBoolean(key, value)
                                 is String -> putString(key, value)
                                 is Float -> putFloat(key, value)
                                 is Long -> putLong(key, value)
-                                is Double -> {
-                                    when (value) {
-                                        value.toInt().toDouble() -> {
-                                            putInt(key, value.toInt())
-                                        }
-                                        value.toLong().toDouble() -> {
-                                            putLong(key, value.toLong())
-                                        }
-                                        else -> {
-                                            putFloat(key, value.toFloat())
-                                        }
-                                    }
-                                }
-                                is Collection<*> -> {
-                                    if (value.all { it is String }) {
-                                        @Suppress("UNCHECKED_CAST")
-                                        putStringSet(key, (value as Collection<String>).toSet())
-                                    }
+                                is Set<*> -> {
+                                    @Suppress("UNCHECKED_CAST")
+                                    putStringSet(key, value as Set<String>)
                                 }
                             }
                         }

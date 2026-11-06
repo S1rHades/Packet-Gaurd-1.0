@@ -77,6 +77,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import io.github.romanvht.byedpi.R
 
 private data class ListEditorState(val id: String?, val name: String, val domains: String)
 
@@ -96,13 +100,15 @@ fun BenchmarkScreen(
     // Pick up lists/profiles changed elsewhere each time this tab opens.
     LaunchedEffect(Unit) { vm.reload() }
 
+    val ctx = LocalContext.current
     val sni = vm.sni
+    val customName = stringResource(R.string.pg_custom_strategy)
     val ranked = remember(test.strategies, ui.profiles) {
-        rankStrategies(test.strategies) { ui.nameFor(it, sni) }
+        rankStrategies(test.strategies) { ui.nameFor(it, sni, customName) }
     }
     val winner = remember(ranked) { winnerOf(ranked) }
     val perDomain = remember(test.strategies, ui.profiles) {
-        bestPerDomain(test.strategies) { ui.nameFor(it, sni) }
+        bestPerDomain(test.strategies) { ui.nameFor(it, sni, customName) }
     }
 
     val hasResults = test.strategies.isNotEmpty()
@@ -115,8 +121,8 @@ fun BenchmarkScreen(
     ) {
         item(key = "header") {
             ScreenHeader(
-                "Benchmark",
-                "Find which profile unblocks your sites fastest on this network.",
+                stringResource(R.string.pg_tab_benchmark),
+                stringResource(R.string.pg_bench_subtitle),
                 Modifier.staggeredEnter(0)
             )
         }
@@ -128,7 +134,7 @@ fun BenchmarkScreen(
                 hasResults = hasResults && anyDone,
                 applied = winner != null && ui.applied == winner.result.command,
                 running = running,
-                onApply = { w -> vm.apply(w.result.command, "Benchmark winner · ${w.name}") },
+                onApply = { w -> vm.apply(w.result.command, ctx.getString(R.string.pg_bench_winner_label, w.name)) },
                 modifier = Modifier.animateItem().staggeredEnter(1)
             )
         }
@@ -145,15 +151,15 @@ fun BenchmarkScreen(
                     exit = shrinkVertically() + fadeOut()
                 ) {
                     InfoBanner(
-                        "Starting a benchmark pauses protection while profiles are tested. Reconnect when it finishes.",
+                        stringResource(R.string.pg_bench_pause_warning),
                         Icons.Filled.Info
                     )
                 }
                 PrimaryButton(
                     text = when {
-                        test.isStopping -> "Stopping…"
-                        running -> "Stop"
-                        else -> "Start Optimization"
+                        test.isStopping -> stringResource(R.string.pg_stopping)
+                        running -> stringResource(R.string.pg_stop)
+                        else -> stringResource(R.string.pg_bench_start)
                     },
                     icon = if (running) Icons.Filled.Stop else Icons.Filled.PlayArrow,
                     onClick = { if (running) vm.stop() else vm.start() },
@@ -182,12 +188,12 @@ fun BenchmarkScreen(
                         val label = when {
                             running && test.currentStrategy > 0 -> {
                                 val cmd = test.strategies.getOrNull(test.currentStrategy - 1)?.command
-                                "Testing ${test.currentStrategy}/${test.strategies.size}" +
-                                    (cmd?.let { " · ${ui.nameFor(it, sni)}" } ?: "")
+                                stringResource(R.string.pg_bench_testing, test.currentStrategy, test.strategies.size) +
+                                    (cmd?.let { " · ${ui.nameFor(it, sni, customName)}" } ?: "")
                             }
-                            running -> "Preparing…"
-                            test.failed || test.wasInterrupted -> "The last run was interrupted. Results are partial."
-                            else -> "Finished · ${test.strategies.size} profiles tested"
+                            running -> stringResource(R.string.pg_preparing)
+                            test.failed || test.wasInterrupted -> stringResource(R.string.pg_bench_interrupted)
+                            else -> pluralStringResource(R.plurals.pg_bench_finished, test.strategies.size, test.strategies.size)
                         }
                         AnimatedContent(
                             targetState = label,
@@ -207,8 +213,8 @@ fun BenchmarkScreen(
         // 4 — link lists
         item(key = "lists") {
             AppCard(Modifier.animateItem().staggeredEnter(4)) {
-                SectionTitle("Link lists") {
-                    Text("${ui.activeSites} sites", color = Palette.TextSecondary, fontSize = 12.sp)
+                SectionTitle(stringResource(R.string.pg_link_lists)) {
+                    Text(pluralStringResource(R.plurals.pg_sites, ui.activeSites, ui.activeSites), color = Palette.TextSecondary, fontSize = 12.sp)
                 }
                 ui.lists.forEach { list ->
                     key(list.id) {
@@ -227,16 +233,16 @@ fun BenchmarkScreen(
                             )
                             Column(Modifier.weight(1f)) {
                                 Text(list.name, fontWeight = FontWeight.SemiBold)
-                                Text("${list.domains.size} sites", color = Palette.TextSecondary, fontSize = 12.sp)
+                                Text(pluralStringResource(R.plurals.pg_sites, list.domains.size, list.domains.size), color = Palette.TextSecondary, fontSize = 12.sp)
                             }
                             IconButton(
                                 enabled = !running,
                                 onClick = {
                                     editor = ListEditorState(list.id, list.name, list.domains.joinToString("\n"))
                                 }
-                            ) { Icon(Icons.Filled.Edit, "Edit ${list.name}", tint = Palette.TextSecondary) }
+                            ) { Icon(Icons.Filled.Edit, stringResource(R.string.pg_edit_named, list.name), tint = Palette.TextSecondary) }
                             IconButton(enabled = !running, onClick = { deleting = list }) {
-                                Icon(Icons.Filled.Delete, "Delete ${list.name}", tint = Palette.TextSecondary)
+                                Icon(Icons.Filled.Delete, stringResource(R.string.pg_delete_named, list.name), tint = Palette.TextSecondary)
                             }
                         }
                     }
@@ -244,12 +250,12 @@ fun BenchmarkScreen(
                 Spacer(Modifier.height(8.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     SecondaryButton(
-                        "New list",
+                        stringResource(R.string.pg_new_list),
                         onClick = { editor = ListEditorState(null, "", "") },
                         enabled = !running,
                         icon = Icons.Filled.Add
                     )
-                    TextButton(onClick = vm::resetLists, enabled = !running) { Text("Restore defaults") }
+                    TextButton(onClick = vm::resetLists, enabled = !running) { Text(stringResource(R.string.pg_restore_defaults)) }
                 }
             }
         }
@@ -257,24 +263,24 @@ fun BenchmarkScreen(
         // 5 — profiles to test
         item(key = "profiles") {
             AppCard(Modifier.animateItem().staggeredEnter(5)) {
-                SectionTitle("Profiles to test") {
-                    Text("${ui.selected.size} selected", color = Palette.TextSecondary, fontSize = 12.sp)
+                SectionTitle(stringResource(R.string.pg_profiles_to_test)) {
+                    Text(stringResource(R.string.pg_n_selected, ui.selected.size), color = Palette.TextSecondary, fontSize = 12.sp)
                 }
                 PillTabs(
                     items = ProfilePack.entries.toList(),
                     selected = ui.pack,
                     onSelect = vm::selectPack,
-                    label = { pack -> "${pack.label} (${ui.profiles.count { it.pack == pack }})" }
+                    label = { pack -> "${stringResource(pack.label)} (${ui.profiles.count { it.pack == pack }})" }
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    TextButton(onClick = vm::selectAllVisible, enabled = !running) { Text("Select all") }
-                    TextButton(onClick = vm::clearVisible, enabled = !running) { Text("Clear") }
+                    TextButton(onClick = vm::selectAllVisible, enabled = !running) { Text(stringResource(R.string.pg_select_all)) }
+                    TextButton(onClick = vm::clearVisible, enabled = !running) { Text(stringResource(R.string.pg_clear)) }
                 }
                 if (ui.pack == ProfilePack.Custom && ui.visibleProfiles.isEmpty()) {
-                    HelperText("No custom profiles yet. Add your own under Settings → Benchmark → Custom profiles.")
+                    HelperText(stringResource(R.string.pg_bench_no_custom))
                 }
                 if (ui.pack == ProfilePack.Community) {
-                    HelperText("Upstream's community-tested strategies. Testing all of them takes a while.")
+                    HelperText(stringResource(R.string.pg_bench_community_help))
                 }
             }
         }
@@ -312,14 +318,14 @@ fun BenchmarkScreen(
         // 6 — full ranking
         if (ranked.isNotEmpty()) {
             item(key = "rankingTitle") {
-                Text("All results", style = MaterialTheme.typography.titleMedium, modifier = Modifier.animateItem().padding(top = 6.dp))
+                Text(stringResource(R.string.pg_all_results), style = MaterialTheme.typography.titleMedium, modifier = Modifier.animateItem().padding(top = 6.dp))
             }
             items(ranked, key = { "r:" + it.result.command }) { r ->
                 RankedRow(
                     r = r,
                     applied = ui.applied == r.result.command,
                     canApply = !running,
-                    onApply = { vm.apply(r.result.command, "Benchmark · ${r.name}") },
+                    onApply = { vm.apply(r.result.command, ctx.getString(R.string.pg_bench_result_label, r.name)) },
                     modifier = Modifier.animateItem()
                 )
             }
@@ -338,14 +344,14 @@ fun BenchmarkScreen(
         AlertDialog(
             onDismissRequest = { deleting = null },
             containerColor = Palette.Surface,
-            title = { Text("Delete “${list.name}”?") },
-            text = { Text("The list will no longer be tested. You can bring built-in lists back with Restore defaults.") },
+            title = { Text(stringResource(R.string.pg_delete_list_title, list.name)) },
+            text = { Text(stringResource(R.string.pg_delete_list_body)) },
             confirmButton = {
                 TextButton(onClick = { vm.deleteList(list.id); deleting = null }) {
-                    Text("Delete", color = Palette.Error)
+                    Text(stringResource(R.string.pg_delete), color = Palette.Error)
                 }
             },
-            dismissButton = { TextButton(onClick = { deleting = null }) { Text("Cancel") } }
+            dismissButton = { TextButton(onClick = { deleting = null }) { Text(stringResource(R.string.pg_cancel)) } }
         )
     }
 }
@@ -381,19 +387,17 @@ private fun WinnerCard(
                     ) { Icon(Icons.Filled.EmojiEvents, null, tint = Palette.TextSecondary) }
                     Spacer(Modifier.width(14.dp))
                     Column(Modifier.weight(1f)) {
-                        Text("Winning profile", style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(R.string.pg_winning_profile), style = MaterialTheme.typography.titleMedium)
                         HelperText(
-                            if (running) "Testing… the best profile so far will appear here."
-                            else "Run an optimization to find the fastest working profile for your network.",
+                            stringResource(if (running) R.string.pg_winner_running else R.string.pg_winner_idle),
                             Modifier.padding(top = 2.dp)
                         )
                     }
                 }
                 1 -> Column {
-                    SectionTitle("No working profile yet")
+                    SectionTitle(stringResource(R.string.pg_no_winner))
                     HelperText(
-                        "None of the tested profiles reached any site. Try another pack, or check that the " +
-                            "selected sites are reachable from your network."
+                        stringResource(R.string.pg_no_winner_help)
                     )
                 }
                 else -> {
@@ -408,7 +412,7 @@ private fun WinnerCard(
                             Spacer(Modifier.width(14.dp))
                             Column(Modifier.weight(1f)) {
                                 Text(
-                                    if (running) "Leading so far" else "Winning profile",
+                                    stringResource(if (running) R.string.pg_leading else R.string.pg_winning_profile),
                                     color = Palette.TextSecondary, fontSize = 12.sp
                                 )
                                 AnimatedContent(
@@ -424,15 +428,15 @@ private fun WinnerCard(
                             modifier = Modifier.padding(top = 10.dp)
                         )
                         Row(Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            StatChip("Success", "${w.result.successCount}/${w.result.totalRequests}", Modifier.weight(1f))
-                            StatChip("Avg latency", w.avgLatencyMs?.let { "$it ms" } ?: "—", Modifier.weight(1f))
+                            StatChip(stringResource(R.string.pg_success), "${w.result.successCount}/${w.result.totalRequests}", Modifier.weight(1f))
+                            StatChip(stringResource(R.string.pg_avg_latency), w.avgLatencyMs?.let { stringResource(R.string.pg_ms, it) } ?: "—", Modifier.weight(1f))
                         }
                         Spacer(Modifier.height(12.dp))
                         PrimaryButton(
                             text = when {
-                                applied -> "Applied"
-                                running -> "Wait for the run to finish"
-                                else -> "Apply Winning Profile"
+                                applied -> stringResource(R.string.pg_applied)
+                                running -> stringResource(R.string.pg_wait_run)
+                                else -> stringResource(R.string.pg_apply_winner)
                             },
                             icon = if (applied) Icons.Filled.Check else null,
                             onClick = { onApply(w) },
@@ -458,15 +462,15 @@ private fun StatChip(label: String, value: String, modifier: Modifier = Modifier
 @Composable
 private fun DomainTable(rows: List<DomainBest>, modifier: Modifier = Modifier) {
     AppCard(modifier) {
-        SectionTitle("Best profile per domain")
+        SectionTitle(stringResource(R.string.pg_best_per_domain))
         if (rows.isEmpty()) {
-            HelperText("After a run, each site is listed with the profile that reached it fastest.")
+            HelperText(stringResource(R.string.pg_best_per_domain_help))
             return@AppCard
         }
         Row(Modifier.fillMaxWidth().padding(bottom = 6.dp)) {
-            Text("Domain", Modifier.weight(1.3f), color = Palette.TextSecondary, fontSize = 12.sp)
-            Text("Profile", Modifier.weight(1.2f), color = Palette.TextSecondary, fontSize = 12.sp)
-            Text("Latency", Modifier.weight(0.7f), color = Palette.TextSecondary, fontSize = 12.sp)
+            Text(stringResource(R.string.pg_domain), Modifier.weight(1.3f), color = Palette.TextSecondary, fontSize = 12.sp)
+            Text(stringResource(R.string.pg_profile), Modifier.weight(1.2f), color = Palette.TextSecondary, fontSize = 12.sp)
+            Text(stringResource(R.string.pg_latency), Modifier.weight(0.7f), color = Palette.TextSecondary, fontSize = 12.sp)
         }
         HorizontalDivider(color = Palette.Border)
         rows.forEach { row ->
@@ -481,11 +485,11 @@ private fun DomainTable(rows: List<DomainBest>, modifier: Modifier = Modifier) {
                         color = Palette.Glow, maxLines = 1, overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        (row.latencyMs?.let { "$it ms" } ?: "—") + (row.httpCode?.let { " · $it" } ?: ""),
+                        (row.latencyMs?.let { stringResource(R.string.pg_ms, it) } ?: "—") + (row.httpCode?.let { " · $it" } ?: ""),
                         Modifier.weight(0.7f), fontSize = 12.sp
                     )
                 } else {
-                    Text("not reachable", Modifier.weight(1.9f), fontSize = 12.sp, color = Palette.Error)
+                    Text(stringResource(R.string.pg_not_reachable), Modifier.weight(1.9f), fontSize = 12.sp, color = Palette.Error)
                 }
             }
         }
@@ -517,15 +521,15 @@ private fun RankedRow(
                 Column(Modifier.weight(1f)) {
                     Text(r.name, fontWeight = FontWeight.SemiBold)
                     Text(
-                        "${r.result.successCount}/${r.result.totalRequests} OK" +
-                            (r.avgLatencyMs?.let { " · avg $it ms" } ?: ""),
+                        stringResource(R.string.pg_rank_ok, r.result.successCount, r.result.totalRequests) +
+                            (r.avgLatencyMs?.let { " · " + stringResource(R.string.pg_rank_avg, it) } ?: ""),
                         color = if (r.result.successCount > 0) Color.White else Palette.TextSecondary,
                         fontSize = 12.sp
                     )
                 }
                 Icon(
                     Icons.Filled.ExpandMore,
-                    contentDescription = if (expanded) "Collapse" else "Expand",
+                    contentDescription = stringResource(if (expanded) R.string.pg_collapse else R.string.pg_expand),
                     tint = Palette.TextSecondary,
                     modifier = Modifier.rotate(arrow)
                 )
@@ -545,8 +549,8 @@ private fun RankedRow(
                         )
                         Text(
                             if (s.successCount > 0)
-                                "${s.latencyMs ?: "?"} ms" + (s.httpCode?.let { " · $it" } ?: "")
-                            else "failed",
+                                (s.latencyMs?.let { stringResource(R.string.pg_ms, it) } ?: "—") + (s.httpCode?.let { " · $it" } ?: "")
+                            else stringResource(R.string.pg_failed),
                             fontSize = 12.sp,
                             color = if (s.successCount > 0) Palette.Success else Palette.Error
                         )
@@ -554,7 +558,7 @@ private fun RankedRow(
                 }
                 Spacer(Modifier.height(8.dp))
                 SecondaryButton(
-                    if (applied) "Applied" else "Use this profile",
+                    stringResource(if (applied) R.string.pg_applied else R.string.pg_use_profile),
                     onClick = onApply,
                     enabled = canApply && !applied
                 )
@@ -576,13 +580,13 @@ private fun ListEditorDialog(state: ListEditorState, vm: BenchmarkViewModel, onD
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = Palette.Surface,
-        title = { Text(if (state.id == null) "New link list" else "Edit list") },
+        title = { Text(stringResource(if (state.id == null) R.string.pg_new_link_list else R.string.pg_edit_list)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("List name") },
+                    label = { Text(stringResource(R.string.pg_list_name)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     colors = fieldColors()
@@ -590,17 +594,17 @@ private fun ListEditorDialog(state: ListEditorState, vm: BenchmarkViewModel, onD
                 OutlinedTextField(
                     value = domains,
                     onValueChange = { domains = it },
-                    label = { Text("Domains or links") },
+                    label = { Text(stringResource(R.string.pg_domains_or_links)) },
                     placeholder = { Text("example.com\nhttps://news.example.org/page") },
                     modifier = Modifier.fillMaxWidth().heightIn(min = 140.dp),
                     colors = fieldColors()
                 )
                 Text(
-                    "One per line. Paths and query strings are ignored; each domain is tested.",
+                    stringResource(R.string.pg_list_help),
                     color = Palette.TextSecondary, fontSize = 12.sp
                 )
                 SecondaryButton(
-                    "Import from file",
+                    stringResource(R.string.pg_import_file),
                     onClick = { picker.launch(arrayOf("text/*")) },
                     icon = Icons.Filled.UploadFile
                 )
@@ -611,9 +615,9 @@ private fun ListEditorDialog(state: ListEditorState, vm: BenchmarkViewModel, onD
             TextButton(onClick = {
                 val problem = vm.saveList(state.id, name, domains)
                 if (problem == null) onDismiss() else error = problem
-            }) { Text("Save") }
+            }) { Text(stringResource(R.string.pg_save)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.pg_cancel)) } }
     )
 }
 

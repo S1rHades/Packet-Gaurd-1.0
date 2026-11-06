@@ -47,11 +47,14 @@ import io.github.romanvht.byedpi.utility.PermissionUtils
 import io.github.romanvht.byedpi.utility.getPreferences
 import io.github.romanvht.byedpi.utility.mode
 import kotlinx.coroutines.launch
+import androidx.annotation.StringRes
+import androidx.compose.ui.res.stringResource
+import io.github.romanvht.byedpi.R
 
-enum class Tab(val label: String, val icon: ImageVector) {
-    Connect("Connect", Icons.Filled.Shield),
-    Benchmark("Benchmark", Icons.Filled.Speed),
-    Settings("Settings", Icons.Filled.Settings)
+enum class Tab(@StringRes val label: Int, val icon: ImageVector) {
+    Connect(R.string.pg_tab_connect, Icons.Filled.Shield),
+    Benchmark(R.string.pg_tab_benchmark, Icons.Filled.Speed),
+    Settings(R.string.pg_tab_settings, Icons.Filled.Settings)
 }
 
 private const val BATTERY_REQUESTED = "battery_optimization_requested"
@@ -111,7 +114,7 @@ fun AppRoot(requestedTab: Tab? = null, onTabRequestHandled: () -> Unit = {}) {
     }
 
     val vpnPermission = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { r ->
-        if (r.resultCode == Activity.RESULT_OK) connectVm.connect() else say("VPN permission was denied")
+        if (r.resultCode == Activity.RESULT_OK) connectVm.connect() else say(ctx.getString(R.string.pg_vpn_denied))
     }
     val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
         requestBatteryOnce(ctx) // the bypass still works if notifications are denied
@@ -121,7 +124,7 @@ fun AppRoot(requestedTab: Tab? = null, onTabRequestHandled: () -> Unit = {}) {
         when (state) {
             is ConnectionState.Connected, ConnectionState.Connecting -> connectVm.disconnect()
             else -> when {
-                TestService.isRunning -> say("A benchmark is running. Stop it first.")
+                TestService.isRunning -> say(ctx.getString(R.string.pg_benchmark_running))
                 else -> {
                     val consent = if (ctx.getPreferences().mode() == Mode.VPN) VpnService.prepare(ctx) else null
                     if (consent != null) vpnPermission.launch(consent) else connectVm.connect()
@@ -154,8 +157,8 @@ fun AppRoot(requestedTab: Tab? = null, onTabRequestHandled: () -> Unit = {}) {
                     NavigationBarItem(
                         selected = tab == t,
                         onClick = { tab = t },
-                        icon = { Icon(t.icon, contentDescription = t.label) },
-                        label = { Text(t.label) },
+                        icon = { Icon(t.icon, contentDescription = stringResource(t.label)) },
+                        label = { Text(stringResource(t.label)) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = Color.White,
                             selectedTextColor = Palette.Sky,

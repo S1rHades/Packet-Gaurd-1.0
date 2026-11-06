@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import io.github.romanvht.byedpi.R
 
 const val PREF_CUSTOM_PROFILES = "bb_custom_profiles"
 private const val PREF_SELECTED = "bb_selected_profiles"
@@ -52,9 +53,9 @@ data class BenchUi(
     val visibleProfiles: List<ProfileItem> get() = profiles.filter { it.pack == pack }
 
     /** Maps the command text recorded in results (with {sni} filled in) to a friendly name. */
-    fun nameFor(resolvedCommand: String, sni: String): String =
+    fun nameFor(resolvedCommand: String, sni: String, fallback: String): String =
         profiles.firstOrNull { it.command.replace("{sni}", "\"$sni\"") == resolvedCommand }?.name
-            ?: "Custom strategy"
+            ?: fallback
 }
 
 /**
@@ -94,10 +95,12 @@ class BenchmarkViewModel(app: Application) : AndroidViewModel(app) {
                 }
                 val community = ctx.assets.open("proxytest_strategies.list").bufferedReader()
                     .useLines { seq -> seq.map { it.trim() }.filter { it.isNotEmpty() }.toList() }
-                val custom = parseCustomProfiles(prefs.getString(PREF_CUSTOM_PROFILES, "") ?: "")
+                val custom = parseCustomProfiles(prefs.getString(PREF_CUSTOM_PROFILES, "") ?: "") {
+                    ctx.getString(R.string.pg_custom_n, it)
+                }
                 lists to (
                     BenchPresets.basic.map { ProfileItem(it.second, it.first, ProfilePack.Basic) } +
-                        community.mapIndexed { i, c -> ProfileItem(c, "Community #${i + 1}", ProfilePack.Community) } +
+                        community.mapIndexed { i, c -> ProfileItem(c, ctx.getString(R.string.pg_community_n, i + 1), ProfilePack.Community) } +
                         custom.map { ProfileItem(it.second, it.first, ProfilePack.Custom) }
                     )
             }
@@ -122,12 +125,12 @@ class BenchmarkViewModel(app: Application) : AndroidViewModel(app) {
     fun saveList(id: String?, name: String, rawDomains: String): String? {
         val cleanName = name.trim()
         val domains = parseDomains(rawDomains)
-        if (cleanName.isEmpty()) return "Give the list a name"
-        if (domains.isEmpty()) return "Add at least one domain, e.g. example.com"
+        if (cleanName.isEmpty()) return ctx.getString(R.string.pg_err_list_name)
+        if (domains.isEmpty()) return ctx.getString(R.string.pg_err_list_domains)
         io {
             val ok = if (id == null) DomainListUtils.addList(ctx, cleanName, domains)
             else DomainListUtils.updateList(ctx, id, cleanName, domains)
-            if (!ok) say("A list with that name already exists")
+            if (!ok) say(ctx.getString(R.string.pg_err_list_exists))
         }
         return null
     }
@@ -166,15 +169,15 @@ class BenchmarkViewModel(app: Application) : AndroidViewModel(app) {
         val s = ui.value
         val commands = s.profiles.filter { it.command in s.selected }.map { it.command }
         when {
-            commands.isEmpty() -> return say("Select at least one profile")
-            s.activeSites == 0 -> return say("Turn on at least one link list")
+            commands.isEmpty() -> return say(ctx.getString(R.string.pg_err_no_profile))
+            s.activeSites == 0 -> return say(ctx.getString(R.string.pg_err_no_list))
         }
         // TestService reads its profile list from these two upstream preferences.
         prefs.edit(commit = true) {
             putBoolean(PREF_USER_COMMANDS, true)
             putString(PREF_TEST_COMMANDS, commands.joinToString("\n"))
         }
-        if (appStatus.first == AppStatus.Running) say("Bypass paused while the benchmark runs")
+        if (appStatus.first == AppStatus.Running) say(ctx.getString(R.string.pg_bench_paused))
         TestService.start(ctx)
     }
 
@@ -200,7 +203,7 @@ class BenchmarkViewModel(app: Application) : AndroidViewModel(app) {
                     ctx.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText().take(256_000) }
                 }.getOrNull()
             }
-            if (text == null) say("Could not read that file") else onText(text)
+            if (text == null) say(ctx.getString(R.string.pg_err_read_file)) else onText(text)
         }
     }
 

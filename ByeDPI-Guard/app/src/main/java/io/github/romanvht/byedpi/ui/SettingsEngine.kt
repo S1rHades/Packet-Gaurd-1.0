@@ -19,14 +19,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import io.github.romanvht.byedpi.R
 
 private val DESYNC_METHODS = listOf(
-    "none" to "None",
-    "split" to "Split",
-    "disorder" to "Disorder",
-    "fake" to "Fake",
-    "oob" to "OOB",
-    "disoob" to "Disordered OOB"
+    "none" to R.string.pg_desync_none,
+    "split" to R.string.pg_desync_split,
+    "disorder" to R.string.pg_desync_disorder,
+    "fake" to R.string.pg_desync_fake,
+    "oob" to R.string.pg_desync_oob,
+    "disoob" to R.string.pg_desync_disoob
 )
 
 private fun intIn(min: Int, max: Int): (String) -> Boolean = { v -> v.toIntOrNull()?.let { it in min..max } ?: false }
@@ -56,19 +58,19 @@ fun EngineSettings(onChanged: () -> Unit) {
 
     AnimatedVisibility(cmdEnabled, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
         InfoBanner(
-            "A command-line strategy is active, so these options are not used right now.",
+            stringResource(R.string.pg_engine_cmd_active),
             Icons.Filled.Info,
             action = {
                 TextButton(onClick = {
                     cmdEnabled = false
                     onChanged()
-                }) { Text("Use these") }
+                }) { Text(stringResource(R.string.pg_engine_use_these)) }
             }
         )
     }
 
     Column(Modifier.alpha(dim)) {
-        SettingsGroup("Desync method") {
+        SettingsGroup(stringResource(R.string.pg_engine_desync)) {
             PillTabs(
                 items = DESYNC_METHODS.map { it.first },
                 selected = desync,
@@ -76,85 +78,85 @@ fun EngineSettings(onChanged: () -> Unit) {
                     desync = it
                     onChanged()
                 },
-                label = { key -> DESYNC_METHODS.first { it.first == key }.second },
+                label = { key -> stringResource(DESYNC_METHODS.first { it.first == key }.second) },
                 enabled = editable
             )
             HelperText(
                 when (desync) {
-                    "split" -> "Splits the first packet in two at the chosen position."
-                    "disorder" -> "Splits the packet and sends the parts out of order."
-                    "fake" -> "Sends a decoy packet with a short TTL before the real one."
-                    "oob" -> "Inserts an out-of-band byte at the split point."
-                    "disoob" -> "Out-of-band byte combined with disordered sending."
-                    else -> "Traffic is passed through without desync tricks."
+                    "split" -> stringResource(R.string.pg_desync_help_split)
+                    "disorder" -> stringResource(R.string.pg_desync_help_disorder)
+                    "fake" -> stringResource(R.string.pg_desync_help_fake)
+                    "oob" -> stringResource(R.string.pg_desync_help_oob)
+                    "disoob" -> stringResource(R.string.pg_desync_help_disoob)
+                    else -> stringResource(R.string.pg_desync_help_none)
                 },
                 Modifier.padding(top = 10.dp)
             )
             AnimatedVisibility(desync != "none", enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
                 Column(Modifier.padding(top = 8.dp)) {
                     PrefTextField(
-                        "Split position", "byedpi_split_position", "1",
+                        stringResource(R.string.pg_engine_split_pos), "byedpi_split_position", "1",
                         numeric = true, signed = true, enabled = editable,
-                        validate = intIn(Int.MIN_VALUE, Int.MAX_VALUE), error = "Enter a whole number"
+                        validate = intIn(Int.MIN_VALUE, Int.MAX_VALUE), error = stringResource(R.string.pg_err_int)
                     )
-                    BoolPrefRow("Count position from the host / SNI", "byedpi_split_at_host", false, editable, onChanged)
+                    BoolPrefRow(stringResource(R.string.pg_engine_split_at_host), "byedpi_split_at_host", false, editable, onChanged)
                 }
             }
             AnimatedVisibility(desync == "fake", enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
                 Column {
                     PrefTextField(
-                        "Fake packet TTL", "byedpi_fake_ttl", "8", numeric = true, enabled = editable,
-                        validate = intIn(1, 255), error = "Between 1 and 255"
+                        stringResource(R.string.pg_engine_fake_ttl), "byedpi_fake_ttl", "8", numeric = true, enabled = editable,
+                        validate = intIn(1, 255), error = between(1, 255)
                     )
                     PrefTextField(
-                        "Fake packet offset", "byedpi_fake_offset", "0", numeric = true, enabled = editable,
-                        validate = intIn(0, Int.MAX_VALUE), error = "Enter 0 or more"
+                        stringResource(R.string.pg_engine_fake_offset), "byedpi_fake_offset", "0", numeric = true, enabled = editable,
+                        validate = intIn(0, Int.MAX_VALUE), error = stringResource(R.string.pg_err_non_negative)
                     )
                     PrefTextField(
-                        "SNI of the fake packet", "byedpi_fake_sni", "www.iana.org", enabled = editable,
-                        validate = { it.isNotBlank() }, error = "Enter a domain"
+                        stringResource(R.string.pg_engine_fake_sni), "byedpi_fake_sni", "www.iana.org", enabled = editable,
+                        validate = { it.isNotBlank() }, error = stringResource(R.string.pg_err_domain)
                     )
                 }
             }
             AnimatedVisibility(desync == "oob" || desync == "disoob", enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
                 PrefTextField(
-                    "Out-of-band byte", "byedpi_oob_data", "a", maxLength = 1, enabled = editable,
-                    validate = { it.length == 1 }, error = "Exactly one character"
+                    stringResource(R.string.pg_engine_oob_byte), "byedpi_oob_data", "a", maxLength = 1, enabled = editable,
+                    validate = { it.length == 1 }, error = stringResource(R.string.pg_err_one_char)
                 )
             }
             PrefTextField(
-                "Default TTL (0 = system)", "byedpi_default_ttl", "0", numeric = true, enabled = editable,
-                validate = intIn(0, 255), error = "Between 0 and 255"
+                stringResource(R.string.pg_engine_default_ttl), "byedpi_default_ttl", "0", numeric = true, enabled = editable,
+                validate = intIn(0, 255), error = between(0, 255)
             )
-            BoolPrefRow("Drop SACK", "byedpi_drop_sack", false, editable, onChanged)
+            BoolPrefRow(stringResource(R.string.pg_engine_drop_sack), "byedpi_drop_sack", false, editable, onChanged)
         }
 
         Gap(14)
-        SettingsGroup("Protocols") {
+        SettingsGroup(stringResource(R.string.pg_engine_protocols)) {
             SwitchRow("HTTP", http, { http = it; onChanged() }, enabled = editable)
             SwitchRow("HTTPS (TLS)", https, { https = it; onChanged() }, enabled = editable)
             SwitchRow("UDP / QUIC", udp, { udp = it; onChanged() }, enabled = editable)
-            HelperText("Leave all three off to desync every protocol.")
+            HelperText(stringResource(R.string.pg_engine_protocols_help))
         }
 
         Gap(14)
-        SettingsGroup("HTTP tweaks") {
-            BoolPrefRow("Mixed-case Host header", "byedpi_host_mixed_case", false, httpOn, onChanged)
-            BoolPrefRow("Mixed-case domain", "byedpi_domain_mixed_case", false, httpOn, onChanged)
-            BoolPrefRow("Remove spaces in Host header", "byedpi_host_remove_spaces", false, httpOn, onChanged)
+        SettingsGroup(stringResource(R.string.pg_engine_http_tweaks)) {
+            BoolPrefRow(stringResource(R.string.pg_engine_host_mixed), "byedpi_host_mixed_case", false, httpOn, onChanged)
+            BoolPrefRow(stringResource(R.string.pg_engine_domain_mixed), "byedpi_domain_mixed_case", false, httpOn, onChanged)
+            BoolPrefRow(stringResource(R.string.pg_engine_host_spaces), "byedpi_host_remove_spaces", false, httpOn, onChanged)
         }
 
         Gap(14)
-        SettingsGroup("TLS record split") {
-            SwitchRow("Split the TLS record", tlsrec, { tlsrec = it; onChanged() }, enabled = httpsOn)
+        SettingsGroup(stringResource(R.string.pg_engine_tlsrec)) {
+            SwitchRow(stringResource(R.string.pg_engine_tlsrec_enable), tlsrec, { tlsrec = it; onChanged() }, enabled = httpsOn)
             AnimatedVisibility(tlsrec, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
                 Column {
                     PrefTextField(
-                        "Record split position", "byedpi_tlsrec_position", "0",
+                        stringResource(R.string.pg_engine_tlsrec_pos), "byedpi_tlsrec_position", "0",
                         numeric = true, signed = true, enabled = httpsOn && tlsrec,
-                        validate = intIn(2 * Short.MIN_VALUE, 2 * Short.MAX_VALUE), error = "Between -65536 and 65534"
+                        validate = intIn(2 * Short.MIN_VALUE, 2 * Short.MAX_VALUE), error = between(-65536, 65534)
                     )
-                    BoolPrefRow("Count position from the SNI", "byedpi_tlsrec_at_sni", false, httpsOn && tlsrec, onChanged)
+                    BoolPrefRow(stringResource(R.string.pg_engine_tlsrec_at_sni), "byedpi_tlsrec_at_sni", false, httpsOn && tlsrec, onChanged)
                 }
             }
         }
@@ -162,13 +164,13 @@ fun EngineSettings(onChanged: () -> Unit) {
         Gap(14)
         SettingsGroup("UDP") {
             PrefTextField(
-                "Fake packets before UDP traffic", "byedpi_udp_fake_count", "1", numeric = true, enabled = udpOn,
-                validate = intIn(0, 255), error = "Between 0 and 255"
+                stringResource(R.string.pg_engine_udp_fake), "byedpi_udp_fake_count", "1", numeric = true, enabled = udpOn,
+                validate = intIn(0, 255), error = between(0, 255)
             )
         }
 
         Gap(14)
-        SettingsGroup("Sites to apply desync to") {
+        SettingsGroup(stringResource(R.string.pg_engine_hosts)) {
             Segmented(
                 items = listOf("disable", "blacklist", "whitelist"),
                 selected = hostsMode,
@@ -178,38 +180,38 @@ fun EngineSettings(onChanged: () -> Unit) {
                 },
                 label = {
                     when (it) {
-                        "blacklist" -> "All except"
-                        "whitelist" -> "Only these"
-                        else -> "All sites"
+                        "blacklist" -> stringResource(R.string.pg_engine_hosts_black)
+                        "whitelist" -> stringResource(R.string.pg_engine_hosts_white)
+                        else -> stringResource(R.string.pg_engine_hosts_all)
                     }
                 },
                 enabled = editable
             )
             AnimatedVisibility(hostsMode == "blacklist", enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
                 PrefTextField(
-                    "Sites to leave untouched", "byedpi_hosts_blacklist", "", singleLine = false, enabled = editable,
-                    hint = "One domain per line", modifier = Modifier.padding(top = 8.dp)
+                    stringResource(R.string.pg_engine_blacklist), "byedpi_hosts_blacklist", "", singleLine = false, enabled = editable,
+                    hint = stringResource(R.string.pg_one_domain_per_line), modifier = Modifier.padding(top = 8.dp)
                 )
             }
             AnimatedVisibility(hostsMode == "whitelist", enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
                 PrefTextField(
-                    "Sites to desync", "byedpi_hosts_whitelist", "", singleLine = false, enabled = editable,
-                    hint = "One domain per line", modifier = Modifier.padding(top = 8.dp)
+                    stringResource(R.string.pg_engine_whitelist), "byedpi_hosts_whitelist", "", singleLine = false, enabled = editable,
+                    hint = stringResource(R.string.pg_one_domain_per_line), modifier = Modifier.padding(top = 8.dp)
                 )
             }
         }
 
         Gap(14)
-        SettingsGroup("Proxy engine") {
+        SettingsGroup(stringResource(R.string.pg_engine_proxy)) {
             PrefTextField(
-                "Max connections", "byedpi_max_connections", "512", numeric = true, enabled = editable,
-                validate = intIn(1, Short.MAX_VALUE.toInt()), error = "Between 1 and 32767"
+                stringResource(R.string.pg_engine_max_conn), "byedpi_max_connections", "512", numeric = true, enabled = editable,
+                validate = intIn(1, Short.MAX_VALUE.toInt()), error = between(1, 32767)
             )
             PrefTextField(
-                "Buffer size (bytes)", "byedpi_buffer_size", "16384", numeric = true, enabled = editable,
-                validate = intIn(1, Int.MAX_VALUE / 4), error = "Enter a positive number"
+                stringResource(R.string.pg_engine_buffer), "byedpi_buffer_size", "16384", numeric = true, enabled = editable,
+                validate = intIn(1, Int.MAX_VALUE / 4), error = stringResource(R.string.pg_err_positive)
             )
-            BoolPrefRow("Don't resolve domains", "byedpi_no_domain", false, editable, onChanged)
+            BoolPrefRow(stringResource(R.string.pg_engine_no_domain), "byedpi_no_domain", false, editable, onChanged)
             BoolPrefRow("TCP Fast Open", "byedpi_tcp_fast_open", false, editable, onChanged)
         }
     }

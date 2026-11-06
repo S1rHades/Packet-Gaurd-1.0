@@ -11,6 +11,7 @@ import io.github.romanvht.byedpi.services.appStatus
 import io.github.romanvht.byedpi.utility.HistoryUtils
 import io.github.romanvht.byedpi.utility.getPreferences
 import io.github.romanvht.byedpi.utility.mode
+import io.github.romanvht.byedpi.R
 
 /** Makes a ciadpi command line the active strategy, the same way upstream's screens do. */
 object StrategyApplier {
@@ -36,14 +37,14 @@ object StrategyApplier {
         val mode = prefs.mode()
         return when {
             appStatus.first != AppStatus.Running || TestService.isRunning ->
-                "Applied. Tap Connect to use it."
+                ctx.getString(R.string.pg_applied_connect)
 
             mode == Mode.VPN && VpnService.prepare(ctx) != null ->
-                "Applied. Reconnect to use it."
+                ctx.getString(R.string.pg_applied_reconnect)
 
             else -> {
                 ServiceManager.restart(ctx, mode)
-                "Applied. Reconnecting…"
+                ctx.getString(R.string.pg_applied_reconnecting)
             }
         }
     }

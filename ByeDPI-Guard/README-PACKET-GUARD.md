@@ -4,6 +4,19 @@ Packet Guard is an Android DPI-bypass app built on [ByeByeDPI](https://github.co
 (GPL-3.0). It keeps upstream's native engine (ByeDPI + hev-socks5-tunnel) and service layer, and
 replaces the whole interface with a single Jetpack Compose app.
 
+## Version 2.1.0
+
+- **Signed releases:** release APKs are signed with a fixed key from repository secrets, so they update in place.
+  Releases are published only from `main`, once per version. See [Release signing](#release-signing).
+- **Translations:** every screen is translated into English, Russian, Turkish, Kazakh and Vietnamese.
+  English is now the fallback for other phone languages (it was Russian).
+- **Android 15:** targets API 35. Proxy mode now runs as a `specialUse` foreground service, because Android 15
+  stops `dataSync` services after 6 hours a day and won't start them on boot.
+- **Tests:** unit tests for benchmark ranking, per-domain results, link and profile parsing, command-line
+  splitting, input validation and settings backup round-trips. CI runs them and lint on every push.
+- **Clean-up:** removed resources, dependencies and placeholder tests that only the old View interface used,
+  plus upstream's nested `.github` folder. Bug and feature templates now live in the repository's `.github`.
+
 ## Version 2.0.0
 
 - **Rebrand:** the app is named Packet Guard, with application id `com.packetguard.app`, and has a new shield launcher, notification and tile icon.
@@ -47,10 +60,48 @@ app/src/main/java/io/github/romanvht/byedpi/
 
 All settings use upstream's SharedPreferences keys and value types, so the engine reads them unchanged.
 
-## Building
+## Languages
 
-Every push to `main` runs `.github/workflows/build-apk.yml`. The workflow builds debug-signed APKs and publishes
-them on the repository's **Releases** page as `PacketGuard-v<version>-universal.apk` (plus per-ABI builds).
+The interface ships in English (the default), Russian, Turkish, Kazakh and Vietnamese, following the
+phone's language. Compose screens read their text from `res/values*/strings_ui.xml` (keys start with
+`pg_`); notifications, the tile and the diagnostic report use the remaining upstream strings in
+`strings.xml`. Add a key to every locale when you add one to `values/strings_ui.xml`.
+
+## Building and releases
+
+`.github/workflows/build-apk.yml` runs on every push and pull request. It runs the unit tests and lint,
+builds the APKs and attaches them to the run as an artifact.
+
+A GitHub release is published only from `main`, and only once per `versionName`: bump `versionName`
+and `versionCode` in `app/build.gradle.kts` to ship a new one (tag `v<versionName>`). Releases contain
+`PacketGuard-v<version>-universal.apk` plus per-ABI builds.
+
+### Release signing
+
+Android installs an update only when it has the same signature as the installed app, so every release
+must be signed with the same key. The workflow reads it from these repository secrets
+(Settings → Secrets and variables → Actions):
+
+| Secret | Value |
+| --- | --- |
+| `KEYSTORE_BASE64` | the keystore file, base64-encoded (`base64 -w0 release.jks`) |
+| `KEYSTORE_PASSWORD` | the keystore password |
+| `KEY_ALIAS` | the key alias |
+| `KEY_PASSWORD` | the key password |
+
+Create the keystore once and keep a backup: losing it means users have to uninstall to update.
+
+```
+keytool -genkeypair -v -keystore release.jks -alias packetguard -keyalg RSA -keysize 4096 -validity 10000
+```
+
+Without these secrets the workflow builds debug-signed APKs and does not publish a release. Builds
+released before signing was set up (`v2.0.0-buildN`) are debug-signed, so moving to the first signed
+release needs one uninstall; settings can be carried over with Settings → About → Export settings.
+
+To build locally: `./gradlew testDebugUnitTest lintDebug assembleDebug`. For a signed release, set
+`PG_KEYSTORE_FILE`, `PG_KEYSTORE_PASSWORD`, `PG_KEY_ALIAS` and `PG_KEY_PASSWORD`, then run
+`./gradlew assembleRelease`.
 
 ## License
 

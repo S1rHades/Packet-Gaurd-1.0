@@ -49,6 +49,9 @@ import io.github.romanvht.byedpi.utility.checkNotLocalIp
 import io.github.romanvht.byedpi.utility.checkPort
 import io.github.romanvht.byedpi.utility.getPreferences
 import io.github.romanvht.byedpi.utility.getSelectedApps
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import io.github.romanvht.byedpi.R
 
 private val DNS_PRESETS = listOf(
     "" to "System default",
@@ -58,9 +61,10 @@ private val DNS_PRESETS = listOf(
     "77.88.8.8" to "Yandex"
 )
 
+@Composable
 private fun dnsSummary(ip: String): String {
     val preset = DNS_PRESETS.firstOrNull { it.first == ip } ?: return ip
-    return if (preset.first.isBlank()) preset.second else "${preset.second} (${preset.first})"
+    return if (preset.first.isBlank()) stringResource(R.string.pg_dns_system) else "${preset.second} (${preset.first})"
 }
 
 @Composable
@@ -90,7 +94,7 @@ fun GeneralSettings(bypassActive: Boolean, onChanged: () -> Unit) {
     val isVpn = mode == "vpn"
     val proxyFromCmd = remember(mode) { prefs.checkIpAndPortInCmd().let { it.first != null || it.second != null } }
 
-    SettingsGroup("Connection mode") {
+    SettingsGroup(stringResource(R.string.pg_general_mode)) {
         Segmented(
             items = listOf("vpn", "proxy"),
             selected = mode,
@@ -98,37 +102,41 @@ fun GeneralSettings(bypassActive: Boolean, onChanged: () -> Unit) {
                 mode = it
                 onChanged()
             },
-            label = { if (it == "vpn") "System-wide VPN" else "Local proxy" },
+            label = { stringResource(if (it == "vpn") R.string.pg_mode_vpn else R.string.pg_mode_proxy) },
             enabled = !bypassActive
         )
         HelperText(
-            if (bypassActive) "Disconnect to change the mode."
-            else if (isVpn) "Every app on the phone goes through the bypass."
-            else "Only apps you point at the local SOCKS5 proxy use the bypass.",
+            stringResource(
+                when {
+                    bypassActive -> R.string.pg_general_mode_locked
+                    isVpn -> R.string.pg_general_mode_vpn_help
+                    else -> R.string.pg_general_mode_proxy_help
+                }
+            ),
             Modifier.padding(top = 10.dp)
         )
     }
 
-    SettingsGroup("Behavior") {
-        SwitchRow("Connect when the app opens", autoConnect, { autoConnect = it })
+    SettingsGroup(stringResource(R.string.pg_general_behavior)) {
+        SwitchRow(stringResource(R.string.pg_general_auto_connect), autoConnect, { autoConnect = it })
         SwitchRow(
-            "Start on boot", autostart, { autostart = it },
-            subtitle = "Turns protection back on after the phone restarts"
+            stringResource(R.string.pg_general_boot), autostart, { autostart = it },
+            subtitle = stringResource(R.string.pg_general_boot_help)
         )
     }
 
     AnimatedVisibility(isVpn, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
-        SettingsGroup("Network") {
+        SettingsGroup(stringResource(R.string.pg_general_network)) {
             val pd = privateDns
             if (pd is PrivateDnsState.Configured) {
                 InfoBanner(
-                    "Android's Private DNS (${pd.hostname}) is on, so it handles DNS for the tunnel.",
+                    stringResource(R.string.pg_general_private_dns, pd.hostname),
                     Icons.Filled.Lock,
-                    action = { TextButton(onClick = { PrivateDnsUtils.openSettings(ctx) }) { Text("Change") } }
+                    action = { TextButton(onClick = { PrivateDnsUtils.openSettings(ctx) }) { Text(stringResource(R.string.pg_change)) } }
                 )
             } else {
                 NavRow(
-                    "DNS server",
+                    stringResource(R.string.pg_dns_server),
                     value = dnsSummary(dns),
                     icon = Icons.Filled.Dns,
                     onClick = { showDns = true },
@@ -140,13 +148,13 @@ fun GeneralSettings(bypassActive: Boolean, onChanged: () -> Unit) {
                     ipv6 = it
                     onChanged()
                 },
-                subtitle = "Route IPv6 traffic through the tunnel too"
+                subtitle = stringResource(R.string.pg_general_ipv6_help)
             )
         }
     }
 
     AnimatedVisibility(isVpn, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
-        SettingsGroup("Per-app routing") {
+        SettingsGroup(stringResource(R.string.pg_general_apps)) {
             Segmented(
                 items = listOf("disable", "blacklist", "whitelist"),
                 selected = applist,
@@ -156,24 +164,24 @@ fun GeneralSettings(bypassActive: Boolean, onChanged: () -> Unit) {
                 },
                 label = {
                     when (it) {
-                        "blacklist" -> "Exclude"
-                        "whitelist" -> "Only"
-                        else -> "All apps"
+                        "blacklist" -> stringResource(R.string.pg_apps_exclude)
+                        "whitelist" -> stringResource(R.string.pg_apps_only)
+                        else -> stringResource(R.string.pg_apps_all)
                     }
                 }
             )
             HelperText(
                 when (applist) {
-                    "blacklist" -> "Selected apps skip the bypass; everything else uses it."
-                    "whitelist" -> "Only the selected apps use the bypass."
-                    else -> "Every app uses the bypass."
+                    "blacklist" -> stringResource(R.string.pg_apps_black_help)
+                    "whitelist" -> stringResource(R.string.pg_apps_white_help)
+                    else -> stringResource(R.string.pg_apps_all_help)
                 },
                 Modifier.padding(top = 10.dp)
             )
             AnimatedVisibility(applist != "disable", enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
                 NavRow(
-                    "Choose apps",
-                    value = if (selectedCount == 1) "1 app selected" else "$selectedCount apps selected",
+                    stringResource(R.string.pg_choose_apps),
+                    value = pluralStringResource(R.plurals.pg_apps_selected, selectedCount, selectedCount),
                     icon = Icons.Filled.Apps,
                     onClick = { showApps = true },
                     trailing = { Chevron() },
@@ -184,30 +192,30 @@ fun GeneralSettings(bypassActive: Boolean, onChanged: () -> Unit) {
     }
 
     AnimatedVisibility(!proxyFromCmd, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
-        SettingsGroup("Local proxy address") {
+        SettingsGroup(stringResource(R.string.pg_general_proxy_addr)) {
             PrefTextField(
-                "IP address", "byedpi_proxy_ip", "127.0.0.1",
-                validate = ::checkIp, error = "Enter a valid IP address"
+                stringResource(R.string.pg_ip_address), "byedpi_proxy_ip", "127.0.0.1",
+                validate = ::checkIp, error = stringResource(R.string.pg_err_ip)
             )
             PrefTextField(
-                "Port", "byedpi_proxy_port", "1080", numeric = true,
-                validate = ::checkPort, error = "Port must be between 1 and 65535"
+                stringResource(R.string.pg_port), "byedpi_proxy_port", "1080", numeric = true,
+                validate = ::checkPort, error = stringResource(R.string.pg_err_port)
             )
-            HelperText("The engine listens here. In proxy mode, point your apps' SOCKS5 settings at this address.")
+            HelperText(stringResource(R.string.pg_general_proxy_help))
         }
     }
 
-    SettingsGroup("System") {
+    SettingsGroup(stringResource(R.string.pg_general_system)) {
         NavRow(
-            "Battery optimization",
-            value = if (batteryOk) "Unrestricted — Android won't stop protection" else "Restricted — tap to let protection run in the background",
+            stringResource(R.string.pg_battery),
+            value = stringResource(if (batteryOk) R.string.pg_battery_ok else R.string.pg_battery_restricted),
             icon = Icons.Filled.BatteryChargingFull,
             onClick = { PermissionUtils.requestBatteryOptimization(ctx) },
             trailing = { Chevron() }
         )
         NavRow(
-            "Always-on VPN",
-            value = "Open Android's VPN settings",
+            stringResource(R.string.pg_always_on),
+            value = stringResource(R.string.pg_always_on_help),
             icon = Icons.Filled.VpnLock,
             onClick = { runCatching { ctx.startActivity(Intent(Settings.ACTION_VPN_SETTINGS)) } },
             trailing = { Chevron() }
@@ -249,10 +257,10 @@ private fun DnsDialog(current: String, onPick: (String) -> Unit, onDismiss: () -
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = Palette.Surface,
-        title = { Text("DNS server") },
+        title = { Text(stringResource(R.string.pg_dns_server)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                (DNS_PRESETS.map { it.first to dnsSummary(it.first) } + ("custom" to "Custom")).forEach { (value, label) ->
+                (DNS_PRESETS.map { it.first to dnsSummary(it.first) } + ("custom" to stringResource(R.string.pg_custom))).forEach { (value, label) ->
                     Row(
                         Modifier
                             .fillMaxWidth()
@@ -272,7 +280,7 @@ private fun DnsDialog(current: String, onPick: (String) -> Unit, onDismiss: () -
                     OutlinedTextField(
                         value = custom,
                         onValueChange = { custom = it.trim() },
-                        label = { Text("IP address") },
+                        label = { Text(stringResource(R.string.pg_ip_address)) },
                         singleLine = true,
                         isError = custom.isNotBlank() && !customValid,
                         modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
@@ -286,8 +294,8 @@ private fun DnsDialog(current: String, onPick: (String) -> Unit, onDismiss: () -
             TextButton(
                 enabled = choice != "custom" || customValid,
                 onClick = { onPick(if (choice == "custom") custom.trim() else choice) }
-            ) { Text("Save") }
+            ) { Text(stringResource(R.string.pg_save)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.pg_cancel)) } }
     )
 }

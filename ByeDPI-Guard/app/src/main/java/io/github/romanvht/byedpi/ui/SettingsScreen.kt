@@ -40,13 +40,16 @@ import io.github.romanvht.byedpi.services.TestService
 import io.github.romanvht.byedpi.services.appStatus
 import io.github.romanvht.byedpi.utility.getPreferences
 import io.github.romanvht.byedpi.utility.mode
+import androidx.annotation.StringRes
+import androidx.compose.ui.res.stringResource
+import io.github.romanvht.byedpi.R
 
-enum class SettingsTab(val label: String, val icon: ImageVector) {
-    General("General", Icons.Filled.Tune),
-    Strategy("Strategy", Icons.Filled.Terminal),
-    Engine("Engine", Icons.Filled.Memory),
-    Benchmark("Benchmark", Icons.Filled.Speed),
-    About("About", Icons.Filled.Info)
+enum class SettingsTab(@StringRes val label: Int, val icon: ImageVector) {
+    General(R.string.pg_settings_general, Icons.Filled.Tune),
+    Strategy(R.string.pg_settings_strategy, Icons.Filled.Terminal),
+    Engine(R.string.pg_settings_engine, Icons.Filled.Memory),
+    Benchmark(R.string.pg_tab_benchmark, Icons.Filled.Speed),
+    About(R.string.pg_settings_about, Icons.Filled.Info)
 }
 
 /**
@@ -70,13 +73,13 @@ fun SettingsScreen(
 
     Column(modifier.fillMaxSize()) {
         Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp)) {
-            ScreenHeader("Settings", modifier = Modifier.staggeredEnter(0))
+            ScreenHeader(stringResource(R.string.pg_tab_settings), modifier = Modifier.staggeredEnter(0))
             Gap(14)
             PillTabs(
                 items = SettingsTab.entries.toList(),
                 selected = tab,
                 onSelect = { tab = it },
-                label = { it.label },
+                label = { stringResource(it.label) },
                 icon = { it.icon },
                 modifier = Modifier.staggeredEnter(1)
             )
@@ -87,14 +90,14 @@ fun SettingsScreen(
             exit = shrinkVertically() + fadeOut()
         ) {
             InfoBanner(
-                "Reconnect to apply your changes.",
+                stringResource(R.string.pg_reconnect_banner),
                 Icons.Filled.Sync,
                 modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 12.dp),
                 action = {
                     TextButton(onClick = {
                         onMessage(reconnect(ctx))
                         dirty = false
-                    }) { Text("Reconnect") }
+                    }) { Text(stringResource(R.string.pg_reconnect)) }
                 }
             )
         }
@@ -125,12 +128,12 @@ fun SettingsScreen(
 
 /** Restarts the running service so it picks up new preferences. */
 fun reconnect(ctx: Context): String {
-    if (TestService.isRunning) return "Stop the benchmark first"
-    if (appStatus.first != AppStatus.Running) return "Changes will apply when you connect"
+    if (TestService.isRunning) return ctx.getString(R.string.pg_reconnect_stop_bench)
+    if (appStatus.first != AppStatus.Running) return ctx.getString(R.string.pg_reconnect_later)
     val mode = ctx.getPreferences().mode()
-    if (mode == Mode.VPN && VpnService.prepare(ctx) != null) return "Open the Connect tab to grant VPN access"
+    if (mode == Mode.VPN && VpnService.prepare(ctx) != null) return ctx.getString(R.string.pg_reconnect_grant_vpn)
     ServiceManager.restart(ctx, mode)
-    return "Reconnecting…"
+    return ctx.getString(R.string.pg_reconnecting)
 }
 
 /** A full-width settings card column helper used by the tab bodies. */

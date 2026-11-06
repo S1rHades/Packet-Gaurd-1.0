@@ -49,15 +49,19 @@ import io.github.romanvht.byedpi.utility.SettingsUtils.Section
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.annotation.StringRes
+import androidx.compose.ui.res.stringResource
+import io.github.romanvht.byedpi.R
 
 private const val ENGINE_VERSION = "ByeDPI 0.17.3"
 
-private val Section.label: String
+@get:StringRes
+private val Section.label: Int
     get() = when (this) {
-        Section.SETTINGS -> "Settings"
-        Section.HISTORY -> "Saved strategies"
-        Section.APPS -> "Per-app selection"
-        Section.DOMAIN_LISTS -> "Benchmark link lists"
+        Section.SETTINGS -> R.string.pg_section_settings
+        Section.HISTORY -> R.string.pg_saved_strategies
+        Section.APPS -> R.string.pg_section_apps
+        Section.DOMAIN_LISTS -> R.string.pg_section_lists
     }
 
 private tailrec fun Context.findActivity(): Activity? = when (this) {
@@ -82,7 +86,7 @@ fun AboutSettings(onMessage: (String) -> Unit) {
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri != null) {
             SettingsUtils.exportSettings(ctx, uri, exportSections)
-            onMessage("Settings exported")
+            onMessage(ctx.getString(R.string.pg_settings_exported))
         }
     }
     val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -95,60 +99,59 @@ fun AboutSettings(onMessage: (String) -> Unit) {
             Spacer(Modifier.width(14.dp))
             Column {
                 Text("Packet Guard", style = MaterialTheme.typography.titleLarge)
-                HelperText("Version ${BuildConfig.VERSION_NAME} · $ENGINE_VERSION")
+                HelperText(stringResource(R.string.pg_about_version, BuildConfig.VERSION_NAME, ENGINE_VERSION))
             }
         }
         HelperText(
-            "Packet Guard runs a DPI-bypass engine on your phone and routes your traffic through it. " +
-                "There is no remote server: your connections go straight to the sites you visit.",
+            stringResource(R.string.pg_about_blurb),
             Modifier.padding(top = 12.dp)
         )
     }
 
-    SettingsGroup("Backup and restore") {
+    SettingsGroup(stringResource(R.string.pg_backup)) {
         NavRow(
-            "Export settings", onClick = { askExport = true },
-            value = "Save settings, strategies, app selection and link lists to a file",
+            stringResource(R.string.pg_export_settings), onClick = { askExport = true },
+            value = stringResource(R.string.pg_export_settings_help),
             icon = Icons.Filled.Upload
         )
         NavRow(
-            "Import settings", onClick = { importLauncher.launch(arrayOf("application/json", "text/plain", "*/*")) },
-            value = "Restore from a Packet Guard backup file",
+            stringResource(R.string.pg_import_settings), onClick = { importLauncher.launch(arrayOf("application/json", "text/plain", "*/*")) },
+            value = stringResource(R.string.pg_import_settings_help),
             icon = Icons.Filled.Download
         )
         NavRow(
-            "Reset everything", onClick = { confirmReset = true },
-            value = "Return every setting and list to its default",
+            stringResource(R.string.pg_reset_all), onClick = { confirmReset = true },
+            value = stringResource(R.string.pg_reset_all_help),
             icon = Icons.Filled.RestartAlt
         )
     }
 
-    SettingsGroup("Diagnostics") {
+    SettingsGroup(stringResource(R.string.pg_diagnostics)) {
         NavRow(
-            "Copy diagnostic report", onClick = {
+            stringResource(R.string.pg_copy_diagnostics), onClick = {
                 ClipboardUtils.copy(ctx, DiagnosticUtils.buildReport(ctx), "diagnostics")
             },
-            value = "Device, network and engine details to paste into a bug report",
+            value = stringResource(R.string.pg_copy_diagnostics_help),
             icon = Icons.Filled.BugReport
         )
     }
 
-    SettingsGroup("Open source") {
+    SettingsGroup(stringResource(R.string.pg_open_source)) {
         NavRow(
             "ByeDPI", onClick = { ctx.openUrl("https://github.com/hufrea/byedpi") },
-            value = "The bypass engine, by hufrea · GPL-3.0",
+            value = stringResource(R.string.pg_credit_byedpi),
             icon = Icons.Filled.Code,
             trailing = { Icon(Icons.AutoMirrored.Filled.OpenInNew, null, tint = Palette.TextSecondary) }
         )
         NavRow(
             "ByeByeDPI for Android", onClick = { ctx.openUrl("https://github.com/romanvht/ByeDPIAndroid") },
-            value = "The Android app Packet Guard is built on, by romanvht · GPL-3.0",
+            value = stringResource(R.string.pg_credit_byebyedpi),
             icon = Icons.Filled.Code,
             trailing = { Icon(Icons.AutoMirrored.Filled.OpenInNew, null, tint = Palette.TextSecondary) }
         )
         NavRow(
             "hev-socks5-tunnel", onClick = { ctx.openUrl("https://github.com/heiher/hev-socks5-tunnel") },
-            value = "The VPN-to-proxy tunnel, by heiher · MIT",
+            value = stringResource(R.string.pg_credit_hev),
             icon = Icons.Filled.Hub,
             trailing = { Icon(Icons.AutoMirrored.Filled.OpenInNew, null, tint = Palette.TextSecondary) }
         )
@@ -156,9 +159,9 @@ fun AboutSettings(onMessage: (String) -> Unit) {
 
     if (askExport) {
         SectionPickerDialog(
-            title = "Export",
+            title = stringResource(R.string.pg_export),
             available = Section.entries.toSet(),
-            confirmLabel = "Choose file",
+            confirmLabel = stringResource(R.string.pg_choose_file),
             onDismiss = { askExport = false },
             onConfirm = { sections ->
                 askExport = false
@@ -171,9 +174,9 @@ fun AboutSettings(onMessage: (String) -> Unit) {
 
     pendingImport?.let { settings ->
         SectionPickerDialog(
-            title = "Import",
+            title = stringResource(R.string.pg_import),
             available = SettingsUtils.getAvailableSections(settings),
-            confirmLabel = "Import",
+            confirmLabel = stringResource(R.string.pg_import),
             onDismiss = { pendingImport = null },
             onConfirm = { sections ->
                 pendingImport = null
@@ -186,15 +189,15 @@ fun AboutSettings(onMessage: (String) -> Unit) {
         AlertDialog(
             onDismissRequest = { confirmReset = false },
             containerColor = Palette.Surface,
-            title = { Text("Reset everything?") },
-            text = { Text("All settings, saved strategies and link lists go back to their defaults. This can't be undone.") },
+            title = { Text(stringResource(R.string.pg_reset_confirm_title)) },
+            text = { Text(stringResource(R.string.pg_reset_confirm_body)) },
             confirmButton = {
                 TextButton(onClick = {
                     confirmReset = false
                     SettingsUtils.resetSettings(ctx) { ctx.findActivity()?.recreate() }
-                }) { Text("Reset", color = Palette.Error) }
+                }) { Text(stringResource(R.string.pg_reset), color = Palette.Error) }
             },
-            dismissButton = { TextButton(onClick = { confirmReset = false }) { Text("Cancel") } }
+            dismissButton = { TextButton(onClick = { confirmReset = false }) { Text(stringResource(R.string.pg_cancel)) } }
         )
     }
 }
@@ -228,7 +231,7 @@ private fun SectionPickerDialog(
                             onCheckedChange = { chosen = if (it) chosen + section else chosen - section },
                             colors = CheckboxDefaults.colors(checkedColor = Palette.AccentBlue, uncheckedColor = Palette.Gray)
                         )
-                        Text(section.label)
+                        Text(stringResource(section.label))
                     }
                 }
             }
@@ -236,6 +239,6 @@ private fun SectionPickerDialog(
         confirmButton = {
             TextButton(enabled = chosen.isNotEmpty(), onClick = { onConfirm(chosen) }) { Text(confirmLabel) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.pg_cancel)) } }
     )
 }

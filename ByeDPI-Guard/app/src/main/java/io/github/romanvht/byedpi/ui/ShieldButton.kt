@@ -55,6 +55,8 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import io.github.romanvht.byedpi.R
 
 /**
  * The Packet Guard shield outline (same geometry as the launcher icon), normalised to the
@@ -183,10 +185,10 @@ fun ShieldButton(
         }
 
         val label = when (state) {
-            is ConnectionState.Connected -> "Disconnect"
-            ConnectionState.Connecting -> "Cancel connection"
-            is ConnectionState.Failed -> "Retry connection"
-            ConnectionState.Disconnected -> "Connect"
+            is ConnectionState.Connected -> stringResource(R.string.pg_shield_disconnect)
+            ConnectionState.Connecting -> stringResource(R.string.pg_shield_cancel)
+            is ConnectionState.Failed -> stringResource(R.string.pg_shield_retry)
+            ConnectionState.Disconnected -> stringResource(R.string.pg_shield_connect)
         }
         Box(
             Modifier

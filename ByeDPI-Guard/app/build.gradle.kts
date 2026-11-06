@@ -8,6 +8,10 @@ plugins {
 
 val abis = setOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
 
+// Release signing. CI decodes the keystore from repository secrets and passes its location and
+// passwords in these variables; without them the release build is left unsigned.
+val releaseKeystore: String? = System.getenv("PG_KEYSTORE_FILE")?.takeIf { it.isNotBlank() && file(it).exists() }
+
 android {
     namespace = "io.github.romanvht.byedpi"
     //noinspection GradleDependency
@@ -18,9 +22,9 @@ android {
         applicationId = "com.packetguard.app"
         minSdk = 21
         //noinspection OldTargetApi
-        targetSdk = 34
-        versionCode = 2000
-        versionName = "2.0.0"
+        targetSdk = 35
+        versionCode = 2100
+        versionName = "2.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -34,8 +38,20 @@ android {
         compose = true
     }
 
+    signingConfigs {
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = file(releaseKeystore)
+                storePassword = System.getenv("PG_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("PG_KEY_ALIAS")
+                keyPassword = System.getenv("PG_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (releaseKeystore != null) signingConfig = signingConfigs.getByName("release")
             buildConfigField("String", "VERSION_NAME",  "\"${defaultConfig.versionName}\"")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             isMinifyEnabled = true
@@ -85,11 +101,9 @@ android {
 dependencies {
     //noinspection GradleDependency
     implementation("androidx.core:core-ktx:1.17.0")
-    implementation("androidx.fragment:fragment-ktx:1.8.9")
     implementation("androidx.appcompat:appcompat:1.7.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
     implementation("androidx.preference:preference-ktx:1.2.1")
-    implementation("com.google.android.material:material:1.13.0")
     implementation("com.google.code.gson:gson:2.14.0")
 
     // Jetpack Compose UI (Packet Guard front-end)
