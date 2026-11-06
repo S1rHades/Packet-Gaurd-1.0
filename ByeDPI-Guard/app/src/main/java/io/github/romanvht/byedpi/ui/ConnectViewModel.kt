@@ -70,6 +70,9 @@ class ConnectViewModel(app: Application) : AndroidViewModel(app) {
     private val _messages = MutableSharedFlow<String>(extraBufferCapacity = 4)
     val messages: SharedFlow<String> = _messages.asSharedFlow()
 
+    private val _refreshing = MutableStateFlow(false)
+    val refreshing: StateFlow<Boolean> = _refreshing.asStateFlow()
+
     private var connectJob: Job? = null
     private var healthJob: Job? = null
     private val samples = ArrayDeque<Long?>() // last probes; null = failed
@@ -141,6 +144,22 @@ class ConnectViewModel(app: Application) : AndroidViewModel(app) {
         stopHealth()
         ServiceManager.stop()
         _state.value = ConnectionState.Disconnected
+    }
+
+    /** Pull to refresh: re-reads the service state and, when connected, checks the sites now. */
+    fun refreshNow() {
+        if (_refreshing.value) return
+        _refreshing.value = true
+        viewModelScope.launch {
+            try {
+                ServiceManager.refresh(appCtx)
+                syncFromService()
+                refreshProfile()
+                if (_state.value is ConnectionState.Connected) probeOnce() else delay(400)
+            } finally {
+                _refreshing.value = false
+            }
+        }
     }
 
     fun refreshProfile() {

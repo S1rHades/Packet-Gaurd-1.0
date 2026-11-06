@@ -583,7 +583,7 @@ private fun ResultPanel(
         when (st) {
             0 -> BigNote(Icons.Filled.EmojiEvents, Palette.TextSecondary, stringResource(R.string.pg_step3_idle))
             1 -> Column {
-                BigNote(Icons.Filled.SentimentDissatisfied, Palette.Warning, stringResource(R.string.pg_step3_none_title), bold = true)
+                BigNote(Icons.Filled.SentimentDissatisfied, Palette.Error, stringResource(R.string.pg_step3_none_title), bold = true)
                 BigHint(stringResource(R.string.pg_step3_none_help), Modifier.padding(top = 8.dp))
                 // End on a next step, not on a zero.
                 PrimaryButton(
@@ -599,9 +599,9 @@ private fun ResultPanel(
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
-                            Modifier.size(52.dp).clip(RoundedCornerShape(16.dp)).background(Palette.Warning.copy(alpha = 0.16f)),
+                            Modifier.size(52.dp).clip(RoundedCornerShape(16.dp)).background(Palette.Glow.copy(alpha = 0.20f)),
                             contentAlignment = Alignment.Center
-                        ) { Icon(Icons.Filled.EmojiEvents, null, tint = Palette.Warning, modifier = Modifier.size(30.dp)) }
+                        ) { Icon(Icons.Filled.EmojiEvents, null, tint = Palette.Sky, modifier = Modifier.size(30.dp)) }
                         Spacer(Modifier.width(14.dp))
                         Column(Modifier.weight(1f)) {
                             Text(
@@ -1032,7 +1032,7 @@ private fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) ->
             0 -> BigNote(Icons.Filled.AutoAwesome, Palette.TextSecondary, stringResource(R.string.pg_gen_idle))
             1 -> BigNote(Icons.Filled.CheckCircle, Palette.Success, stringResource(R.string.pg_gen_nothing_blocked), bold = true)
             2 -> Column {
-                BigNote(Icons.Filled.SentimentDissatisfied, Palette.Warning, stringResource(R.string.pg_step3_none_title), bold = true)
+                BigNote(Icons.Filled.SentimentDissatisfied, Palette.Error, stringResource(R.string.pg_step3_none_title), bold = true)
                 BigHint(stringResource(R.string.pg_gen_none_help), Modifier.padding(top = 8.dp))
                 if (gen.plan != SearchPlan.Thorough) {
                     PrimaryButton(
@@ -1050,9 +1050,9 @@ private fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) ->
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
-                            Modifier.size(52.dp).clip(RoundedCornerShape(16.dp)).background(Palette.Warning.copy(alpha = 0.16f)),
+                            Modifier.size(52.dp).clip(RoundedCornerShape(16.dp)).background(Palette.Glow.copy(alpha = 0.20f)),
                             contentAlignment = Alignment.Center
-                        ) { Icon(Icons.Filled.AutoAwesome, null, tint = Palette.Warning, modifier = Modifier.size(28.dp)) }
+                        ) { Icon(Icons.Filled.AutoAwesome, null, tint = Palette.Sky, modifier = Modifier.size(28.dp)) }
                         Spacer(Modifier.width(14.dp))
                         Column(Modifier.weight(1f)) {
                             Text(stringResource(R.string.pg_gen_made), color = Palette.TextSecondary, fontSize = 14.sp)

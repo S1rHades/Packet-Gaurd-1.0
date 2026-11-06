@@ -31,7 +31,6 @@ import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.LockOpen
-import androidx.compose.material.icons.filled.NorthEast
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -135,7 +134,7 @@ private fun KpiGrid(dash: Dashboard) {
             index = 0, modifier = Modifier.weight(1f)
         )
         KpiCard(
-            icon = Icons.Filled.LockOpen, tint = Palette.Success,
+            icon = Icons.Filled.LockOpen, tint = Palette.Sky,
             label = stringResource(R.string.pg_dash_kpi_unlocked),
             value = stringResource(R.string.pg_dash_fraction, dash.sitesUnlocked, dash.sitesTotal),
             caption = stringResource(R.string.pg_dash_by_any_profile),
@@ -147,16 +146,16 @@ private fun KpiGrid(dash: Dashboard) {
     Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         val reliable = dash.mostReliable
         KpiCard(
-            icon = Icons.Filled.Verified, tint = Palette.Sky,
+            icon = Icons.Filled.Verified, tint = Palette.TextSecondary,
             label = stringResource(R.string.pg_dash_kpi_reliable),
             value = reliable?.let { stringResource(R.string.pg_percent, it.successRate) } ?: "—",
             caption = reliable?.name ?: none,
-            pill = dash.overallSuccessRate?.let { stringResource(R.string.pg_dash_avg_rate, it) to Palette.Sky },
+            pill = dash.overallSuccessRate?.let { stringResource(R.string.pg_dash_avg_rate, it) to scoreColor(it) },
             spark = remember(dash) { sparkSeries(dash.profiles, DashMetric.Success) },
             index = 2, modifier = Modifier.weight(1f)
         )
         KpiCard(
-            icon = Icons.Filled.Layers, tint = Palette.Warning,
+            icon = Icons.Filled.Layers, tint = Palette.TextSecondary,
             label = stringResource(R.string.pg_dash_kpi_working),
             value = stringResource(R.string.pg_dash_fraction, dash.working, dash.profiles.size),
             caption = stringResource(R.string.pg_dash_reached_one_site),
@@ -197,8 +196,6 @@ private fun KpiCard(
                 Modifier.size(30.dp).clip(RoundedCornerShape(10.dp)).background(tint.copy(alpha = 0.18f)),
                 contentAlignment = Alignment.Center
             ) { Icon(icon, null, tint = tint, modifier = Modifier.size(17.dp)) }
-            Spacer(Modifier.weight(1f))
-            Icon(Icons.Filled.NorthEast, null, tint = Palette.TextSecondary.copy(alpha = 0.6f), modifier = Modifier.size(14.dp))
         }
         Spacer(Modifier.height(10.dp))
         Text(label, color = Palette.TextSecondary, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)

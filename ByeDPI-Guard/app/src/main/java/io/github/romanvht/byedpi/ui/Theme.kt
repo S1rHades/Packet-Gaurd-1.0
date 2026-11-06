@@ -12,7 +12,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-/** Packet Guard palette: deep navy surfaces, one blue accent, quiet gray borders. */
+/**
+ * Packet Guard palette: deep navy surfaces, one blue accent, quiet gray borders.
+ *
+ * Colours keep one meaning everywhere (the similarity rule), so a glance is enough:
+ *  - [Success] green: working / opened
+ *  - [Warning] amber: partly working, or needs your attention
+ *  - [Error] red: failed / not reachable
+ *  - [Glow] and [AccentBlue]: the best one, or the thing to do next
+ * Decoration uses the neutral blues ([Sky]) or grays, never a status colour.
+ */
 object Palette {
     val Background = Color(0xFF0F172A)   // app background
     val Surface = Color(0xFF131C31)      // cards

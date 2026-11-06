@@ -158,3 +158,22 @@ fun minutesLeft(elapsedMs: Long, fraction: Float): Int? {
     val leftMs = elapsedMs * (1f - fraction) / fraction
     return ((leftMs + 59_999) / 60_000).toInt().coerceAtLeast(1)
 }
+
+/** The built-in lists most people want, most wanted first; the rest keep their order after these. */
+private val POPULAR = listOf("youtube", "googlevideo", "social", "discord", "telegram", "streaming", "news")
+
+/**
+ * Orders the link-list tiles for the serial-position effect: the lists people use most come
+ * first ([language]'s own list leads, e.g. "türkiye" for Turkish), other built-ins follow,
+ * and the person's own lists come last, where the end of a list is also remembered well.
+ */
+fun orderLists(lists: List<ListItemUi>, language: String): List<ListItemUi> {
+    val first = if (language == "tr") listOf("türkiye") + POPULAR else POPULAR
+    fun rank(l: ListItemUi): Int = when {
+        !l.builtIn -> Int.MAX_VALUE
+        l.id in first -> first.indexOf(l.id)
+        else -> first.size
+    }
+    return lists.withIndex().sortedWith(compareBy({ rank(it.value) }, { it.index })).map { it.value }
+}
+

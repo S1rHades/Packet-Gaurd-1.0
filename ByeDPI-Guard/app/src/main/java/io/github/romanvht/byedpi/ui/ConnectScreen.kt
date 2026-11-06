@@ -24,7 +24,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,16 +45,21 @@ import io.github.romanvht.byedpi.data.Mode
 import androidx.compose.ui.res.stringResource
 import io.github.romanvht.byedpi.R
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConnectScreen(
     state: ConnectionState,
     metrics: LiveMetrics,
     profile: ActiveProfile,
     onToggle: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    refreshing: Boolean = false,
+    onRefresh: () -> Unit = {}
 ) {
+    // Pull down to check the connection now, as on most status screens (Jakob's law).
+    PullToRefreshBox(isRefreshing = refreshing, onRefresh = onRefresh, modifier = modifier.fillMaxSize()) {
     Column(
-        modifier
+        Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp, vertical = 16.dp),
@@ -67,6 +74,7 @@ fun ConnectScreen(
         ShieldButton(state = state, onClick = onToggle, modifier = Modifier.staggeredEnter(2))
         Spacer(Modifier.height(8.dp))
         StatusCard(state, metrics, profile, Modifier.staggeredEnter(3))
+    }
     }
 }
 
