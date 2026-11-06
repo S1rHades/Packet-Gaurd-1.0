@@ -37,6 +37,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -55,7 +56,9 @@ import androidx.compose.ui.unit.sp
 import io.github.romanvht.byedpi.data.Command
 import io.github.romanvht.byedpi.utility.ClipboardUtils
 import io.github.romanvht.byedpi.utility.HistoryUtils
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.romanvht.byedpi.utility.getCmdArgs
+import io.github.romanvht.byedpi.utility.getCmdEnable
 import io.github.romanvht.byedpi.utility.getPreferences
 import androidx.compose.ui.res.stringResource
 import io.github.romanvht.byedpi.R
@@ -81,10 +84,19 @@ fun StrategySettings(onChanged: () -> Unit, onMessage: (String) -> Unit) {
     }
 
     fun applyNow(command: String) {
-        args = command
-        onMessage(StrategyApplier.apply(ctx, command, null))
+        args = StrategyApplier.apply(ctx, command, null)
         refresh()
     }
+
+    // An Undo from the snackbar changes the active strategy behind this screen's back.
+    val changes by StrategyApplier.changes.collectAsStateWithLifecycle()
+    LaunchedEffect(changes) {
+        val before = active
+        refresh()
+        cmdEnabled = prefs.getCmdEnable()
+        if (args.trim() == before || normalizeCommand(args) == before) args = active
+    }
+    val cleaned = normalizeCommand(args)
 
     SettingsGroup(stringResource(R.string.pg_strategy_source)) {
         SwitchRow(
@@ -111,9 +123,9 @@ fun StrategySettings(onChanged: () -> Unit, onMessage: (String) -> Unit) {
             )
             Row(Modifier.padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                 PrimaryButton(
-                    text = stringResource(if (args.trim() == active) R.string.pg_active else R.string.pg_save_apply),
-                    onClick = { applyNow(args.trim()) },
-                    enabled = args.isNotBlank() && args.trim() != active,
+                    text = stringResource(if (cleaned == active) R.string.pg_active else R.string.pg_save_apply),
+                    onClick = { applyNow(args) },
+                    enabled = cleaned.isNotEmpty() && cleaned != active,
                     modifier = Modifier.weight(1f),
                     height = 48
                 )
@@ -124,6 +136,14 @@ fun StrategySettings(onChanged: () -> Unit, onMessage: (String) -> Unit) {
                 IconButton(onClick = { args = "" }) {
                     Icon(Icons.Filled.Clear, stringResource(R.string.pg_clear), tint = Palette.TextSecondary)
                 }
+            }
+            // Show what a messy paste will be saved as, before it is.
+            AnimatedVisibility(cleaned.isNotEmpty() && cleaned != args.trim()) {
+                HelperText(
+                    stringResource(R.string.pg_understood_as, cleaned),
+                    Modifier.padding(top = 8.dp),
+                    color = Palette.Sky
+                )
             }
             HelperText(
                 stringResource(R.string.pg_strategy_help),

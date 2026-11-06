@@ -245,7 +245,7 @@
     <string name="pg_edit_list">Тізімді өзгерту</string>
     <string name="pg_list_name">Тізім атауы</string>
     <string name="pg_domains_or_links">Домендер немесе сілтемелер</string>
-    <string name="pg_list_help">Әр жолға біреуден. Жолдар мен сұраныс параметрлері ескерілмейді, әр домен тексеріледі.</string>
+    <string name="pg_list_help">Сілтемелерді немесе домендерді қойыңыз: әр жолға біреуден немесе үтір арқылы. Тек домен сақталады.</string>
     <string name="pg_import_file">Файлдан импорттау</string>
     <string name="pg_dash_title">Нәтижелер тақтасы</string>
     <string name="pg_dash_subtitle">Тексерілген әр профиль мен сайт тізімінің осы желідегі нәтижесі.</string>
@@ -289,7 +289,7 @@
     <string name="pg_step3_best_so_far">Әзірге ең жақсысы</string>
     <string name="pg_step3_best">Ең жақсы профиль</string>
     <string name="pg_step3_none_title">Бұл жолы ештеңе шықпады</string>
-    <string name="pg_step3_none_help">Кейінірек қайталаңыз немесе «Қосымша параметрлерді» ашып, көбірек профиль тексеріңіз.</string>
+    <string name="pg_step3_none_help">Дайын профильдердің ешқайсысы сайттарыңызды ашпады. Packet Guard оның орнына сіздің қосылымыңызға арнап командалық жол жасай алады.</string>
     <string name="pg_step3_opens">%2$d сайттың %1$d-ін ашады</string>
     <string name="pg_step3_speed">Жылдамдық: %1$s</string>
     <string name="pg_speed_fast">жылдам</string>
@@ -315,7 +315,7 @@
     <string name="pg_gen_best_so_far_opens">Әзірге ең жақсысы %2$d бұғатталған сайттың %1$d-ін ашады</string>
     <string name="pg_gen_idle">Іздеуден кейін командалық жолыңыз осында шығады.</string>
     <string name="pg_gen_nothing_blocked">Жақсы жаңалық: қазір сайттарыңыздың ешқайсысы бұғатталмаған, айналып өту қажет емес.</string>
-    <string name="pg_gen_none_help">Бірде-бір командалық жол бұғатталған сайттарды аша алмады. Провайдер оларды Packet Guard айналып өте алмайтын тәсілмен бұғаттауы мүмкін.</string>
+    <string name="pg_gen_none_help">Командалық жолдардың ешқайсысы бұғатталған сайттарды ашпады. Ұзағырақ іздеу кейде табады. Таппаса, провайдер бұл сайттарды мекенжай бойынша бұғаттауы мүмкін, оны Packet Guard айналып өте алмайды.</string>
     <string name="pg_gen_title_result">Сіздің командалық жолыңыз</string>
     <string name="pg_gen_made">Сізге арнап жасалды</string>
     <string name="pg_gen_opens">%2$d бұғатталған сайттың %1$d-ін ашады</string>
@@ -349,6 +349,14 @@
     <string name="pg_upd_err_conflict">Бұл көшірме басқа кілтпен қол қойылған. Оны жойып, жаңа нұсқаны GitHub-тан орнатыңыз.</string>
     <string name="pg_upd_err_storage">Жаңартуға орын жеткіліксіз.</string>
     <string name="pg_upd_err_install">Жаңартуды орнату мүмкін болмады.</string>
+    <string name="pg_undo">Болдырмау</string>
+    <string name="pg_undo_done">Бұрынғы баптау қайтарылды</string>
+    <string name="pg_undo_nothing">Болдырмайтын ештеңе жоқ</string>
+    <string name="pg_understood_as">Былай сақталады: %1$s</string>
+    <string name="pg_whats_new_kept">Баптауларыңыз сақталды.</string>
+    <string name="pg_got_it">Түсінікті</string>
+    <string name="pg_try_generator">Маған арнап жасау (шамамен 10 мин)</string>
+    <string name="pg_gen_try_thorough">Ұзағырақ іздеу (шамамен 10 мин)</string>
     <plurals name="pg_sites">
         <item quantity="one">%d сайт</item>
         <item quantity="other">%d сайт</item>
@@ -372,5 +380,13 @@
     <plurals name="pg_gen_finished">
         <item quantity="one">Дайын · %d командалық жол тексерілді</item>
         <item quantity="other">Дайын · %d командалық жол тексерілді</item>
+    </plurals>
+    <plurals name="pg_time_left">
+        <item quantity="one">Шамамен %d минут қалды</item>
+        <item quantity="other">Шамамен %d минут қалды</item>
+    </plurals>
+    <plurals name="pg_list_preview">
+        <item quantity="one">%d сайт тексеріледі</item>
+        <item quantity="other">%d сайт тексеріледі</item>
     </plurals>
 </resources>

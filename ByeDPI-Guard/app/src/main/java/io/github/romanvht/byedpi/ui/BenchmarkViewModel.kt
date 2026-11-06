@@ -11,6 +11,8 @@ import io.github.romanvht.byedpi.data.TestState
 import io.github.romanvht.byedpi.services.TestService
 import io.github.romanvht.byedpi.services.appStatus
 import io.github.romanvht.byedpi.utility.DomainListUtils
+import io.github.romanvht.byedpi.utility.getCmdArgs
+import io.github.romanvht.byedpi.utility.getCmdEnable
 import io.github.romanvht.byedpi.utility.getPreferences
 import io.github.romanvht.byedpi.utility.getStringNotNull
 import kotlinx.coroutines.Dispatchers
@@ -43,7 +45,8 @@ private data class BenchLocal(
     val selected: Set<String> = emptySet(),
     val pack: ProfilePack = ProfilePack.Basic,
     val applied: String? = null,
-    val loaded: Boolean = false
+    val loaded: Boolean = false,
+    val startedAt: Long = 0L
 )
 
 data class BenchUi(
@@ -52,7 +55,9 @@ data class BenchUi(
     val selected: Set<String> = emptySet(),
     val pack: ProfilePack = ProfilePack.Basic,
     val applied: String? = null,
-    val test: TestState = TestState()
+    val test: TestState = TestState(),
+    /** When the current (or last) ready-made run started, for the time-left estimate. */
+    val startedAt: Long = 0L
 ) {
     val activeSites: Int get() = lists.filter { it.active }.sumOf { it.domains.size }
     val visibleProfiles: List<ProfileItem> get() = profiles.filter { it.pack == pack }
@@ -76,7 +81,7 @@ class BenchmarkViewModel(app: Application) : AndroidViewModel(app) {
     private val local = MutableStateFlow(BenchLocal())
 
     val ui: StateFlow<BenchUi> = combine(local, TestService.state) { l, t ->
-        BenchUi(l.lists, l.profiles, l.selected, l.pack, l.applied, t)
+        BenchUi(l.lists, l.profiles, l.selected, l.pack, l.applied, t, l.startedAt)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, BenchUi())
 
     private val _messages = MutableSharedFlow<String>(extraBufferCapacity = 4)
@@ -98,6 +103,29 @@ class BenchmarkViewModel(app: Application) : AndroidViewModel(app) {
         reload()
         viewModelScope.launch { TestService.loadResults(ctx) }
         CommandGenerator.load(ctx)
+        // Note when each run starts, so step 2 can say roughly how long is left.
+        viewModelScope.launch {
+            var lastRun = -1L
+            TestService.state.collect { t ->
+                if (t.isRunning && t.runId != lastRun) {
+                    lastRun = t.runId
+                    local.update { it.copy(startedAt = System.currentTimeMillis()) }
+                }
+            }
+        }
+        // After an apply elsewhere, or an Undo, "In use" must match what really is in use.
+        viewModelScope.launch {
+            StrategyApplier.changes.collect {
+                val active = if (prefs.getCmdEnable()) prefs.getCmdArgs() else null
+                local.update { l -> l.copy(applied = l.applied?.takeIf { normalizeCommand(it) == active }) }
+            }
+        }
+    }
+
+    /** From a run that opened nothing: switch step 2 to a thorough "Make one just for me". */
+    fun suggestGenerator() {
+        selectMode(BenchMode.Generate)
+        selectPlan(SearchPlan.Thorough)
     }
 
     fun selectMode(mode: BenchMode) {
@@ -224,12 +252,10 @@ class BenchmarkViewModel(app: Application) : AndroidViewModel(app) {
 
     /** Makes [resolvedCommand] the active strategy and restarts the tunnel if it is running. */
     fun apply(resolvedCommand: String, label: String) {
+        // Show "In use" at once; the app's snackbar then says what happened, with Undo.
+        local.update { it.copy(applied = resolvedCommand) }
         viewModelScope.launch {
-            val message = withContext(Dispatchers.IO) {
-                StrategyApplier.apply(ctx, resolvedCommand, label)
-            }
-            local.update { it.copy(applied = resolvedCommand) }
-            say(message)
+            withContext(Dispatchers.IO) { StrategyApplier.apply(ctx, resolvedCommand, label) }
         }
     }
 

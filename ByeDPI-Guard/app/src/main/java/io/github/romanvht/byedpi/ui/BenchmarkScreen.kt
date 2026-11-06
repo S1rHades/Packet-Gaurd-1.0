@@ -64,6 +64,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -78,6 +79,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
+import kotlinx.coroutines.delay
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
@@ -195,7 +197,7 @@ fun BenchmarkScreen(
                         visible = gen.running || gen.result != null || gen.failed,
                         enter = expandVertically() + fadeIn(),
                         exit = shrinkVertically() + fadeOut()
-                    ) { GenProgress(gen) }
+                    ) { GenProgress(gen, plan) }
                 } else {
                     AnimatedVisibility(
                         visible = running || test.strategies.isNotEmpty(),
@@ -221,14 +223,22 @@ fun BenchmarkScreen(
                     GenResultPanel(
                         gen = gen,
                         applied = ui.applied,
-                        onApply = { command -> vm.apply(command, ctx.getString(R.string.pg_gen_made)) }
+                        onApply = { command -> vm.apply(command, ctx.getString(R.string.pg_gen_made)) },
+                        onSearchLonger = {
+                            vm.selectPlan(SearchPlan.Thorough)
+                            vm.start()
+                        }
                     )
                 } else ResultPanel(
                     winner = winner,
                     finished = anyDone && !running,
                     running = running,
                     applied = winner != null && ui.applied == winner.result.command,
-                    onApply = { w -> vm.apply(w.result.command, ctx.getString(R.string.pg_bench_winner_label, w.name)) }
+                    onApply = { w -> vm.apply(w.result.command, ctx.getString(R.string.pg_bench_winner_label, w.name)) },
+                    onTryGenerator = {
+                        vm.suggestGenerator()
+                        vm.start()
+                    }
                 )
             }
         }
@@ -441,7 +451,55 @@ private fun BigProgress(test: TestState, ui: BenchUi, sni: String, customName: S
             transitionSpec = { fadeIn(tween(Motion.MEDIUM)) togetherWith fadeOut(tween(Motion.FAST)) },
             label = "benchStatus"
         ) { BigHint(it, color = Color.White) }
+        if (running && !test.isStopping) TimeLeft(ui.startedAt, fraction)
     }
+}
+
+/**
+ * The search's stages as a row of short bars: checking the sites, each round, then the re-test.
+ * Finished stages are green, the current one blue, the rest empty, so the finish line is visible.
+ */
+@Composable
+private fun StageStrip(gen: GenState, plan: SearchPlan, modifier: Modifier = Modifier) {
+    val rounds = if (gen.rounds > 0) gen.rounds else plan.rounds
+    val total = rounds + 2
+    val finished = !gen.running && gen.result != null
+    val current = when {
+        finished -> total
+        gen.phase == GenPhase.Checking -> 0
+        gen.phase == GenPhase.Searching -> gen.round.coerceIn(1, rounds)
+        gen.phase == GenPhase.Verifying -> total - 1
+        else -> -1
+    }
+    Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        repeat(total) { i ->
+            val color = when {
+                i < current -> Palette.Success
+                i == current && gen.running -> Palette.Glow
+                else -> Glass.Inset
+            }
+            Box(Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)).background(color))
+        }
+    }
+}
+
+/** "About 3 minutes left", worked out from how fast the run has gone so far. */
+@Composable
+private fun TimeLeft(startedAt: Long, fraction: Float) {
+    if (startedAt <= 0L) return
+    var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(startedAt) {
+        while (true) {
+            now = System.currentTimeMillis()
+            delay(5_000)
+        }
+    }
+    val minutes = minutesLeft(now - startedAt, fraction) ?: return
+    BigHint(
+        pluralStringResource(R.plurals.pg_time_left, minutes, minutes),
+        Modifier.padding(top = 6.dp),
+        color = Palette.Sky
+    )
 }
 
 /** A thick, rounded progress bar in the accent gradient. */
@@ -471,7 +529,8 @@ private fun ResultPanel(
     finished: Boolean,
     running: Boolean,
     applied: Boolean,
-    onApply: (RankedStrategy) -> Unit
+    onApply: (RankedStrategy) -> Unit,
+    onTryGenerator: () -> Unit
 ) {
     val state = when {
         winner != null -> 2
@@ -490,6 +549,14 @@ private fun ResultPanel(
             1 -> Column {
                 BigNote(Icons.Filled.SentimentDissatisfied, Palette.Warning, stringResource(R.string.pg_step3_none_title), bold = true)
                 BigHint(stringResource(R.string.pg_step3_none_help), Modifier.padding(top = 8.dp))
+                // End on a next step, not on a zero.
+                PrimaryButton(
+                    text = stringResource(R.string.pg_try_generator),
+                    icon = Icons.Filled.AutoAwesome,
+                    onClick = onTryGenerator,
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                    height = 60
+                )
             }
             else -> {
                 val w = winner ?: return@AnimatedContent
@@ -736,6 +803,15 @@ private fun ListEditorDialog(state: ListEditorState, vm: BenchmarkViewModel, onD
                     modifier = Modifier.fillMaxWidth().heightIn(min = 140.dp),
                     colors = fieldColors()
                 )
+                // Show what will be saved, so a messy paste is never a surprise.
+                val parsed = remember(domains) { parseDomains(domains) }
+                if (parsed.isNotEmpty()) {
+                    Text(
+                        pluralStringResource(R.plurals.pg_list_preview, parsed.size, parsed.size) +
+                            ": " + parsed.take(3).joinToString(", ") + if (parsed.size > 3) "…" else "",
+                        color = Palette.Sky, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis
+                    )
+                }
                 Text(
                     stringResource(R.string.pg_list_help),
                     color = Palette.TextSecondary, fontSize = 12.sp
@@ -852,7 +928,7 @@ private fun ModeTile(
 
 /** The search's progress: a big percentage, a thick bar and what it's doing in plain words. */
 @Composable
-private fun GenProgress(gen: GenState) {
+private fun GenProgress(gen: GenState, plan: SearchPlan) {
     val fraction = if (gen.budget == 0) 0f else (gen.done.toFloat() / gen.budget).coerceIn(0f, 1f)
     val animated by animateFloatAsState(fraction, tween(Motion.SLOW), label = "genProgress")
     val tried = (gen.done - 1).coerceAtLeast(0)
@@ -864,7 +940,8 @@ private fun GenProgress(gen: GenState) {
                 Icon(Icons.Filled.HourglassTop, null, tint = Palette.Sky, modifier = Modifier.padding(bottom = 8.dp).size(20.dp))
             }
         }
-        ProgressBar(animated, Modifier.padding(vertical = 10.dp))
+        ProgressBar(animated, Modifier.padding(top = 10.dp))
+        StageStrip(gen, plan, Modifier.padding(top = 8.dp, bottom = 10.dp))
         val label = when {
             gen.stopping -> stringResource(R.string.pg_stopping)
             gen.failed && !gen.running -> stringResource(R.string.pg_gen_failed)
@@ -881,6 +958,7 @@ private fun GenProgress(gen: GenState) {
             transitionSpec = { fadeIn(tween(Motion.MEDIUM)) togetherWith fadeOut(tween(Motion.FAST)) },
             label = "genStatus"
         ) { BigHint(it, color = if (gen.failed && !gen.running) Palette.Warning else Color.White) }
+        if (gen.running && !gen.stopping) TimeLeft(gen.startedAt, fraction)
         val leader = gen.leader
         if (gen.running && leader != null) {
             BigHint(
@@ -894,7 +972,7 @@ private fun GenProgress(gen: GenState) {
 
 /** Step 3 for the generator: the command line it made, in plain words, with one big button. */
 @Composable
-private fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) -> Unit) {
+private fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) -> Unit, onSearchLonger: () -> Unit) {
     val result = gen.result
     val state = when {
         gen.running -> 0
@@ -916,6 +994,15 @@ private fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) ->
             2 -> Column {
                 BigNote(Icons.Filled.SentimentDissatisfied, Palette.Warning, stringResource(R.string.pg_step3_none_title), bold = true)
                 BigHint(stringResource(R.string.pg_gen_none_help), Modifier.padding(top = 8.dp))
+                if (gen.plan != SearchPlan.Thorough) {
+                    PrimaryButton(
+                        text = stringResource(R.string.pg_gen_try_thorough),
+                        icon = Icons.Filled.AutoAwesome,
+                        onClick = onSearchLonger,
+                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                        height = 60
+                    )
+                }
             }
             else -> {
                 val r = result ?: return@AnimatedContent

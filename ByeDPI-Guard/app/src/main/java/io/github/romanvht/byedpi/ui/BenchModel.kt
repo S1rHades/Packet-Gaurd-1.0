@@ -108,20 +108,29 @@ fun bestPerDomain(strategies: List<StrategyResult>, nameOf: (String) -> String):
     }.sortedWith(compareByDescending<DomainBest> { it.ok }.thenBy { it.site })
 }
 
-/** Accepts pasted domains or links; scheme, path and query are dropped. */
+/**
+ * Accepts pasted domains or links, however they come: with or without a scheme, path, query,
+ * port, login, `*.` wildcard, quotes or trailing punctuation, separated by spaces, commas,
+ * semicolons or new lines. Returns clean, lowercase domains in the order given, each once.
+ */
 fun parseDomains(raw: String): List<String> =
-    raw.split(Regex("[\\s,;]+"))
-        .map {
-            it.trim()
-                .removePrefix("http://")
-                .removePrefix("https://")
-                .substringBefore('/')
-                .substringBefore('?')
-                .trim()
-                .lowercase()
-        }
-        .filter { it.isNotEmpty() && '.' in it }
-        .distinct()
+    raw.split(Regex("[\\s,;]+")).mapNotNull(::cleanDomain).distinct()
+
+private val SCHEME = Regex("^[a-z][a-z0-9+.-]*://", RegexOption.IGNORE_CASE)
+private val PORT = Regex(":\\d*$")
+private val DOMAIN = Regex("^[\\p{L}\\p{N}](?:[\\p{L}\\p{N}-]*[\\p{L}\\p{N}])?(?:\\.[\\p{L}\\p{N}](?:[\\p{L}\\p{N}-]*[\\p{L}\\p{N}])?)+$")
+
+private val WRAP = charArrayOf('"', '\'', '`', '<', '>', '(', ')', '[', ']', '«', '»', '“', '”', '‘', '’')
+
+/** One pasted word as a domain, or null when there's no domain in it. */
+fun cleanDomain(word: String): String? {
+    var d = word.trim().trimStart(*WRAP).trimEnd(*WRAP, '.', ',', ';', ':', '!', '?')
+    d = d.replace(SCHEME, "").removePrefix("//")
+    d = d.substringBefore('/').substringBefore('?').substringBefore('#')
+    d = d.substringAfterLast('@').replace(PORT, "")
+    d = d.trimEnd('.', ',', ';', ':', '!').removePrefix("*.").trimStart('.').lowercase()
+    return d.takeIf { DOMAIN.matches(it) }
+}
 
 /**
  * One profile per line; "Name | command" or just the command. Unnamed lines are called
@@ -139,3 +148,13 @@ fun parseCustomProfiles(
             defaultName(i + 1) to line
         }
     }.filter { it.second.isNotEmpty() }
+
+/**
+ * Whole minutes left for a run that is [fraction] done after [elapsedMs], rounded up, or null
+ * while there's too little to go on (under 5% done or under 10 seconds in).
+ */
+fun minutesLeft(elapsedMs: Long, fraction: Float): Int? {
+    if (fraction < 0.05f || elapsedMs < 10_000 || fraction >= 1f) return null
+    val leftMs = elapsedMs * (1f - fraction) / fraction
+    return ((leftMs + 59_999) / 60_000).toInt().coerceAtLeast(1)
+}

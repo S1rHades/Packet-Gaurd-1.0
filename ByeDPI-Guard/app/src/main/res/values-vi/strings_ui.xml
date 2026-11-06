@@ -245,7 +245,7 @@
     <string name="pg_edit_list">Sửa danh sách</string>
     <string name="pg_list_name">Tên danh sách</string>
     <string name="pg_domains_or_links">Tên miền hoặc liên kết</string>
-    <string name="pg_list_help">Mỗi dòng một mục. Đường dẫn và tham số truy vấn bị bỏ qua; từng tên miền sẽ được kiểm tra.</string>
+    <string name="pg_list_help">Dán liên kết hoặc tên miền, mỗi dòng một mục hoặc cách nhau bằng dấu phẩy. Chỉ giữ lại tên miền.</string>
     <string name="pg_import_file">Nhập từ tệp</string>
     <string name="pg_dash_title">Bảng kết quả</string>
     <string name="pg_dash_subtitle">Hiệu quả của từng cấu hình và danh sách trang đã kiểm tra trên mạng này.</string>
@@ -289,7 +289,7 @@
     <string name="pg_step3_best_so_far">Tốt nhất hiện tại</string>
     <string name="pg_step3_best">Cấu hình tốt nhất</string>
     <string name="pg_step3_none_title">Lần này không có gì hoạt động</string>
-    <string name="pg_step3_none_help">Hãy thử lại sau, hoặc mở Tùy chọn nâng cao và kiểm tra thêm cấu hình.</string>
+    <string name="pg_step3_none_help">Không hồ sơ có sẵn nào mở được các trang của bạn. Packet Guard có thể tạo một dòng lệnh riêng cho kết nối của bạn.</string>
     <string name="pg_step3_opens">Mở được %1$d / %2$d trang</string>
     <string name="pg_step3_speed">Tốc độ: %1$s</string>
     <string name="pg_speed_fast">Nhanh</string>
@@ -315,7 +315,7 @@
     <string name="pg_gen_best_so_far_opens">Tốt nhất hiện tại mở được %1$d / %2$d trang bị chặn</string>
     <string name="pg_gen_idle">Dòng lệnh của bạn sẽ hiện ở đây sau khi tìm xong.</string>
     <string name="pg_gen_nothing_blocked">Tin vui: hiện không trang nào của bạn bị chặn, nên không cần vượt chặn.</string>
-    <string name="pg_gen_none_help">Không dòng lệnh nào mở được các trang bị chặn. Nhà mạng có thể chặn chúng theo cách Packet Guard không vượt qua được.</string>
+    <string name="pg_gen_none_help">Không dòng lệnh nào mở được các trang bị chặn. Tìm lâu hơn đôi khi sẽ thấy. Nếu không, nhà mạng có thể chặn các trang này theo địa chỉ, và Packet Guard không vượt qua được.</string>
     <string name="pg_gen_title_result">Dòng lệnh của bạn</string>
     <string name="pg_gen_made">Tạo riêng cho bạn</string>
     <string name="pg_gen_opens">Mở được %1$d / %2$d trang bị chặn</string>
@@ -349,6 +349,14 @@
     <string name="pg_upd_err_conflict">Bản này được ký bằng khóa khác. Hãy gỡ nó rồi cài phiên bản mới từ GitHub.</string>
     <string name="pg_upd_err_storage">Không đủ dung lượng để cập nhật.</string>
     <string name="pg_upd_err_install">Không cài được bản cập nhật.</string>
+    <string name="pg_undo">Hoàn tác</string>
+    <string name="pg_undo_done">Đã khôi phục cài đặt trước đó</string>
+    <string name="pg_undo_nothing">Không có gì để hoàn tác</string>
+    <string name="pg_understood_as">Sẽ được lưu là: %1$s</string>
+    <string name="pg_whats_new_kept">Cài đặt của bạn vẫn được giữ nguyên.</string>
+    <string name="pg_got_it">Đã hiểu</string>
+    <string name="pg_try_generator">Tạo riêng cho tôi (khoảng 10 phút)</string>
+    <string name="pg_gen_try_thorough">Tìm lâu hơn (khoảng 10 phút)</string>
     <plurals name="pg_sites">
         <item quantity="other">%d trang</item>
     </plurals>
@@ -366,5 +374,11 @@
     </plurals>
     <plurals name="pg_gen_finished">
         <item quantity="other">Xong · đã thử %d dòng lệnh</item>
+    </plurals>
+    <plurals name="pg_time_left">
+        <item quantity="other">Còn khoảng %d phút</item>
+    </plurals>
+    <plurals name="pg_list_preview">
+        <item quantity="other">Sẽ kiểm tra %d trang</item>
     </plurals>
 </resources>

@@ -51,7 +51,10 @@ data class GenState(
     val budget: Int = 0,
     val leader: Scored? = null,
     val result: GenResult? = null,
-    val failed: Boolean = false
+    val failed: Boolean = false,
+    /** When this search started, for the time-left estimate; and which plan it ran. */
+    val startedAt: Long = 0L,
+    val plan: SearchPlan? = null
 )
 
 /**
@@ -94,7 +97,10 @@ object CommandGenerator {
         if (isRunning || TestService.isRunning) return
         val app = ctx.applicationContext
         stopRequested = false
-        mutable.value = GenState(running = true, phase = GenPhase.Checking, rounds = plan.rounds, budget = plan.budget + 1)
+        mutable.value = GenState(
+            running = true, phase = GenPhase.Checking, rounds = plan.rounds, budget = plan.budget + 1,
+            startedAt = System.currentTimeMillis(), plan = plan
+        )
         job = scope.launch {
             try {
                 search(app, plan)

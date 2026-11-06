@@ -17,8 +17,10 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -100,9 +102,28 @@ fun AppRoot(requestedTab: Tab? = null, onTabRequestHandled: () -> Unit = {}) {
     LaunchedEffect(Unit) {
         // Updates from GitHub: a quiet check shortly after start, then every 6 hours.
         AppUpdates.startAutoChecks(ctx)
-        AppUpdates.consumeJustUpdated(ctx)?.let { v -> launch { snackbar.showSnackbar(ctx.getString(R.string.pg_upd_updated, v)) } }
+        AppUpdates.consumeJustUpdated(ctx) // the Connect screen shows a "What's new" card
         launch { connectVm.messages.collect { snackbar.showSnackbar(it) } }
         launch { benchVm.messages.collect { snackbar.showSnackbar(it) } }
+        // Every "Applied" comes with Undo, which puts the previous strategy back.
+        launch {
+            StrategyApplier.notices.collect { n ->
+                connectVm.refreshProfile()
+                launch {
+                    val r = snackbar.showSnackbar(
+                        n.message,
+                        actionLabel = if (n.canUndo) ctx.getString(R.string.pg_undo) else null,
+                        withDismissAction = false,
+                        duration = if (n.canUndo) SnackbarDuration.Long else SnackbarDuration.Short
+                    )
+                    if (r == SnackbarResult.ActionPerformed) {
+                        val msg = StrategyApplier.undo(ctx)
+                        connectVm.refreshProfile()
+                        snackbar.showSnackbar(msg)
+                    }
+                }
+            }
+        }
     }
 
     // Keep the screen awake during a benchmark, as upstream's test screen does.
