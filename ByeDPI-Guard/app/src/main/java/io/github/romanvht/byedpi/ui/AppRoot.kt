@@ -43,6 +43,7 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.romanvht.byedpi.data.Mode
+import io.github.romanvht.byedpi.update.AppUpdates
 import io.github.romanvht.byedpi.services.ServiceManager
 import io.github.romanvht.byedpi.services.TestService
 import io.github.romanvht.byedpi.utility.PermissionUtils
@@ -97,6 +98,9 @@ fun AppRoot(requestedTab: Tab? = null, onTabRequestHandled: () -> Unit = {}) {
     }
 
     LaunchedEffect(Unit) {
+        // Updates from GitHub: a quiet check shortly after start, then every 6 hours.
+        AppUpdates.startAutoChecks(ctx)
+        AppUpdates.consumeJustUpdated(ctx)?.let { v -> launch { snackbar.showSnackbar(ctx.getString(R.string.pg_upd_updated, v)) } }
         launch { connectVm.messages.collect { snackbar.showSnackbar(it) } }
         launch { benchVm.messages.collect { snackbar.showSnackbar(it) } }
     }

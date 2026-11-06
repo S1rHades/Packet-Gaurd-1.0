@@ -108,6 +108,8 @@ fun AboutSettings(onMessage: (String) -> Unit) {
         )
     }
 
+    UpdatesGroup()
+
     SettingsGroup(stringResource(R.string.pg_backup)) {
         NavRow(
             stringResource(R.string.pg_export_settings), onClick = { askExport = true },

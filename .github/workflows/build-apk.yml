@@ -101,8 +101,23 @@ jobs:
             echo "Release $TAG already exists. Bump versionName to publish a new one."
             exit 0
           fi
+          # The app's updater shows the first bullets under "## What's new", so copy this
+          # version's section of the changelog in README-PACKET-GUARD.md.
+          NOTES=$(awk -v v="## Version ${{ steps.version.outputs.name }}" '
+            $0 == v { on = 1; next }
+            on && /^## / { exit }
+            on { print }' README-PACKET-GUARD.md)
+          {
+            echo "## What's new"
+            echo
+            echo "${NOTES:-- Bug fixes and improvements.}"
+            echo
+            echo "## Install"
+            echo
+            echo "Download PacketGuard-$TAG-universal.apk below and install it on your Android phone. It works on every device; the other files are smaller per-processor builds. Packet Guard 2.5.0 and later can also update themselves: Settings → About → Updates."
+          } > "$RUNNER_TEMP/notes.md"
           gh release create "$TAG" ../dist/*.apk \
             --repo "${{ github.repository }}" \
             --target "${{ github.sha }}" \
             --title "Packet Guard $TAG" \
-            --notes "Download PacketGuard-$TAG-universal.apk below and install it on your Android phone. It works on every device; the other files are smaller per-processor builds."
+            --notes-file "$RUNNER_TEMP/notes.md"

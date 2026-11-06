@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Downloaded updates (cacheDir/updates), shared with Android's install screen only. -->
+<paths>
+    <cache-path name="updates" path="updates/" />
+</paths>
