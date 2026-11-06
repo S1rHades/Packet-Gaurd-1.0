@@ -188,7 +188,7 @@ private fun InfoRow(label: String, value: String) {
 private fun MetricTile(label: String, value: String, modifier: Modifier = Modifier) {
     Column(
         modifier
-            .background(Palette.SurfaceHigh, RoundedCornerShape(14.dp))
+            .glassInset()
             .padding(14.dp)
     ) {
         Text(label, color = Palette.TextSecondary, fontSize = 12.sp)

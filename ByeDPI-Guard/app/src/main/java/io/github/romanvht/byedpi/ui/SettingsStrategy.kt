@@ -230,14 +230,14 @@ private fun HistoryRow(
 ) {
     var menu by remember { mutableStateOf(false) }
     val border by animateColorAsState(
-        if (isActive) Palette.Glow.copy(alpha = 0.7f) else Palette.Border, tween(Motion.MEDIUM), label = "historyBorder"
+        if (isActive) Palette.Glow.copy(alpha = 0.7f) else Glass.InsetBorder, tween(Motion.MEDIUM), label = "historyBorder"
     )
     Row(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(Palette.SurfaceHigh)
-            .border(1.dp, border, RoundedCornerShape(14.dp))
+            .clip(Glass.ControlShape)
+            .background(Glass.Inset)
+            .border(1.dp, border, Glass.ControlShape)
             .clickable(onClick = onApply)
             .padding(start = 12.dp, top = 10.dp, bottom = 10.dp),
         verticalAlignment = Alignment.CenterVertically

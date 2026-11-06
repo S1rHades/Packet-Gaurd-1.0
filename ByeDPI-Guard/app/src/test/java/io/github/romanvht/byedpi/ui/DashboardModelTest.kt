@@ -134,4 +134,13 @@ class DashboardModelTest {
         assertEquals(listOf(3f, 4f, 0f), sparkSeries(dash.profiles, DashMetric.Reach))
         assertEquals(listOf(75f, 100f, 0f), sparkSeries(dash.profiles, DashMetric.Success))
     }
+
+    @Test
+    fun speedRatingBoundaries() {
+        assertEquals(Speed.Fast, Speed.of(0))
+        assertEquals(Speed.Fast, Speed.of(199))
+        assertEquals(Speed.Ok, Speed.of(200))
+        assertEquals(Speed.Ok, Speed.of(499))
+        assertEquals(Speed.Slow, Speed.of(500))
+    }
 }
