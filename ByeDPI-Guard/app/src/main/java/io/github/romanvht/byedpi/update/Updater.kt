@@ -228,6 +228,8 @@ class InstallResultReceiver : BroadcastReceiver() {
 object AppUpdates {
     const val PREF_AUTO = "updates_auto_check"
     private const val PREF_LAST_VERSION = "updates_last_version"
+    /** The notes of the release being installed: its version on the first line, then one note per line. */
+    private const val PREF_PENDING_NOTES = "updates_pending_notes"
     private const val FIRST_CHECK_MS = 4_000L
     private const val CHECK_EVERY_MS = 6 * 60 * 60 * 1000L
 
@@ -236,6 +238,16 @@ object AppUpdates {
     val state: StateFlow<UpdateState> = mutable.asStateFlow()
     private var loop: Job? = null
     private var work: Job? = null
+
+    /** Set once after the app was updated, for the Connect screen's "What's new" card. */
+    data class JustUpdated(val version: String, val notes: List<String>)
+
+    private val justUpdatedState = MutableStateFlow<JustUpdated?>(null)
+    val justUpdated: StateFlow<JustUpdated?> = justUpdatedState.asStateFlow()
+
+    fun dismissWhatsNew() {
+        justUpdatedState.value = null
+    }
 
     val currentVersion: String get() = versionCore(BuildConfig.VERSION_NAME)
 
@@ -259,12 +271,24 @@ object AppUpdates {
         if (on) startAutoChecks(ctx) else { loop?.cancel(); loop = null }
     }
 
-    /** The version this copy was updated to since it last ran, once; null otherwise. */
+    /**
+     * The version this copy was updated to since it last ran, once; null otherwise. Also fills
+     * [justUpdated] with that release's notes, saved before the install (or, when updated
+     * from a version that didn't save them, from the next check).
+     */
     fun consumeJustUpdated(ctx: Context): String? {
         val prefs = ctx.getPreferences()
         val last = prefs.getString(PREF_LAST_VERSION, null)
-        prefs.edit { putString(PREF_LAST_VERSION, currentVersion) }
-        return currentVersion.takeIf { last != null && isNewer(currentVersion, last) }
+        val pending = prefs.getString(PREF_PENDING_NOTES, null)?.lines().orEmpty()
+        prefs.edit {
+            putString(PREF_LAST_VERSION, currentVersion)
+            remove(PREF_PENDING_NOTES)
+        }
+        val updated = last != null && isNewer(currentVersion, last)
+        if (!updated) return null
+        val notes = if (pending.firstOrNull() == currentVersion) pending.drop(1).filter { it.isNotBlank() } else emptyList()
+        justUpdatedState.value = JustUpdated(currentVersion, notes)
+        return currentVersion
     }
 
     fun checkNow(ctx: Context) {
@@ -278,6 +302,9 @@ object AppUpdates {
         mutable.value = previous.copy(phase = UpdatePhase.Checking, problem = null)
         try {
             val r = Updater(app).latest()
+            justUpdatedState.update { j ->
+                if (j != null && j.notes.isEmpty() && r.version == j.version) j.copy(notes = r.notes) else j
+            }
             mutable.value = if (isNewer(r.version, currentVersion)) UpdateState(UpdatePhase.Available, r)
             else UpdateState(UpdatePhase.UpToDate)
         } catch (e: CancellationException) {
@@ -303,6 +330,10 @@ object AppUpdates {
             updater.askToInstall()
             mutable.update { it.copy(phase = UpdatePhase.Available, problem = UpdateProblem.NeedsPermission) }
             return
+        }
+        // Kept for the "What's new" card the new version shows when it first opens.
+        app.getPreferences().edit {
+            putString(PREF_PENDING_NOTES, (listOf(release.version) + release.notes.map { it.replace('\n', ' ') }).joinToString("\n"))
         }
         work = scope.launch {
             mutable.value = UpdateState(UpdatePhase.Downloading, release)

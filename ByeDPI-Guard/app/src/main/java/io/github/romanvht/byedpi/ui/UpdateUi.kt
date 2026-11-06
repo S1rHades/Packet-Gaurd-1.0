@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.SystemUpdate
@@ -133,6 +134,52 @@ fun UpdateBanner(modifier: Modifier = Modifier) {
             if (state.phase == UpdatePhase.Downloading) DownloadBar(state.progress, Modifier.padding(top = 12.dp))
             state.problem?.let { HelperText(problemText(it), Modifier.padding(top = 10.dp), color = Palette.Warning) }
             UpdateButton(state, onUpdate = { AppUpdates.update(ctx) }, modifier = Modifier.padding(top = 12.dp))
+        }
+    }
+}
+
+/**
+ * Shown once on the Connect screen after an update: the new version and what changed, so an
+ * update ends on a clear, friendly note rather than a silent restart.
+ */
+@Composable
+fun WhatsNewCard(modifier: Modifier = Modifier) {
+    val just by AppUpdates.justUpdated.collectAsStateWithLifecycle()
+    AnimatedVisibility(just != null, modifier, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
+        val j = just ?: return@AnimatedVisibility
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .glass(borderColor = Palette.Success.copy(alpha = 0.55f))
+                .padding(16.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(Palette.Success.copy(alpha = 0.16f)),
+                    contentAlignment = Alignment.Center
+                ) { Icon(Icons.Filled.CheckCircle, null, tint = Palette.Success, modifier = Modifier.size(22.dp)) }
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.pg_upd_updated, j.version), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        stringResource(if (j.notes.isEmpty()) R.string.pg_whats_new_kept else R.string.pg_upd_whats_new),
+                        color = Palette.TextSecondary, fontSize = 13.sp
+                    )
+                }
+            }
+            j.notes.take(4).forEach { note ->
+                Row(Modifier.padding(top = 8.dp)) {
+                    Box(Modifier.padding(top = 7.dp).size(6.dp).clip(RoundedCornerShape(3.dp)).background(Palette.Sky))
+                    Spacer(Modifier.width(8.dp))
+                    Text(note, fontSize = 14.sp, lineHeight = 19.sp)
+                }
+            }
+            SecondaryButton(
+                stringResource(R.string.pg_got_it),
+                onClick = { AppUpdates.dismissWhatsNew() },
+                icon = Icons.Filled.Check,
+                modifier = Modifier.fillMaxWidth().padding(top = 14.dp)
+            )
         }
     }
 }

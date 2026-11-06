@@ -245,7 +245,7 @@
     <string name="pg_edit_list">Listeyi düzenle</string>
     <string name="pg_list_name">Liste adı</string>
     <string name="pg_domains_or_links">Alan adları veya bağlantılar</string>
-    <string name="pg_list_help">Her satıra bir tane. Yollar ve sorgu dizeleri yok sayılır; her alan adı test edilir.</string>
+    <string name="pg_list_help">Bağlantıları veya alan adlarını yapıştırın: her satıra bir tane ya da virgülle ayırarak. Yalnızca alan adı tutulur.</string>
     <string name="pg_import_file">Dosyadan içe aktar</string>
     <string name="pg_dash_title">Sonuç paneli</string>
     <string name="pg_dash_subtitle">Test edilen her profilin ve site listesinin bu ağdaki performansı.</string>
@@ -289,7 +289,7 @@
     <string name="pg_step3_best_so_far">Şimdilik en iyisi</string>
     <string name="pg_step3_best">En iyi profil</string>
     <string name="pg_step3_none_title">Bu sefer hiçbiri çalışmadı</string>
-    <string name="pg_step3_none_help">Daha sonra tekrar deneyin veya Gelişmiş seçenekler’i açıp daha fazla profil test edin.</string>
+    <string name="pg_step3_none_help">Hazır profillerin hiçbiri sitelerinizi açmadı. Packet Guard bunun yerine bağlantınıza özel bir komut satırı oluşturabilir.</string>
     <string name="pg_step3_opens">%2$d sitenin %1$d tanesini açıyor</string>
     <string name="pg_step3_speed">Hız: %1$s</string>
     <string name="pg_speed_fast">Hızlı</string>
@@ -315,7 +315,7 @@
     <string name="pg_gen_best_so_far_opens">Şimdilik en iyisi %2$d engelli sitenin %1$d tanesini açıyor</string>
     <string name="pg_gen_idle">Arama bitince komut satırınız burada görünecek.</string>
     <string name="pg_gen_nothing_blocked">İyi haber: şu anda sitelerinizin hiçbiri engelli değil, atlatmaya gerek yok.</string>
-    <string name="pg_gen_none_help">Hiçbir komut satırı engelli sitelerinizi açamadı. Sağlayıcınız onları Packet Guard’ın aşamayacağı bir yolla engelliyor olabilir.</string>
+    <string name="pg_gen_none_help">Komut satırlarının hiçbiri engelli sitelerinizi açmadı. Daha uzun bir arama bazen bir tane bulur. Bulamazsa sağlayıcınız bu siteleri adresle engelliyor olabilir; Packet Guard bunu aşamaz.</string>
     <string name="pg_gen_title_result">Komut satırınız</string>
     <string name="pg_gen_made">Size özel</string>
     <string name="pg_gen_opens">%2$d engelli sitenin %1$d tanesini açıyor</string>
@@ -349,6 +349,14 @@
     <string name="pg_upd_err_conflict">Bu kopya farklı bir anahtarla imzalanmış. Kaldırın ve yeni sürümü GitHub’dan yükleyin.</string>
     <string name="pg_upd_err_storage">Güncelleme için yeterli alan yok.</string>
     <string name="pg_upd_err_install">Güncelleme yüklenemedi.</string>
+    <string name="pg_undo">Geri al</string>
+    <string name="pg_undo_done">Önceki ayar geri getirildi</string>
+    <string name="pg_undo_nothing">Geri alınacak bir şey yok</string>
+    <string name="pg_understood_as">Şöyle kaydedilecek: %1$s</string>
+    <string name="pg_whats_new_kept">Ayarlarınız korundu.</string>
+    <string name="pg_got_it">Tamam</string>
+    <string name="pg_try_generator">Bana özel oluştur (yaklaşık 10 dk)</string>
+    <string name="pg_gen_try_thorough">Daha uzun ara (yaklaşık 10 dk)</string>
     <plurals name="pg_sites">
         <item quantity="one">%d site</item>
         <item quantity="other">%d site</item>
@@ -372,5 +380,13 @@
     <plurals name="pg_gen_finished">
         <item quantity="one">Bitti · %d komut satırı denendi</item>
         <item quantity="other">Bitti · %d komut satırı denendi</item>
+    </plurals>
+    <plurals name="pg_time_left">
+        <item quantity="one">Yaklaşık %d dakika kaldı</item>
+        <item quantity="other">Yaklaşık %d dakika kaldı</item>
+    </plurals>
+    <plurals name="pg_list_preview">
+        <item quantity="one">%d site denenecek</item>
+        <item quantity="other">%d site denenecek</item>
     </plurals>
 </resources>

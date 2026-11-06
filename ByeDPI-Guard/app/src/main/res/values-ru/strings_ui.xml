@@ -245,7 +245,7 @@
     <string name="pg_edit_list">Изменить список</string>
     <string name="pg_list_name">Название списка</string>
     <string name="pg_domains_or_links">Домены или ссылки</string>
-    <string name="pg_list_help">По одному на строку. Пути и параметры ссылок отбрасываются, проверяется каждый домен.</string>
+    <string name="pg_list_help">Вставьте ссылки или домены: по одному в строке или через запятую. Сохраняется только домен.</string>
     <string name="pg_import_file">Импорт из файла</string>
     <string name="pg_dash_title">Панель результатов</string>
     <string name="pg_dash_subtitle">Как каждый проверенный профиль и список сайтов работают в этой сети.</string>
@@ -289,7 +289,7 @@
     <string name="pg_step3_best_so_far">Лучший на данный момент</string>
     <string name="pg_step3_best">Лучший профиль</string>
     <string name="pg_step3_none_title">В этот раз ничего не сработало</string>
-    <string name="pg_step3_none_help">Попробуйте позже или откройте «Дополнительно» и проверьте больше профилей.</string>
+    <string name="pg_step3_none_help">Ни один готовый профиль не открыл ваши сайты. Packet Guard может подобрать командную строку специально для вашего подключения.</string>
     <string name="pg_step3_opens">Открывает %1$d из %2$d сайтов</string>
     <string name="pg_step3_speed">Скорость: %1$s</string>
     <string name="pg_speed_fast">быстро</string>
@@ -315,7 +315,7 @@
     <string name="pg_gen_best_so_far_opens">Лучший вариант открывает %1$d из %2$d заблокированных сайтов</string>
     <string name="pg_gen_idle">Здесь появится ваша командная строка после поиска.</string>
     <string name="pg_gen_nothing_blocked">Хорошие новости: сейчас ни один из ваших сайтов не заблокирован, обход им не нужен.</string>
-    <string name="pg_gen_none_help">Ни одна командная строка не открыла заблокированные сайты. Возможно, провайдер блокирует их способом, который Packet Guard не может обойти.</string>
+    <string name="pg_gen_none_help">Ни одна командная строка не открыла заблокированные сайты. Более долгий поиск иногда находит подходящую. Если нет — возможно, провайдер блокирует эти сайты по адресу, и Packet Guard это не обойти.</string>
     <string name="pg_gen_title_result">Ваша командная строка</string>
     <string name="pg_gen_made">Создано для вас</string>
     <string name="pg_gen_opens">Открывает %1$d из %2$d заблокированных сайтов</string>
@@ -349,6 +349,14 @@
     <string name="pg_upd_err_conflict">Эта копия подписана другим ключом. Удалите её и установите новую версию с GitHub.</string>
     <string name="pg_upd_err_storage">Недостаточно места для обновления.</string>
     <string name="pg_upd_err_install">Не удалось установить обновление.</string>
+    <string name="pg_undo">Отменить</string>
+    <string name="pg_undo_done">Вернули прежнюю настройку</string>
+    <string name="pg_undo_nothing">Нечего отменять</string>
+    <string name="pg_understood_as">Будет сохранено так: %1$s</string>
+    <string name="pg_whats_new_kept">Ваши настройки сохранены.</string>
+    <string name="pg_got_it">Понятно</string>
+    <string name="pg_try_generator">Подобрать для меня (около 10 мин)</string>
+    <string name="pg_gen_try_thorough">Искать дольше (около 10 мин)</string>
     <plurals name="pg_sites">
         <item quantity="one">%d сайт</item>
         <item quantity="few">%d сайта</item>
@@ -384,5 +392,17 @@
         <item quantity="few">Готово · проверено %d командные строки</item>
         <item quantity="many">Готово · проверено %d командных строк</item>
         <item quantity="other">Готово · проверено %d командной строки</item>
+    </plurals>
+    <plurals name="pg_time_left">
+        <item quantity="one">Осталось около %d минуты</item>
+        <item quantity="few">Осталось около %d минут</item>
+        <item quantity="many">Осталось около %d минут</item>
+        <item quantity="other">Осталось около %d минуты</item>
+    </plurals>
+    <plurals name="pg_list_preview">
+        <item quantity="one">Будет проверен %d сайт</item>
+        <item quantity="few">Будет проверено %d сайта</item>
+        <item quantity="many">Будет проверено %d сайтов</item>
+        <item quantity="other">Будет проверено %d сайта</item>
     </plurals>
 </resources>

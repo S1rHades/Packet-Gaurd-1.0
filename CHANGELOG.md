@@ -6,6 +6,21 @@ from 2.5.0 on (**Settings → About → Updates**); earlier versions are install
 
 The first lines under each version are what the app shows as "What's new", so keep them short.
 
+## 2.6.0 (November 2026)
+
+- Undo: after you use a profile, one tap puts the old setting back
+- Pasted links and command lines are tidied up, and you see what will be saved
+- When a test finds nothing, one button starts a search made just for you
+- "About 3 minutes left" while testing, and a "What's new" card after updating
+
+The rest, in more detail:
+
+- **Undo.** Every "Applied" message now has an **Undo** button, from the Benchmark, the command line generator and Settings → Strategy.
+- **Forgiving input.** Site lists accept full links, `www.`, ports, `*.` wildcards, quotes and commas, and show how many sites will be tested. Command lines lose a leading `ciadpi`, curly quotes and the long dashes phone keyboards put in place of `--`; Settings shows "Will be saved as" first.
+- **Better endings.** A Benchmark that opens nothing offers **Make one just for me**; a quick search that finds nothing offers **Search longer**. After an update, the Connect screen shows the new version's notes once.
+- **Clearer progress.** The generator shows its stages as a row of bars (check, each round, re-test), and both tests estimate the minutes left.
+- "Use this" changes to "In use" straight away.
+
 ## 2.5.1 (November 2026)
 
 - A new README with a tour of the app and screenshots

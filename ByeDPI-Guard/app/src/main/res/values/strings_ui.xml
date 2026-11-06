@@ -245,7 +245,7 @@
     <string name="pg_edit_list">Edit list</string>
     <string name="pg_list_name">List name</string>
     <string name="pg_domains_or_links">Domains or links</string>
-    <string name="pg_list_help">One per line. Paths and query strings are ignored; each domain is tested.</string>
+    <string name="pg_list_help">Paste links or domains, one per line or separated by commas. Only the domain is kept.</string>
     <string name="pg_import_file">Import from file</string>
     <string name="pg_dash_title">Results dashboard</string>
     <string name="pg_dash_subtitle">How every finished profile and link list performed on this network.</string>
@@ -289,7 +289,7 @@
     <string name="pg_step3_best_so_far">Best so far</string>
     <string name="pg_step3_best">Best profile</string>
     <string name="pg_step3_none_title">Nothing worked this time</string>
-    <string name="pg_step3_none_help">Try again later, or open Advanced options and test more profiles.</string>
+    <string name="pg_step3_none_help">None of the ready-made profiles opened your sites. Packet Guard can build a command line just for your connection instead.</string>
     <string name="pg_step3_opens">Opens %1$d of %2$d sites</string>
     <string name="pg_step3_speed">Speed: %1$s</string>
     <string name="pg_speed_fast">Fast</string>
@@ -315,7 +315,7 @@
     <string name="pg_gen_best_so_far_opens">Best so far opens %1$d of %2$d blocked sites</string>
     <string name="pg_gen_idle">Your command line will appear here after the search.</string>
     <string name="pg_gen_nothing_blocked">Good news: none of your sites are blocked right now, so they don’t need a bypass.</string>
-    <string name="pg_gen_none_help">None of the command lines opened your blocked sites. Your provider may block them in a way Packet Guard can’t get around.</string>
+    <string name="pg_gen_none_help">None of the command lines opened your blocked sites. A longer search sometimes finds one. If it doesn’t, your provider may block these sites by address, which Packet Guard can’t get around.</string>
     <string name="pg_gen_title_result">Your command line</string>
     <string name="pg_gen_made">Made for you</string>
     <string name="pg_gen_opens">Opens %1$d of %2$d blocked sites</string>
@@ -349,6 +349,14 @@
     <string name="pg_upd_err_conflict">This copy was signed differently. Uninstall it, then install the new version from GitHub.</string>
     <string name="pg_upd_err_storage">Not enough space for the update.</string>
     <string name="pg_upd_err_install">The update couldn’t be installed.</string>
+    <string name="pg_undo">Undo</string>
+    <string name="pg_undo_done">Put back the setting you had before</string>
+    <string name="pg_undo_nothing">Nothing to undo</string>
+    <string name="pg_understood_as">Will be saved as: %1$s</string>
+    <string name="pg_whats_new_kept">Your settings were kept.</string>
+    <string name="pg_got_it">Got it</string>
+    <string name="pg_try_generator">Make one just for me (about 10 min)</string>
+    <string name="pg_gen_try_thorough">Search longer (about 10 min)</string>
     <plurals name="pg_sites">
         <item quantity="one">%d site</item>
         <item quantity="other">%d sites</item>
@@ -372,5 +380,13 @@
     <plurals name="pg_gen_finished">
         <item quantity="one">Finished · %d command line tried</item>
         <item quantity="other">Finished · %d command lines tried</item>
+    </plurals>
+    <plurals name="pg_time_left">
+        <item quantity="one">About %d minute left</item>
+        <item quantity="other">About %d minutes left</item>
+    </plurals>
+    <plurals name="pg_list_preview">
+        <item quantity="one">%d site will be tested</item>
+        <item quantity="other">%d sites will be tested</item>
     </plurals>
 </resources>

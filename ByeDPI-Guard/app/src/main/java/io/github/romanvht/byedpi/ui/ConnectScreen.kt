@@ -60,6 +60,7 @@ fun ConnectScreen(
     ) {
         BrandHeader(Modifier.align(Alignment.Start).staggeredEnter(0))
         UpdateBanner(Modifier.padding(top = 16.dp))
+        WhatsNewCard(Modifier.padding(top = 16.dp))
         Spacer(Modifier.height(20.dp))
         StatusHeadline(state, Modifier.staggeredEnter(1))
         Spacer(Modifier.height(8.dp))
