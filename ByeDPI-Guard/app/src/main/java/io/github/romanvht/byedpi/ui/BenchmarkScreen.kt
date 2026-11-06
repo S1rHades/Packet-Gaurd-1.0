@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -64,6 +65,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -79,6 +81,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import kotlinx.coroutines.delay
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -137,9 +142,39 @@ fun BenchmarkScreen(
     }
     val anyDone = test.strategies.any { it.isCompleted }
 
+    // Step 2's button, also pinned to the bottom (in thumb reach) while step 2 is off screen.
+    val MainAction: @Composable (Modifier) -> Unit = { m ->
+        PrimaryButton(
+            text = when {
+                test.isStopping || gen.stopping -> stringResource(R.string.pg_stopping)
+                running -> stringResource(R.string.pg_stop)
+                generate -> stringResource(R.string.pg_gen_start)
+                else -> stringResource(R.string.pg_step2_start)
+            },
+            icon = if (running) Icons.Filled.Stop else if (generate) Icons.Filled.AutoAwesome else Icons.Filled.PlayArrow,
+            onClick = { if (running) vm.stop() else vm.start() },
+            enabled = !test.isStopping && !gen.stopping,
+            container = if (running) Palette.SurfaceHigher else Palette.AccentBlue,
+            modifier = m,
+            height = 64
+        )
+    }
+    val listState = rememberLazyListState()
+    val pinAction by remember {
+        derivedStateOf {
+            val info = listState.layoutInfo
+            val step2 = info.visibleItemsInfo.firstOrNull { it.key == "step2" }
+            val step2Shown = step2 != null && step2.offset + step2.size <= info.viewportEndOffset
+            val step3Shown = info.visibleItemsInfo.any { it.key == "step3" }
+            info.totalItemsCount > 0 && !step2Shown && !step3Shown
+        }
+    }
+
+    Box(modifier.fillMaxSize()) {
     LazyColumn(
-        modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 32.dp),
+        Modifier.fillMaxSize(),
+        state = listState,
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 112.dp), // room to scroll past the pinned button,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item(key = "header") {
@@ -178,20 +213,7 @@ fun BenchmarkScreen(
                         modifier = Modifier.padding(bottom = 12.dp)
                     )
                 }
-                PrimaryButton(
-                    text = when {
-                        test.isStopping || gen.stopping -> stringResource(R.string.pg_stopping)
-                        running -> stringResource(R.string.pg_stop)
-                        generate -> stringResource(R.string.pg_gen_start)
-                        else -> stringResource(R.string.pg_step2_start)
-                    },
-                    icon = if (running) Icons.Filled.Stop else if (generate) Icons.Filled.AutoAwesome else Icons.Filled.PlayArrow,
-                    onClick = { if (running) vm.stop() else vm.start() },
-                    enabled = !test.isStopping && !gen.stopping,
-                    container = if (running) Palette.SurfaceHigher else Palette.AccentBlue,
-                    modifier = Modifier.fillMaxWidth(),
-                    height = 64
-                )
+                MainAction(Modifier.fillMaxWidth())
                 if (generate) {
                     AnimatedVisibility(
                         visible = gen.running || gen.result != null || gen.failed,
@@ -305,6 +327,20 @@ fun BenchmarkScreen(
                 DomainTable(perDomain, Modifier.animateItem())
             }
         }
+    }
+    AnimatedVisibility(
+        visible = pinAction,
+        enter = slideInVertically { it } + fadeIn(),
+        exit = slideOutVertically { it } + fadeOut(),
+        modifier = Modifier.align(Alignment.BottomCenter)
+    ) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .background(Brush.verticalGradient(listOf(Color.Transparent, Palette.Background.copy(alpha = 0.92f))))
+                .padding(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 12.dp)
+        ) { MainAction(Modifier.fillMaxWidth()) }
+    }
     }
 
     editor?.let { state ->
@@ -601,6 +637,7 @@ private fun ResultPanel(
                             Modifier.padding(top = 8.dp)
                         )
                     }
+                    if (!running) CommandExplainer(w.result.command, Modifier.padding(top = 12.dp), max = 3)
                     PrimaryButton(
                         text = when {
                             applied -> stringResource(R.string.pg_step3_in_use)
@@ -856,6 +893,7 @@ private fun ModeChoice(
             icon = Icons.Filled.PlayArrow,
             title = stringResource(R.string.pg_mode_ready_title),
             subtitle = stringResource(R.string.pg_mode_ready_sub),
+            badge = stringResource(R.string.pg_recommended),
             selected = mode == BenchMode.ReadyMade,
             enabled = enabled,
             onClick = { onMode(BenchMode.ReadyMade) }
@@ -891,7 +929,8 @@ private fun ModeTile(
     subtitle: String,
     selected: Boolean,
     enabled: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    badge: String? = null
 ) {
     val accent by animateFloatAsState(if (selected) 1f else 0f, tween(Motion.MEDIUM), label = "modeOn")
     val border by animateColorAsState(if (selected) Palette.Glow else Glass.InsetBorder, tween(Motion.MEDIUM), label = "modeBorder")
@@ -914,6 +953,7 @@ private fun ModeTile(
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Text(title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+            if (badge != null) MetricPill(badge, Palette.Success, Modifier.padding(vertical = 3.dp))
             Text(subtitle, color = Palette.TextSecondary, fontSize = 13.sp, lineHeight = 18.sp)
         }
         Spacer(Modifier.width(8.dp))
@@ -1024,6 +1064,7 @@ private fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) ->
                         fontFamily = FontFamily.Monospace, fontSize = 15.sp, color = Palette.Sky,
                         modifier = Modifier.fillMaxWidth().padding(top = 14.dp).glassInset().padding(horizontal = 14.dp, vertical = 12.dp)
                     )
+                    CommandExplainer(command, Modifier.padding(top = 10.dp), max = 4)
                     Fact(
                         Icons.Filled.CheckCircle,
                         scoreColor(percentOf(r.opened, r.blocked)),

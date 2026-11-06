@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -290,7 +291,8 @@ fun Pill(
             .background(Glass.Accent, alpha = accent)
             .border(1.dp, border, RoundedCornerShape(50))
             .clickable(interactionSource = interaction, indication = null, enabled = enabled, onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 9.dp),
+            .heightIn(min = 48.dp) // Fitts: a full thumb-sized target
+            .padding(horizontal = 16.dp, vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (icon != null) {
@@ -335,6 +337,7 @@ fun <T> Segmented(
                     .clip(RoundedCornerShape(12.dp))
                     .background(Glass.Accent, alpha = accent)
                     .clickable(enabled = enabled) { onSelect(item) }
+                    .heightIn(min = 48.dp)
                     .padding(vertical = 11.dp),
                 contentAlignment = Alignment.Center
             ) {

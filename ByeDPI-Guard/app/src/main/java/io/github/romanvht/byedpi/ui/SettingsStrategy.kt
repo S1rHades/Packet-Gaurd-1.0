@@ -57,6 +57,7 @@ import io.github.romanvht.byedpi.data.Command
 import io.github.romanvht.byedpi.utility.ClipboardUtils
 import io.github.romanvht.byedpi.utility.HistoryUtils
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.github.romanvht.byedpi.services.TestService
 import io.github.romanvht.byedpi.utility.getCmdArgs
 import io.github.romanvht.byedpi.utility.getCmdEnable
 import io.github.romanvht.byedpi.utility.getPreferences
@@ -98,16 +99,37 @@ fun StrategySettings(onChanged: () -> Unit, onMessage: (String) -> Unit) {
     }
     val cleaned = normalizeCommand(args)
 
+    // How each saved strategy did in the last test, so a name comes with a result.
+    val test by TestService.state.collectAsStateWithLifecycle()
+    val gen by CommandGenerator.state.collectAsStateWithLifecycle()
+    val lastResults = remember(test.strategies, gen.result) {
+        buildMap {
+            test.strategies.filter { it.isCompleted }.forEach { r ->
+                put(normalizeCommand(r.command), r.siteResults.count { it.successCount > 0 } to r.siteResults.size)
+            }
+            gen.result?.let { g -> g.command?.let { put(normalizeCommand(it), g.opened to g.blocked) } }
+        }
+    }
+
+    // One tab, two ways to say the same thing: type a command line, or use switches.
     SettingsGroup(stringResource(R.string.pg_strategy_source)) {
-        SwitchRow(
-            stringResource(R.string.pg_strategy_use_cmd),
-            cmdEnabled,
-            {
+        Segmented(
+            items = listOf(true, false),
+            selected = cmdEnabled,
+            onSelect = {
                 cmdEnabled = it
                 onChanged()
             },
-            subtitle = stringResource(if (cmdEnabled) R.string.pg_strategy_cmd_on else R.string.pg_strategy_cmd_off)
+            label = { stringResource(if (it) R.string.pg_strategy_type_it else R.string.pg_strategy_switches) }
         )
+        HelperText(
+            stringResource(if (cmdEnabled) R.string.pg_strategy_cmd_on else R.string.pg_strategy_cmd_off),
+            Modifier.padding(top = 10.dp)
+        )
+    }
+
+    AnimatedVisibility(!cmdEnabled, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
+        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) { EngineSettings(onChanged) }
     }
 
     AnimatedVisibility(cmdEnabled, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
@@ -145,6 +167,7 @@ fun StrategySettings(onChanged: () -> Unit, onMessage: (String) -> Unit) {
                     color = Palette.Sky
                 )
             }
+            CommandExplainer(cleaned, Modifier.padding(top = 12.dp))
             HelperText(
                 stringResource(R.string.pg_strategy_help),
                 Modifier.padding(top = 8.dp)
@@ -185,6 +208,7 @@ fun StrategySettings(onChanged: () -> Unit, onMessage: (String) -> Unit) {
                         HistoryRow(
                             cmd = cmd,
                             isActive = cmd.text == active,
+                            lastResult = lastResults[normalizeCommand(cmd.text)],
                             onApply = { applyNow(cmd.text) },
                             onTogglePin = {
                                 if (cmd.pinned) history.unpinCommand(cmd.text) else history.pinCommand(cmd.text)
@@ -241,6 +265,7 @@ fun StrategySettings(onChanged: () -> Unit, onMessage: (String) -> Unit) {
 private fun HistoryRow(
     cmd: Command,
     isActive: Boolean,
+    lastResult: Pair<Int, Int>?,
     onApply: () -> Unit,
     onTogglePin: () -> Unit,
     onRename: () -> Unit,
@@ -295,6 +320,13 @@ private fun HistoryRow(
                 fontFamily = FontFamily.Monospace, maxLines = 2, overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(top = 2.dp)
             )
+            lastResult?.let { (opened, sites) ->
+                Text(
+                    stringResource(R.string.pg_last_test, opened, sites),
+                    color = scoreColor(percentOf(opened, sites)), fontSize = 12.sp,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+            }
         }
         Box {
             IconButton(onClick = { menu = true }) { Icon(Icons.Filled.MoreVert, stringResource(R.string.pg_more), tint = Palette.TextSecondary) }

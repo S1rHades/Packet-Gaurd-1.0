@@ -64,7 +64,7 @@ Below the steps, the **results dashboard** compares every profile tested: the fa
 
 <img src="docs/screenshots/generator.png" align="right" width="38%" alt="Make one just for me: the result -d1 -r1+s opens 7 of 7 blocked sites, Speed Fast, with a Use this command line button and two other command lines that also worked">
 
-In step 2, choose **Make one just for me** instead of the ready-made profiles, then **Quick** (about 3 minutes) or **Thorough** (about 10). Packet Guard then writes its own command line:
+In step 2, choose **Make one just for me** instead of the ready-made profiles, then **Quick** (about 3 minutes) or **Thorough** (about 10). Packet Guard then writes its own command line, and explains each part of it in plain words:
 
 1. It checks your sites with no bypass at all, and only searches for the ones your provider actually blocks. If none are blocked, it says so.
 2. It tries each basic technique: splitting the first packet, sending parts out of order, out-of-band bytes, a fake packet with a short TTL, and splitting the TLS record, at the positions that usually matter.
@@ -79,12 +79,11 @@ The result fits the network you ran it on. If you switch between Wi-Fi and mobil
 
 <img src="docs/screenshots/settings.png" align="right" width="38%" alt="Settings on the Strategy tab: Use a command-line strategy switched on, and the active ciadpi arguments -o1 -a1 -r-5+se">
 
-Five tabs:
+Four tabs:
 
-- **General**: the connection mode, connecting on open or at start-up, DNS, IPv6, which apps use the bypass, the local proxy's address, and battery and always-on VPN shortcuts.
-- **Strategy**: the command line in use, and every strategy you've saved, to pin, rename, edit, copy or apply.
-- **Engine**: the same options as switches and fields, for anyone who'd rather not type a command line.
-- **Benchmark**: requests per site, timeouts and your own profiles.
+- **General**: the connection mode, connecting on open or at start-up, DNS, IPv6, which apps use the bypass, and battery and always-on VPN shortcuts. **Show advanced settings** at the bottom adds the local proxy's address, engine limits and test timing.
+- **Strategy**: **Type it** (the command line in use, explained line by line in plain words, and every strategy you've saved, with its last test result) or **Use switches** (the same options as switches and fields).
+- **Benchmark**: your own profiles, and with advanced settings on, requests per site and timeouts.
 - **About**: updates, backup and restore, a diagnostic report to paste into a bug report, and credits.
 
 <br clear="right">

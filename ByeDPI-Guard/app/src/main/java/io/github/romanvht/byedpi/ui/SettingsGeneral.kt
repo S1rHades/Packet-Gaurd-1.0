@@ -78,6 +78,7 @@ fun GeneralSettings(bypassActive: Boolean, onChanged: () -> Unit) {
     var ipv6 by rememberBoolPref("ipv6_enable", false)
     var applist by rememberStringPref("applist_type", "disable")
     var dns by rememberStringPref("dns_ip", "1.1.1.1")
+    var showAdvanced by rememberBoolPref(PREF_SHOW_ADVANCED, false)
 
     var showDns by remember { mutableStateOf(false) }
     var showApps by remember { mutableStateOf(false) }
@@ -191,7 +192,7 @@ fun GeneralSettings(bypassActive: Boolean, onChanged: () -> Unit) {
         }
     }
 
-    AnimatedVisibility(!proxyFromCmd, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
+    AnimatedVisibility(showAdvanced && !proxyFromCmd, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
         SettingsGroup(stringResource(R.string.pg_general_proxy_addr)) {
             PrefTextField(
                 stringResource(R.string.pg_ip_address), "byedpi_proxy_ip", "127.0.0.1",
@@ -219,6 +220,14 @@ fun GeneralSettings(bypassActive: Boolean, onChanged: () -> Unit) {
             icon = Icons.Filled.VpnLock,
             onClick = { runCatching { ctx.startActivity(Intent(Settings.ACTION_VPN_SETTINGS)) } },
             trailing = { Chevron() }
+        )
+    }
+
+    // Progressive disclosure: expert options stay out of sight until asked for.
+    SettingsGroup(stringResource(R.string.pg_advanced_settings)) {
+        SwitchRow(
+            stringResource(R.string.pg_show_advanced), showAdvanced, { showAdvanced = it },
+            subtitle = stringResource(R.string.pg_show_advanced_help)
         )
     }
 

@@ -6,6 +6,22 @@ from 2.5.0 on (**Settings → About → Updates**); earlier versions are install
 
 The first lines under each version are what the app shows as "What's new", so keep them short.
 
+## 2.7.0 (November 2026)
+
+- Every command line is explained in plain words, one line per option
+- Strategy and Engine are now one tab: type a command line, or use switches
+- Expert settings stay hidden until you turn on "Show advanced settings"
+- Bigger buttons, a recommended choice in the Benchmark, and shorter charts
+
+The rest, in more detail:
+
+- **Explained command lines.** Under the active strategy, the generator's result and the Benchmark's winner, each option gets a sentence, such as `-d1`: "Splits the first packet at position 1 and sends the first part out of order".
+- **Four Settings tabs instead of five.** Strategy has a **Type it / Use switches** choice; saved strategies show their last test result next to their name.
+- **Show advanced settings** (Settings → General, off at first) reveals the proxy address, engine connection limits and buffers, and the Benchmark's request counts and timeouts.
+- **Benchmark.** Ready-made profiles are marked **Recommended**, and the Start button stays pinned at the bottom of the screen while step 2 is out of view.
+- **Results dashboard.** The chart shows the top 5 profiles (tap **Show all** for up to 12), and link lists start with the 3 weakest.
+- **Bigger touch targets.** Tabs, segment buttons and the update banner's **Later** are at least 48 dp tall.
+
 ## 2.6.0 (November 2026)
 
 - Undo: after you use a profile, one tap puts the old setting back
