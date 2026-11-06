@@ -18,7 +18,7 @@
 <p align="center">
   <img src="docs/screenshots/connect.png" width="30%" alt="The Connect screen: Protected, a blue shield with a tick, and a glass card with status Running, mode System-wide (VPN), profile Made for you, latency 96 ms and success rate 100%">
   &nbsp;
-  <img src="docs/screenshots/benchmark.png" width="30%" alt="Benchmark: Find the best setting, with step 1 showing YouTube, Discord and News switched on as big tiles, and step 3 showing the best profile, TLS record split (SNI), which opens 12 of 12 sites">
+  <img src="docs/screenshots/benchmark.png" width="30%" alt="Benchmark results: Recommended for you, TLS record split (SNI) with a score of 88, opens 9 of 12 sites, fast and worked every time, and a Use this setting button">
   &nbsp;
   <img src="docs/screenshots/generator-hero.png" width="30%" alt="The command line generator: Make one just for me selected with Quick chosen, and the result -d1 -r1+s, which opens 7 of 7 blocked sites at Fast speed, with a Use this command line button">
 </p>
@@ -26,9 +26,9 @@
 ## Highlights
 
 - **One tap to protect.** Tap the shield and every app goes through the bypass, or only the apps you choose.
-- **Finds what works for you.** The Benchmark tries ready-made profiles against the sites you care about and tells you, in plain words, which one opens the most, the fastest.
+- **Finds what works for you.** The Benchmark scores every setting out of 100 on sites opened, success and speed, recommends one, and shows what you'd gain or give up with the fastest or most reliable instead.
 - **Or makes one just for you.** The command line generator builds and tests new settings for your own connection, round by round, and keeps the best.
-- **Easy for anyone.** Big buttons, three numbered steps, and plain sentences like "Opens 11 of 12 sites" and "Speed: Fast".
+- **Easy for anyone.** Big buttons, the answer first, and plain sentences like "Opens 11 of 12 sites" and "22 ms faster".
 - **Updates itself.** A banner appears when a new version is out; one tap downloads it and Android installs it over the old one, keeping your settings.
 - **Nothing in between.** There is no remote server: your traffic goes straight to the sites you visit. No accounts, no ads, no tracking.
 - **In your language.** English, Russian, Turkish, Kazakh and Vietnamese.
@@ -43,20 +43,22 @@ It can also connect by itself when the app opens or when the phone starts (**Set
 
 ### Benchmark: find the best setting
 
-The Benchmark is three steps, top to bottom.
+Switch on the site lists you care about (YouTube, Discord, social networks, news and more; each is a big tile), choose ready-made profiles or **Make one just for me**, and tap **Start test**. A large percentage, "Trying profile 4 of 8" and the minutes left show how far it has got; protection pauses while it runs.
 
-1. **Pick what you want to open.** Each site list (YouTube, Discord, social networks, news and more) is a big tile: tap it to switch it on or off.
-2. **Start the test.** One big button. A large percentage and "Trying profile 4 of 8" show how far it has got; protection pauses while it runs.
-3. **Use the best one.** The winner, with how many sites it opens and how fast, and one big button to use it.
+When it finishes, the answer comes first and the setup folds into one line, "Tested YouTube, Discord · Test again".
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/running.png" alt="Step 2 while testing: a Stop button, 37%, a progress bar and Trying profile 4 of 8"><br><sub><b>While it tests</b>: how far it has got, in big numbers.</sub></td>
-    <td width="50%"><img src="docs/screenshots/dashboard.png" alt="The results dashboard: cards for the fastest profile, sites unlocked, the most reliable profile and working profiles, a bar chart comparing profiles by reach, and how each link list did"><br><sub><b>Results dashboard</b>: every profile and list compared.</sub></td>
+    <td width="50%"><img src="docs/screenshots/benchmark.png" alt="Recommended for you: TLS record split (SNI), score 88, opens 9 of 12 sites, Fast 96 ms, worked every time, with the reason, bars for sites, success and speed, what the command line does, and a Use this setting button"><br><sub><b>Recommended for you</b>: one setting, its score and why.</sub></td>
+    <td width="50%"><img src="docs/screenshots/dashboard.png" alt="Each group has its own best setting, with a Use the best for each group button, and Care about something else: Fastest is Disorder @1, score 83, 1 fewer site and 22 ms faster than the recommended one"><br><sub><b>Choose by goal</b>: what you gain and give up.</sub></td>
   </tr>
 </table>
 
-Below the steps, the **results dashboard** compares every profile tested: the fastest one, how many sites opened, the most reliable one, and a chart of the best eight by latency, reach or success rate. Tap a bar to see that profile and use it. **Link list performance** shows how much of each list opened, its average latency and the profile that suits it best.
+- **A score for every command line**, out of 100: sites opened count for half, how often it worked for 30% and speed for 20%. Bars show the three parts, so the number always makes sense.
+- **Recommended for you**: the best score among the settings nothing else beats, with the reason in one sentence ("it's the only one that opens every site") and one button.
+- **Care about something else?** **Fastest**, **Most reliable** and **For YouTube** (or any list) each show the setting for that goal and what you'd gain or give up compared with the recommended one, such as "22 ms faster" in green and "1 fewer site" in red. If the recommended one is already the best for that goal, it says so.
+- **Use the best for each group**: when two lists each prefer a different setting, one tap builds a command line that uses each where it works best.
+- **By site group** shows how the recommended setting does on each list, and **All results** lists every setting by score.
 
 **Advanced options**, closed at first, holds the rest: which profiles to test (9 basic ones, 60 from the ByeByeDPI community, and your own), editing the site lists, and the best profile for each single site.
 
@@ -139,7 +141,7 @@ ByeDPI-Guard/app/src/main/
         ├── Glass, Theme, Motion, Components   design system
         ├── ConnectScreen, ShieldButton        Connect
         ├── BenchmarkScreen, BenchModel        Benchmark steps and ranking
-        ├── Dashboard, DashboardModel          results dashboard
+        ├── BenchDecision, BenchResults        scores, the recommendation and choices by goal
         ├── CommandSearch, CommandGenerator    the command line generator
         └── Settings*, UpdateUi                Settings tabs and updates
 ```

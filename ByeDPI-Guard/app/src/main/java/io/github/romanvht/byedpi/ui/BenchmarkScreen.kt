@@ -130,10 +130,6 @@ fun BenchmarkScreen(
 
     val sni = vm.sni
     val customName = stringResource(R.string.pg_custom_strategy)
-    val ranked = remember(test.strategies, ui.profiles) {
-        rankStrategies(test.strategies) { ui.nameFor(it, sni, customName) }
-    }
-    val winner = remember(ranked) { winnerOf(ranked) }
     val perDomain = remember(test.strategies, ui.profiles) {
         bestPerDomain(test.strategies) { ui.nameFor(it, sni, customName) }
     }
@@ -141,8 +137,15 @@ fun BenchmarkScreen(
         buildDashboard(test.strategies, ui.lists) { ui.nameFor(it, sni, customName) }
     }
     val anyDone = test.strategies.any { it.isCompleted }
+    val decision = remember(dashboard, ui.lists) { decide(dashboard, ui.lists) }
 
-    // Step 2's button, also pinned to the bottom (in thumb reach) while step 2 is off screen.
+    // Results first: after a test the setup folds into one line ("Tested … · Test again").
+    val hasResults = !running && (if (generate) gen.result != null || gen.failed else anyDone)
+    var setupOpen by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(running) { if (running) setupOpen = false }
+    val showSetup = running || !hasResults || setupOpen
+
+    // The start button, also pinned to the bottom (in thumb reach) while step 2 is off screen.
     val MainAction: @Composable (Modifier) -> Unit = { m ->
         PrimaryButton(
             text = when {
@@ -163,10 +166,10 @@ fun BenchmarkScreen(
     val pinAction by remember {
         derivedStateOf {
             val info = listState.layoutInfo
-            val step2 = info.visibleItemsInfo.firstOrNull { it.key == "step2" }
-            val step2Shown = step2 != null && step2.offset + step2.size <= info.viewportEndOffset
-            val step3Shown = info.visibleItemsInfo.any { it.key == "step3" }
-            info.totalItemsCount > 0 && !step2Shown && !step3Shown
+            val setup = info.visibleItemsInfo.firstOrNull { it.key == "setup" }
+            val setupShown = setup != null && setup.offset + setup.size <= info.viewportEndOffset
+            val resultsShown = info.visibleItemsInfo.any { it.key == "results" || it.key == "summary" }
+            info.totalItemsCount > 0 && !setupShown && !resultsShown && (setup != null || info.visibleItemsInfo.none { it.key == "summary" })
         }
     }
 
@@ -185,96 +188,137 @@ fun BenchmarkScreen(
             )
         }
 
-        // Step 1 — what to open
-        item(key = "step1") {
-            StepCard(1, stringResource(R.string.pg_step1_title), Modifier.animateItem().staggeredEnter(1)) {
-                if (ui.lists.isEmpty()) {
-                    BigHint(stringResource(R.string.pg_step1_empty))
-                } else {
-                    ListTiles(ui.lists, enabled = !running, onToggle = vm::toggleList)
-                    BigHint(stringResource(R.string.pg_step1_hint), Modifier.padding(top = 12.dp))
-                }
-            }
-        }
-
-        // Step 2 — run
-        item(key = "step2") {
-            StepCard(2, stringResource(R.string.pg_step2_title), Modifier.animateItem().staggeredEnter(2)) {
-                ModeChoice(mode, plan, enabled = !running, onMode = vm::selectMode, onPlan = vm::selectPlan)
-                Spacer(Modifier.height(14.dp))
-                AnimatedVisibility(
-                    visible = bypassActive && !running,
-                    enter = expandVertically() + fadeIn(),
-                    exit = shrinkVertically() + fadeOut()
-                ) {
-                    InfoBanner(
-                        stringResource(R.string.pg_step2_pause),
-                        Icons.Filled.Info,
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    )
-                }
-                MainAction(Modifier.fillMaxWidth())
-                if (generate) {
+        // The setup: what to open and how to test. Folds into one line once there's an answer.
+        if (showSetup) {
+            item(key = "setup") {
+                AppCard(Modifier.animateItem().staggeredEnter(1), contentPadding = PaddingValues(20.dp)) {
+                    if (ui.lists.isEmpty()) {
+                        BigHint(stringResource(R.string.pg_step1_empty))
+                    } else {
+                        ListTiles(ui.lists, enabled = !running, onToggle = vm::toggleList)
+                        BigHint(stringResource(R.string.pg_step1_hint), Modifier.padding(top = 12.dp))
+                    }
+                    Spacer(Modifier.height(18.dp))
+                    ModeChoice(mode, plan, enabled = !running, onMode = vm::selectMode, onPlan = vm::selectPlan)
+                    Spacer(Modifier.height(14.dp))
                     AnimatedVisibility(
-                        visible = gen.running || gen.result != null || gen.failed,
-                        enter = expandVertically() + fadeIn(),
-                        exit = shrinkVertically() + fadeOut()
-                    ) { GenProgress(gen, plan) }
-                } else {
-                    AnimatedVisibility(
-                        visible = running || test.strategies.isNotEmpty(),
+                        visible = bypassActive && !running,
                         enter = expandVertically() + fadeIn(),
                         exit = shrinkVertically() + fadeOut()
                     ) {
-                        BigProgress(test, ui, sni, customName)
+                        InfoBanner(
+                            stringResource(R.string.pg_step2_pause),
+                            Icons.Filled.Info,
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        )
+                    }
+                    MainAction(Modifier.fillMaxWidth())
+                    if (generate) {
+                        AnimatedVisibility(
+                            visible = gen.running || gen.failed,
+                            enter = expandVertically() + fadeIn(),
+                            exit = shrinkVertically() + fadeOut()
+                        ) { GenProgress(gen, plan) }
+                    } else {
+                        AnimatedVisibility(
+                            visible = running,
+                            enter = expandVertically() + fadeIn(),
+                            exit = shrinkVertically() + fadeOut()
+                        ) {
+                            BigProgress(test, ui, sni, customName)
+                        }
+                    }
+                    if (!running && !hasResults) {
+                        BigHint(stringResource(R.string.pg_step2_keep_open), Modifier.padding(top = 12.dp))
+                    }
+                    if (hasResults && setupOpen) {
+                        TextButton(onClick = { setupOpen = false }, modifier = Modifier.align(Alignment.End).heightIn(min = 48.dp)) {
+                            Text(stringResource(R.string.pg_setup_close))
+                        }
                     }
                 }
-                if (!running && (if (generate) gen.result == null && !gen.failed else test.strategies.isEmpty())) {
-                    BigHint(stringResource(R.string.pg_step2_keep_open), Modifier.padding(top = 12.dp))
-                }
+            }
+        } else {
+            item(key = "summary") {
+                val tested = ui.lists.filter { it.active }.joinToString(", ") { it.name }
+                TestedSummary(
+                    stringResource(R.string.pg_tested_summary, tested.ifEmpty { "—" }),
+                    onTestAgain = { setupOpen = true },
+                    modifier = Modifier.animateItem().staggeredEnter(1)
+                )
             }
         }
 
-        // Step 3 — the answer
-        item(key = "step3") {
-            StepCard(
-                3, stringResource(R.string.pg_step3_title), Modifier.animateItem().staggeredEnter(3),
-                highlight = !running && if (generate) gen.result?.command != null else winner != null
-            ) {
-                if (generate) {
-                    GenResultPanel(
-                        gen = gen,
-                        applied = ui.applied,
-                        onApply = { command -> vm.apply(command, ctx.getString(R.string.pg_gen_made)) },
-                        onSearchLonger = {
-                            vm.selectPlan(SearchPlan.Thorough)
+        // The answer, first thing after a test.
+        if (generate) {
+            if (gen.result != null || (!gen.running && gen.failed)) {
+                item(key = "results") {
+                    AppCard(
+                        Modifier.animateItem().staggeredEnter(2),
+                        borderColor = if (gen.result?.command != null && !gen.running) Palette.Glow else Palette.Border,
+                        contentPadding = PaddingValues(20.dp)
+                    ) {
+                        GenResultPanel(
+                            gen = gen,
+                            applied = ui.applied,
+                            onApply = { command -> vm.apply(command, ctx.getString(R.string.pg_gen_made)) },
+                            onSearchLonger = {
+                                vm.selectPlan(SearchPlan.Thorough)
+                                vm.start()
+                            }
+                        )
+                    }
+                }
+            }
+        } else if (decision.recommended != null) {
+            item(key = "results") {
+                RecommendedCard(
+                    decision, running = running, applied = ui.applied,
+                    onApply = { c -> vm.apply(c.command, ctx.getString(R.string.pg_bench_winner_label, c.name)) },
+                    modifier = Modifier.animateItem().staggeredEnter(2)
+                )
+            }
+            if (!running) {
+                decision.combined?.let { comb ->
+                    item(key = "combined") {
+                        CombinedCard(
+                            comb, applied = ui.applied,
+                            onApply = { vm.apply(it.command, ctx.getString(R.string.pg_comb_label)) },
+                            modifier = Modifier.animateItem()
+                        )
+                    }
+                }
+                item(key = "goals") {
+                    GoalPicker(
+                        decision, applied = ui.applied,
+                        onApply = { c -> vm.apply(c.command, ctx.getString(R.string.pg_bench_result_label, c.name)) },
+                        modifier = Modifier.animateItem()
+                    )
+                }
+                item(key = "groups") { GroupsCard(decision.groups, Modifier.animateItem()) }
+                item(key = "all") {
+                    AllResultsCard(
+                        decision, applied = ui.applied, canApply = !running,
+                        onApply = { c -> vm.apply(c.command, ctx.getString(R.string.pg_bench_result_label, c.name)) },
+                        modifier = Modifier.animateItem()
+                    )
+                }
+            }
+        } else if (anyDone && !running) {
+            item(key = "results") {
+                AppCard(Modifier.animateItem().staggeredEnter(2), contentPadding = PaddingValues(20.dp)) {
+                    ResultPanel(
+                        winner = null,
+                        finished = true,
+                        running = false,
+                        applied = false,
+                        onApply = {},
+                        onTryGenerator = {
+                            vm.suggestGenerator()
                             vm.start()
                         }
                     )
-                } else ResultPanel(
-                    winner = winner,
-                    finished = anyDone && !running,
-                    running = running,
-                    applied = winner != null && ui.applied == winner.result.command,
-                    onApply = { w -> vm.apply(w.result.command, ctx.getString(R.string.pg_bench_winner_label, w.name)) },
-                    onTryGenerator = {
-                        vm.suggestGenerator()
-                        vm.start()
-                    }
-                )
-            }
-        }
-
-        // Details for anyone who wants them
-        if (!generate && !dashboard.isEmpty) {
-            item(key = "dashboard") {
-                ResultsDashboard(
-                    dash = dashboard,
-                    appliedCommand = ui.applied,
-                    canApply = !running,
-                    onApply = { p -> vm.apply(p.command, ctx.getString(R.string.pg_bench_result_label, p.name)) },
-                    modifier = Modifier.animateItem()
-                )
+                }
             }
         }
 
@@ -364,28 +408,6 @@ fun BenchmarkScreen(
 }
 
 // ---- building blocks --------------------------------------------------------------------------
-
-/** A numbered step: a big number badge, a plain title, and its content. */
-@Composable
-private fun StepCard(
-    number: Int,
-    title: String,
-    modifier: Modifier = Modifier,
-    highlight: Boolean = false,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    AppCard(modifier, borderColor = if (highlight) Palette.Glow else Palette.Border, contentPadding = PaddingValues(20.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 16.dp)) {
-            Box(
-                Modifier.size(40.dp).clip(CircleShape).background(Glass.Accent).border(1.dp, Color.White.copy(alpha = 0.3f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) { Text("$number", fontSize = 20.sp, fontWeight = FontWeight.Bold) }
-            Spacer(Modifier.width(14.dp))
-            Text(title, fontSize = 20.sp, fontWeight = FontWeight.Bold, lineHeight = 25.sp)
-        }
-        content()
-    }
-}
 
 /** Larger helper text for the simple steps. */
 @Composable
@@ -1066,6 +1088,11 @@ private fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) ->
                         modifier = Modifier.fillMaxWidth().padding(top = 14.dp).glassInset().padding(horizontal = 14.dp, vertical = 12.dp)
                     )
                     HowItWasMade(r, Modifier.padding(top = 10.dp))
+                    Row(Modifier.padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        ScoreRing(r.score.overall, size = 64.dp)
+                        Spacer(Modifier.width(14.dp))
+                        ScoreParts(r.score, Modifier.weight(1f))
+                    }
                     CommandExplainer(command, Modifier.padding(top = 10.dp), max = 4)
                     Fact(
                         Icons.Filled.CheckCircle,
@@ -1106,6 +1133,8 @@ private fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) ->
                                 Modifier.fillMaxWidth().padding(vertical = 4.dp).glassInset().padding(start = 12.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
+                                ScoreRing(alt.score.overall, size = 36.dp)
+                                Spacer(Modifier.width(10.dp))
                                 Column(Modifier.weight(1f).padding(vertical = 8.dp)) {
                                     Text(alt.command, fontFamily = FontFamily.Monospace, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                                     Text(
