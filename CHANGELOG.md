@@ -6,6 +6,20 @@ from 2.5.0 on (**Settings → About → Updates**); earlier versions are install
 
 The first lines under each version are what the app shows as "What's new", so keep them short.
 
+## 3.1.0 (November 2026)
+
+- "Make one just for me" now learns from every line already tested on your phone
+- The best earlier lines, community ones included, are tested again and built on
+- New lines combine the two or three lines that open the most sites between them
+- The result says whether it beat the best line you'd tested before, and by how much
+
+The rest, in more detail:
+
+- **Memory of tested lines.** Every finished Benchmark and search adds each command line's results, site by site, to a memory on the phone (up to 300 lines, recent results weighted more). It's never sent anywhere, isn't included in exported settings, and **Reset settings** clears it.
+- **Starting from it.** A search reads any line it knows (even long community lines with several groups) into the ingredients it builds with, credits those ingredients for the sites they opened, and tests the three best earlier lines for your blocked sites in round 1, as written. Older results lose half their weight every two weeks.
+- **Cover.** Each round also joins the two or three lines that between them open the most blocked sites into one line, with a fallback group where needed, instead of merging two at a time over several rounds.
+- In the simulated network used by the tests, a Quick search with earlier results to learn from opened every blocked site in 20 of 20 runs, against 9 of 20 starting from nothing.
+
 ## 3.0.1 (November 2026)
 
 - Fixes that could lose your own site lists or crash the app after importing settings

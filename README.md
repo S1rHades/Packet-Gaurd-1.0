@@ -69,16 +69,17 @@ When it finishes, the answer comes first and the setup folds into one line, "Tes
 In step 2, choose **Make one just for me** instead of the ready-made profiles, then **Quick** (about 3 minutes) or **Thorough** (about 10). Packet Guard then writes its own command line, and explains each part of it in plain words:
 
 1. **Which sites are blocked?** It checks your sites with no bypass at all, and only searches for the ones your provider actually blocks. If none are blocked, it says so.
-2. **Probes.** It sends one of each basic technique (splitting the first packet, sending parts out of order, out-of-band bytes, a fake packet, splitting the TLS record). These are experiments, not answers: they show which techniques get which of your sites through.
-3. **Learning.** Every result is recorded site by site, and each ingredient of a command line (the technique, where it splits, the fake's TTL, the TLS record split) gets credit for the sites it opened.
-4. **Building new lines.** Each round it writes new command lines from what it learned:
+2. **What this phone already knows.** Every command line tested here before (in any Benchmark, including the 60 community lines, and in earlier searches) is remembered site by site. The search starts from that: those results already count towards what works, and the three best earlier lines for your blocked sites are tested again in the first round, exactly as written. Newer results count more; a result loses half its weight every two weeks.
+3. **Probes.** Alongside them it sends one of each basic technique (splitting the first packet, sending parts out of order, out-of-band bytes, a fake packet, splitting the TLS record). These are experiments, not answers: they show which techniques get which of your sites through.
+4. **Learning.** Every result is recorded site by site, and each ingredient of a command line (the technique, where it splits, the fake's TTL, the TLS record split) gets credit for the sites it opened.
+5. **Building new lines.** Each round it writes new command lines from what it learned:
    - **targeted**: adds to the best line the ingredient most likely to open the sites it still misses, including ideas not tried yet, like a TTL range no probe used;
-   - **combined**: merges two lines that open different sites into one;
+   - **combined**: merges two lines that open different sites into one, or the two or three lines that between them open the most sites, so lines that each get a different site through (for example two community lines) become one;
    - **fallback**: gives the best line a second setting that ciadpi switches to when a site looks blocked (`-At,s`);
    - **tuned and explored**: new positions, techniques and TTLs, chosen by what worked, plus one line drawn from the learning alone.
-5. **Re-test.** The top three are tested again so a lucky moment can't win.
+6. **Re-test.** The top three are tested again so a lucky moment can't win.
 
-The result says whether it is a **new** line and how it was made ("Combines two lines that opened different sites: -d1+s + -f-1 -t4"). If a basic probe still turns out best, it says that too, with how many new lines it tried.
+The result says whether it is a **new** line and how it was made ("Combines two lines that opened different sites: -d1+s + -f-1 -t4"). If a basic probe or a line you'd tested before still turns out best, it says that too, with how many new lines it tried. When it builds a better line it shows both scores ("Scores 92. The best line tested before on your phone scored 61 on these sites"), and it says how many earlier lines it learned from. Since the best earlier lines are tested again in the same search, its answer can't score lower than them on your blocked sites. The memory stays on the phone and is cleared by **Reset settings**.
 
 The result fits the network you ran it on. If you switch between Wi-Fi and mobile data, or sites stop opening, run it again.
 

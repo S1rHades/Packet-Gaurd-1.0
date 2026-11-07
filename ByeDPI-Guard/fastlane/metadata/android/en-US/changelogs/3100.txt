@@ -1,0 +1,4 @@
+- "Make one just for me" now learns from every line already tested on your phone, community lines included
+- The best earlier lines are tested again and built on, so the result can't score below them
+- New lines combine the two or three lines that open the most sites between them
+- The result shows whether it beat your best earlier line

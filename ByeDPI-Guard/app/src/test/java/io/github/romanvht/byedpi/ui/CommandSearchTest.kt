@@ -268,7 +268,134 @@ class CommandSearchTest {
 
     @Test
     fun planBudgets() {
-        assertEquals(SEEDS.size + 2 * 8 + 3, SearchPlan.Quick.budget)
-        assertEquals(SEEDS.size + 4 * 10 + 3, SearchPlan.Thorough.budget)
+        assertEquals(KNOWN_MAX + SEEDS.size + 2 * 8 + 3, SearchPlan.Quick.budget)
+        assertEquals(KNOWN_MAX + SEEDS.size + 4 * 10 + 3, SearchPlan.Thorough.budget)
+    }
+
+    // ---- learning from lines tested before ---------------------------------------------------
+
+    private val community = listOf(
+        "-f-200 -Qr -s3:5+sm -a1 -As -d1 -s4+sm -s8+s -f-300 -d6+s -a1 -At,r,s -o2 -f-30 -As -r5 -Mh -r6+s",
+        "-n {sni} -Qr -f-204 -s1:5+sm -a1 -As -d1 -s3+s -s5+s -q7 -a1",
+        "-o1 -d1 -a1 -At,r,s -s1 -d1 -s5+s -s10+s -s15+s -s20+s -r1+s -S -a1",
+        "--split 2 --disorder=3+s --tlsrec 1+s --ttl 6 --fake -1"
+    )
+
+    @Test
+    fun anyTestedLineIsReadIntoARecipeThatKeepsTheLineAsWritten() {
+        community.forEach { c ->
+            val r = parseRecipe(c)!!
+            assertEquals(c, r.command)
+            assertEquals(Origin.Known, r.origin)
+            assertTrue(r.steps.size in 1..3)
+            // Lines built from it are new, valid, and no longer the community line.
+            val rnd = Random(c.hashCode())
+            repeat(30) {
+                val m = mutate(r, rnd)
+                assertNull(m.raw)
+                assertValid(m.command)
+            }
+            assertValid(combine(r, SEEDS[0]).command)
+            assertValid(withFallback(r, SEEDS[7]).command)
+        }
+        val long = parseRecipe(community[3])!!
+        assertEquals(setOf(Method.Split, Method.Disorder, Method.Fake), long.steps.map { it.method }.toSet())
+        assertEquals(6, long.ttl)
+        assertEquals(Pos(1, "s"), long.tlsrec)
+        assertEquals(Pos(0, "sm"), readPos("3:5+sm"))
+        assertEquals(Pos(-1, "se"), readPos("1+se"))
+        assertNull(parseRecipe("-a1 -Mh"))
+        assertNull(parseRecipe(BASELINE_COMMAND))
+    }
+
+    private fun memoryOf(vararg lines: String, now: Long = 0L): List<io.github.romanvht.byedpi.data.LineRecord> = lines.map { c ->
+        val opened = provider(c)
+        io.github.romanvht.byedpi.data.LineRecord(
+            command = c,
+            sites = listOf("a.com", "b.com", "c.com").associateWith { s -> intArrayOf(if (s in opened) 2 else 0, 2) }.toMutableMap(),
+            latencySum = 240, latencyCount = 2, updatedAt = now
+        )
+    }
+
+    @Test
+    fun theBestKnownLinesJoinRoundOneAndTheirResultsTeach() {
+        val search = CommandSearch(SearchPlan.Quick, Random(1))
+        val memory = memoryOf("-d3+s -a1", "-f-1 -t4 -Qr -a1", "-o1 -a1", "-s1")
+        search.prime(memory, listOf("a.com", "b.com", "c.com"), now = 0)
+        assertEquals(4, search.learnedFrom)
+        // "-o1 -a1" opened nothing and "-s1" is a probe anyway: neither is a known candidate.
+        assertEquals(listOf("-d3+s -a1", "-f-1 -t4 -Qr -a1"), search.knownLines.map { it.command }.sorted().reversed().sortedBy { it.length })
+        assertEquals(search.knownLines.map { it.command } + SEEDS.map { it.command }, search.firstRound().map { it.command })
+        // The learning already knows disorders near the SNI open a.com.
+        assertTrue(search.learning.chance("mp:Disorder@s", "a.com") > 0.7)
+        assertTrue(search.learning.chance("m:Oob", "a.com") < 0.4)
+        // Only this search's sites are targets.
+        assertTrue(search.learning.sites.isEmpty())
+    }
+
+    @Test
+    fun olderResultsCountLess() {
+        val day = 86_400_000L
+        val fresh = CommandSearch(SearchPlan.Quick, Random(1)).apply { prime(memoryOf("-d3+s", now = 60 * day), listOf("a.com"), now = 60 * day) }
+        val old = CommandSearch(SearchPlan.Quick, Random(1)).apply { prime(memoryOf("-d3+s", now = 0), listOf("a.com"), now = 60 * day) }
+        assertTrue(fresh.learning.chance("m:Disorder", "a.com") > old.learning.chance("m:Disorder", "a.com"))
+    }
+
+    @Test
+    fun memoryKeepsRecentLinesAndRecentResults() {
+        val r1 = result("-d1", 2)
+        val merged = io.github.romanvht.byedpi.utility.LineMemoryStore.merge(emptyList(), listOf(r1, result(BASELINE_COMMAND, 1), result("-s1", 1, completed = false)), now = 5)
+        assertEquals(listOf("-d1"), merged.map { it.command })
+        assertEquals(listOf(1, 1), merged[0].sites.getValue("s0.com").toList())
+        var m = merged
+        repeat(20) { m = io.github.romanvht.byedpi.utility.LineMemoryStore.merge(m, listOf(result("-d1", 0)), now = 6) }
+        val c = m[0].sites.getValue("s0.com")
+        assertTrue(c[1] <= io.github.romanvht.byedpi.utility.LineMemoryStore.MAX_TRIES)
+        assertTrue("recent failures dominate: ${c.toList()}", c[0] * 4 < c[1])
+    }
+
+    /** Like [searchOnce], but starting from what earlier tests on this phone showed. */
+    private fun searchWithMemory(plan: SearchPlan, seed: Int, memory: List<io.github.romanvht.byedpi.data.LineRecord>): Scored {
+        val search = CommandSearch(plan, Random(seed))
+        search.prime(memory, listOf("a.com", "b.com", "c.com"), now = 0)
+        var batch = search.firstRound()
+        for (round in 1..plan.rounds) {
+            run(search, batch)
+            batch = search.nextRound()
+        }
+        run(search, search.verificationRound())
+        return search.best()!!
+    }
+
+    @Test
+    fun startingFromEarlierTestsFindsBetterLinesThanTheKnownOnes() {
+        // Earlier Benchmark: community-style lines that each open some sites, none all three.
+        val memory = memoryOf(
+            "-d3+s -s5+s -a1 -As -o2",
+            "-f-1 -t3 -Qr -s1:5+sm -a1",
+            "-r0+sm -o1 -a1",
+            "-s2 -d4 -a1",
+            "-o1 -q2 -a1"
+        )
+        val knownBest = memory.maxOf { provider(it.command).size }
+        assertTrue(knownBest < 3)
+        val primed = (1..20).count { seed ->
+            val best = searchWithMemory(SearchPlan.Quick, seed, memory)
+            assertTrue(best.opened >= knownBest) // never worse than what was known
+            best.opened == 3
+        }
+        val cold = (1..20).count { seed -> searchOnce(SearchPlan.Quick, seed).opened == 3 }
+        println("quick: solved $primed of 20 with memory, $cold of 20 without")
+        assertTrue("with memory $primed vs without $cold", primed >= cold && primed >= 14)
+    }
+
+    @Test
+    fun aKnownLineThatAlreadyOpensEverythingIsNeverLost() {
+        val full = "-d2+s -f-1 -t4 -r0+sm -a1 -As -o1"
+        assertEquals(3, provider(full).size)
+        (1..5).forEach { seed ->
+            val best = searchWithMemory(SearchPlan.Quick, seed, memoryOf(full, "-o1 -a1"))
+            assertEquals(3, best.opened)
+        }
     }
 }

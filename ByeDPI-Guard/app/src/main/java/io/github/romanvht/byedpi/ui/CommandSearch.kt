@@ -1,6 +1,9 @@
 package io.github.romanvht.byedpi.ui
 
+import io.github.romanvht.byedpi.data.LineRecord
 import io.github.romanvht.byedpi.data.StrategyResult
+import io.github.romanvht.byedpi.utility.shellSplit
+import kotlin.math.pow
 import kotlin.math.sqrt
 import kotlin.random.Random
 
@@ -23,6 +26,12 @@ import kotlin.random.Random
  *       the first one missed;
  *     - *exploring*: one line drawn entirely from what was learned, to avoid getting stuck.
  *  4. The top few are re-tested so a lucky moment can't win.
+ *
+ * It also starts from what this phone already knows ([CommandSearch.prime]): every line tested
+ * before, in a Benchmark (ready-made and community lines) or an earlier search, credits its
+ * features for the sites it opened, and the best of them join round 1 as **known** lines. So
+ * the search begins where earlier tests left off, builds on the best known lines, and can't
+ * end up with a line that scores worse than them on your blocked sites.
  *
  * Every option used exists in the bundled ByeDPI engine, so every command line is valid.
  */
@@ -68,7 +77,7 @@ data class Step(val method: Method, val pos: Pos) {
 enum class FakeMod(val flag: String) { Rand("-Qr"), Orig("-Qo") }
 
 /** How a candidate came about, for the result's "how it was made" line. */
-enum class Origin { Probe, Tuned, Combined, Fallback, Explored }
+enum class Origin { Probe, Known, Tuned, Combined, Fallback, Explored }
 
 /** One candidate command line, as structure rather than text. */
 data class Recipe(
@@ -82,7 +91,13 @@ data class Recipe(
     val fallback: Recipe? = null,
     val origin: Origin = Origin.Probe,
     /** The command lines this one was built from. */
-    val parents: List<String> = emptyList()
+    val parents: List<String> = emptyList(),
+    /**
+     * A line tested before (e.g. a community one), tested exactly as written. The fields above
+     * are a simplified reading of it, used for learning and for building new lines from it;
+     * anything built from it drops [raw] (see [tidy]).
+     */
+    val raw: String? = null
 ) {
     /** The older one-technique form, kept for the probes. */
     constructor(method: Method, pos: Pos, ttl: Int? = null, second: Pair<Method, Pos>? = null, tlsrec: Pos? = null) :
@@ -91,7 +106,7 @@ data class Recipe(
     val hasFake: Boolean get() = steps.any { it.method == Method.Fake }
 
     val command: String
-        get() = buildList {
+        get() = raw ?: buildList {
             body(this)
             fallback?.let { fb ->
                 add("-At,s")
@@ -125,6 +140,7 @@ data class Recipe(
         }.take(3).ifEmpty { listOf(Step(Method.Split, Pos(1))) }
         val fake = s.any { it.method == Method.Fake }
         return copy(
+            raw = null,
             steps = s,
             ttl = if (fake) (ttl ?: 8).coerceIn(1, 32) else null,
             fakeMod = if (fake) fakeMod else null,
@@ -202,8 +218,11 @@ enum class SearchPlan(val rounds: Int, val perRound: Int, val verify: Int) {
     Thorough(rounds = 5, perRound = 10, verify = 3);
 
     /** Candidates the plan tests at most, including the re-test round. */
-    val budget: Int get() = SEEDS.size + (rounds - 1) * perRound + verify
+    val budget: Int get() = KNOWN_MAX + SEEDS.size + (rounds - 1) * perRound + verify
 }
+
+/** Lines tested before that join round 1 at most. */
+const val KNOWN_MAX = 3
 
 /** The no-bypass check: ciadpi with only a comment desyncs nothing. */
 const val BASELINE_COMMAND = "--comment=baseline"
@@ -323,19 +342,29 @@ fun withFallback(primary: Recipe, helper: Recipe): Recipe =
  * how often command lines with that feature opened it.
  */
 class Learning {
-    private val stats = HashMap<String, HashMap<String, IntArray>>() // feature -> site -> [opened, tried]
+    private val stats = HashMap<String, HashMap<String, DoubleArray>>() // feature -> site -> [opened, tried]
     val sites = LinkedHashSet<String>()
 
     fun learn(recipe: Recipe, trial: Trial) {
         if (trial.testedSites.isEmpty()) return
         sites += trial.testedSites
+        for (site in trial.testedSites) add(recipe, site, if (site in trial.openedSites) 1.0 else 0.0, 1.0)
+    }
+
+    /**
+     * Earlier evidence about [site]: [opened] of [tried] tries, counted at [weight] each.
+     * Doesn't add [site] to [sites]: only sites tested in this search are targets.
+     */
+    fun learnPrior(recipe: Recipe, site: String, opened: Double, tried: Double, weight: Double) {
+        if (tried <= 0 || weight <= 0) return
+        add(recipe, site, opened * weight, tried * weight)
+    }
+
+    private fun add(recipe: Recipe, site: String, opened: Double, tried: Double) {
         for (f in recipe.features) {
-            val bySite = stats.getOrPut(f) { HashMap() }
-            for (site in trial.testedSites) {
-                val c = bySite.getOrPut(site) { IntArray(2) }
-                if (site in trial.openedSites) c[0]++
-                c[1]++
-            }
+            val c = stats.getOrPut(f) { HashMap() }.getOrPut(site) { DoubleArray(2) }
+            c[0] += opened
+            c[1] += tried
         }
     }
 
@@ -345,7 +374,7 @@ class Learning {
         return (c[0] + 1.0) / (c[1] + 2.0)
     }
 
-    private fun tries(feature: String): Int = stats[feature]?.values?.sumOf { it[1] } ?: 0
+    private fun tries(feature: String): Double = stats[feature]?.values?.sumOf { it[1] } ?: 0.0
 
     /**
      * How promising [feature] is for [targets] (by default every site), plus a bonus for
@@ -367,8 +396,47 @@ class CommandSearch(val plan: SearchPlan, private val rnd: Random = Random.Defau
     private val recipes = LinkedHashMap<String, Recipe>()
     private val trials = HashMap<String, MutableList<Trial>>()
     val learning = Learning()
+    private var known: List<Recipe> = emptyList()
 
     val tested: Int get() = trials.size
+
+    /** Lines tested before whose results [prime] used. */
+    var learnedFrom: Int = 0
+        private set
+
+    /** The known lines round 1 tests again (up to [KNOWN_MAX]). */
+    val knownLines: List<Recipe> get() = known
+
+    /**
+     * Starts from what this phone already knows: every remembered line's results on the [blocked]
+     * sites teach the learning (older ones count less, halving every [halfLifeDays]), and the
+     * best-looking ones are tested again in round 1, exactly as written.
+     */
+    fun prime(memory: List<LineRecord>, blocked: Collection<String>, now: Long, halfLifeDays: Double = 14.0) {
+        val targets = blocked.toSet()
+        if (targets.isEmpty()) return
+        val candidates = mutableListOf<Pair<Recipe, Double>>()
+        for (rec in memory) {
+            val parsed = parseRecipe(rec.command) ?: continue
+            val seen = rec.sites.filterKeys { it in targets }.filterValues { it.size >= 2 && it[1] > 0 }
+            if (seen.isEmpty()) continue
+            learnedFrom++
+            val ageDays = ((now - rec.updatedAt).coerceAtLeast(0)) / 86_400_000.0
+            // At most about three tries' worth per site, so this search's own tests soon count more.
+            val weight = 0.5.pow(ageDays / halfLifeDays)
+            seen.forEach { (site, c) ->
+                val n = minOf(c[1].toDouble(), 3.0)
+                learning.learnPrior(parsed, site, c[0].toDouble() / c[1] * n, n, weight)
+            }
+            if (rec.command in SEED_COMMANDS) continue
+            // How it would score on these sites, counting sites it never saw as not opened.
+            val opened = seen.count { it.value[0] > 0 }
+            if (opened == 0) continue
+            val rate = seen.values.sumOf { it[0] } * 100 / seen.values.sumOf { it[1] }.coerceAtLeast(1)
+            candidates += parsed to scoreOf(opened, targets.size, rate, rec.avgLatencyMs, parsed.parts) * weight
+        }
+        known = candidates.sortedByDescending { it.second }.take(KNOWN_MAX).map { it.first }
+    }
 
     fun record(recipe: Recipe, trial: Trial) {
         if (recipe.command !in recipes) recipes[recipe.command] = recipe
@@ -398,7 +466,7 @@ class CommandSearch(val plan: SearchPlan, private val rnd: Random = Random.Defau
     /** Opens every tested site quickly: no need to keep searching. */
     fun solved(): Boolean = best()?.let { it.opened >= it.sites && it.sites > 0 && (it.latencyMs ?: Long.MAX_VALUE) < 200 } ?: false
 
-    fun firstRound(): List<Recipe> = SEEDS.filter { it.command !in trials }
+    fun firstRound(): List<Recipe> = (known + SEEDS).distinctBy { it.command }.filter { it.command !in trials }
 
     /**
      * New command lines built from what the test has shown: fallbacks for the sites the best
@@ -427,6 +495,31 @@ class CommandSearch(val plan: SearchPlan, private val rnd: Random = Random.Defau
                 .sortedByDescending { it.second }
                 .take(2)
                 .forEach { (helper, _) -> offer(withFallback(best.recipe.copy(fallback = null), helper.recipe.copy(fallback = null))) }
+        }
+
+        // 1b. Cover: the two or three lines that together open the most sites (each picked for
+        //     what the previous ones miss), joined into one line at once rather than pair by
+        //     pair over several rounds. Matters most when earlier tests left lines that each
+        //     open a different part of the sites.
+        val cover = mutableListOf<Scored>()
+        var covered = emptySet<String>()
+        while (cover.size < 3) {
+            val next = working.filter { it !in cover }.maxByOrNull { (it.openedSites - covered).size * 1000 + it.score } ?: break
+            if ((next.openedSites - covered).isEmpty()) break
+            cover += next
+            covered = covered + next.openedSites
+        }
+        if (cover.size >= 2 && covered.size > (best?.openedSites?.size ?: 0)) {
+            val (a, b) = cover[0].recipe.copy(fallback = null) to cover[1].recipe.copy(fallback = null)
+            val c = cover.getOrNull(2)?.recipe?.copy(fallback = null)
+            if (c == null) {
+                offer(combine(a, b))
+                offer(withFallback(a, b))
+            } else {
+                offer(withFallback(combine(a, b), c).copy(origin = Origin.Combined, parents = listOf(a.command, b.command, c.command)))
+                offer(withFallback(a, combine(b, c)).copy(origin = Origin.Combined, parents = listOf(a.command, b.command, c.command)))
+                offer(combine(combine(a, c), b))
+            }
         }
 
         // 2. Combinations of lines that open different sites.
@@ -520,4 +613,73 @@ fun neighbours(r: Recipe, count: Int = 12, rnd: Random = Random(r.command.hashCo
         if (m.command != r.command && m.command !in out) out[m.command] = m
     }
     return out.values.toList()
+}
+
+private val POS_TEXT = Regex("""^(-?\d+)(?::\d+(?::\d+)?)?(?:\+([a-z]+))?$""")
+
+/** A ciadpi position such as `1`, `-1`, `3+s`, `2:5+sm` or `1+h`, simplified to a [Pos]. */
+internal fun readPos(text: String): Pos? {
+    val m = POS_TEXT.matchEntire(text) ?: return null
+    val off = m.groupValues[1].toIntOrNull() ?: return null
+    val f = m.groupValues[2]
+    return when {
+        f.startsWith("s") && 'm' in f -> Pos(0, "sm")
+        f.startsWith("s") && 'e' in f -> Pos(if (off >= 0) -1 else off, "se")
+        f.startsWith("s") -> Pos(off, "s")
+        f.startsWith("h") -> Pos(off, "h")
+        else -> Pos(off)
+    }
+}
+
+private val SHORT_STEPS = mapOf("-s" to Method.Split, "-d" to Method.Disorder, "-o" to Method.Oob, "-q" to Method.Disoob, "-f" to Method.Fake)
+private val LONG_STEPS = mapOf("--split" to Method.Split, "--disorder" to Method.Disorder, "--oob" to Method.Oob, "--disoob" to Method.Disoob, "--fake" to Method.Fake)
+
+/**
+ * A simplified [Recipe] for any tested command line, so the search can learn from it and build
+ * new lines from it: the first group's techniques (up to three, in packet order), the fake's TTL
+ * and kind, the TLS record split, and the next group as the fallback. Options the search doesn't
+ * build with (host lists, `-a`, `-M`, fake data, ...) are left out. The line itself is kept in
+ * [Recipe.raw] and tested as written. Null when it has no desync step at all.
+ */
+fun parseRecipe(command: String): Recipe? {
+    val tokens = runCatching { shellSplit(command) }.getOrNull() ?: return null
+    val groups = mutableListOf(mutableListOf<String>())
+    tokens.forEach { t -> if (t.startsWith("-A") || t.startsWith("--auto")) groups += mutableListOf<String>() else groups.last() += t }
+    fun read(group: List<String>): Recipe? {
+        val steps = mutableListOf<Step>()
+        var ttl: Int? = null
+        var mod: FakeMod? = null
+        var tls: Pos? = null
+        var i = 0
+        // The option's value: attached ("-s1+s", "--ttl=6") or the next token ("--ttl 6").
+        fun valueOf(attached: String?): String? = attached?.takeIf { it.isNotEmpty() } ?: group.getOrNull(i)?.also { i++ }
+        while (i < group.size) {
+            val t = group[i++]
+            val isLong = t.startsWith("--")
+            val name = if (isLong) t.substringBefore('=') else t.take(2)
+            val attached: String? = if (isLong) (if ('=' in t) t.substringAfter('=') else null) else t.drop(2)
+            val method = if (isLong) LONG_STEPS[name] else SHORT_STEPS[name]
+            when {
+                method != null -> {
+                    val p = valueOf(attached)?.let { readPos(it) }
+                    if (p != null) steps += Step(method, p)
+                }
+                name == "--ttl" || name == "-t" -> {
+                    val v = valueOf(attached)?.toIntOrNull()
+                    if (ttl == null) ttl = v
+                }
+                name == "--tlsrec" || name == "-r" -> {
+                    val p = valueOf(attached)?.let { readPos(it) }
+                    if (tls == null) tls = p
+                }
+                t == "-Qr" -> mod = FakeMod.Rand
+                t == "-Qo" -> mod = FakeMod.Orig
+            }
+        }
+        if (steps.isEmpty()) return null
+        return Recipe(steps.sortedBy { it.pos.order }.take(3), ttl, mod, tls).tidy()
+    }
+    val first = read(groups[0]) ?: groups.drop(1).firstNotNullOfOrNull { read(it) } ?: return null
+    val fallback = groups.drop(1).firstNotNullOfOrNull { read(it) }?.takeIf { it.command != first.command }
+    return first.copy(fallback = fallback).tidy().copy(raw = command.trim(), origin = Origin.Known)
 }

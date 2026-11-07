@@ -320,6 +320,7 @@ object SettingsUtils {
 
             HistoryUtils(context).saveHistory(emptyList())
             DomainListUtils.resetLists(context)
+            LineMemoryStore.clear(context)
 
             setLang("system")
             setTheme("system")

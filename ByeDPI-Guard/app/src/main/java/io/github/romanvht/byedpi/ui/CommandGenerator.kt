@@ -6,6 +6,7 @@ import androidx.core.content.edit
 import com.google.gson.Gson
 import io.github.romanvht.byedpi.data.StrategyResult
 import io.github.romanvht.byedpi.services.TestService
+import io.github.romanvht.byedpi.utility.LineMemoryStore
 import io.github.romanvht.byedpi.utility.getPreferences
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -54,7 +55,13 @@ data class GenResult(
     /** How many new command lines the search built and tested. */
     val built: Int = 0,
     /** The winner's successful requests, 0–100; null in results saved by older versions. */
-    val successRate: Int? = null
+    val successRate: Int? = null,
+    /** How many lines tested earlier on this phone the search learned from. */
+    val learnedFrom: Int = 0,
+    /** The best of those earlier lines as it did in this search, to compare with the winner. */
+    val knownBest: GenAlternative? = null,
+    /** True when the winner is a line tested earlier (no new line beat it). */
+    val knownWon: Boolean = false
 ) {
     /** The winner's 0–100 score over the blocked sites, the same scale as the Benchmark's. */
     val score: CmdScore
@@ -170,6 +177,10 @@ object CommandGenerator {
 
         // 2. Rounds of candidates, each built from what worked so far.
         val search = CommandSearch(plan, Random(System.nanoTime()))
+        val memory = withContext(Dispatchers.IO) { LineMemoryStore.load(app) }
+        search.prime(memory, blocked, System.currentTimeMillis())
+        // Fewer known lines than the most it could take: the progress bar's total shrinks to match.
+        mutable.update { it.copy(budget = it.budget - (KNOWN_MAX - search.knownLines.size)) }
         var batch = search.firstRound()
         for (round in 1..plan.rounds) {
             if (batch.isEmpty()) break
@@ -188,8 +199,12 @@ object CommandGenerator {
             search.recordAll(verify, runBatch(app, verify.map { it.command }, blocked))
         }
 
-        val working = search.ranking().filter { it.works }
+        val ranking = search.ranking()
+        val working = ranking.filter { it.works }
         val best = working.firstOrNull()
+        val newLine = { o: Origin -> o != Origin.Probe && o != Origin.Known }
+        val knownCommands = search.knownLines.map { it.command }.toSet()
+        val knownBest = ranking.firstOrNull { it.command in knownCommands }
         finish(
             app,
             GenResult(
@@ -201,10 +216,13 @@ object CommandGenerator {
                 tested = search.tested,
                 alternatives = working.drop(1).take(2).map { GenAlternative(it.command, it.opened, it.sites, it.latencyMs, it.successRate) },
                 successRate = best?.successRate,
-                generated = best != null && isGenerated(best.command),
+                generated = best != null && newLine(best.recipe.origin),
                 how = best?.recipe?.origin?.name,
                 madeFrom = best?.recipe?.parents?.take(2),
-                built = search.ranking().count { isGenerated(it.command) }
+                built = ranking.count { newLine(it.recipe.origin) },
+                learnedFrom = search.learnedFrom,
+                knownBest = knownBest?.let { GenAlternative(it.command, it.opened, it.sites, it.latencyMs, it.successRate) },
+                knownWon = best != null && best.command in knownCommands
             )
         )
     }
