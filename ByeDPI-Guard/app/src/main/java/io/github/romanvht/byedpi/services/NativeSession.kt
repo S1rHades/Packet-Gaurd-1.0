@@ -36,6 +36,7 @@ internal class NativeSession(
     companion object {
         private const val TAG = "NativeSession"
         private const val START_TIMEOUT = 10_000L
+        private const val SYSTEM_START_TIMEOUT = 45_000L
         private const val STOP_TIMEOUT = 2_000L
         private const val PROBE_TIMEOUT = 250
         private val processStarted = AtomicBoolean()
@@ -76,11 +77,16 @@ internal class NativeSession(
         if (stopOnClientDeath) stop()
     }
 
-    fun onStarted() {
+    /**
+     * [bySystem]: Android started the VPN itself (always-on VPN, often right after boot). The
+     * main app then has to be woken to send the configuration, and at boot its broadcast can
+     * wait behind every other app's, so it gets [SYSTEM_START_TIMEOUT] instead of [START_TIMEOUT].
+     */
+    fun onStarted(bySystem: Boolean = false) {
         if (state == EngineProtocol.STATE_STOPPING) return
         if (!foregroundStarted) {
             foregroundStarted = true
-            handler.postDelayed({ if (configuration == null) stop() }, START_TIMEOUT)
+            handler.postDelayed({ if (configuration == null) stop() }, if (bySystem) SYSTEM_START_TIMEOUT else START_TIMEOUT)
         }
         startNative()
     }
