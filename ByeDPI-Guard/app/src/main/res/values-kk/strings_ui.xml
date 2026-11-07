@@ -185,6 +185,7 @@
     <string name="pg_section_lists">Тестке арналған сайт тізімдері</string>
     <string name="pg_settings_exported">Баптаулар экспортталды</string>
     <string name="pg_about_version">Нұсқа %1$s · %2$s</string>
+    <string name="pg_about_origin">Packet Guard — түпнұсқа жұмыс емес. Бұл romanvht жасаған ByeByeDPI қолданбасының өзгертілген нұсқасы, ол hufrea жасаған ByeDPI қозғалтқышын пайдаланады. Бұғаттауды айналып өту технологиясының бәрі осы жобалардан алынған. Packet Guard мақсаты — оны түсінікті әрі қолдануға оңай ету.</string>
     <string name="pg_about_blurb">Packet Guard телефоныңызда DPI айналып өту қозғалтқышын іске қосып, трафикті сол арқылы өткізеді. Қашықтағы сервер жоқ: қосылымдарыңыз ашқан сайттарыңызға тікелей барады.</string>
     <string name="pg_backup">Сақтық көшірме және қалпына келтіру</string>
     <string name="pg_export_settings">Баптауларды экспорттау</string>
@@ -198,7 +199,7 @@
     <string name="pg_copy_diagnostics_help">Қате туралы хабарламаға қоюға арналған құрылғы, желі және қозғалтқыш мәліметтері</string>
     <string name="pg_open_source">Ашық бастапқы код</string>
     <string name="pg_credit_byedpi">Айналып өту қозғалтқышы, авторы hufrea · GPL-3.0</string>
-    <string name="pg_credit_byebyedpi">Packet Guard негізделген Android қолданбасы, авторы romanvht · GPL-3.0</string>
+    <string name="pg_credit_byebyedpi">Түпнұсқа қолданба, авторы romanvht. Packet Guard — оның өзгертілген нұсқасы · GPL-3.0</string>
     <string name="pg_credit_hev">VPN → прокси туннелі, авторы heiher · MIT</string>
     <string name="pg_export">Экспорт</string>
     <string name="pg_import">Импорт</string>

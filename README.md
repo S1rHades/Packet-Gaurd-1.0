@@ -1,3 +1,6 @@
+> [!NOTE]
+> **Packet Guard is not an original work.** It is a modified version of [ByeByeDPI](https://github.com/romanvht/ByeByeDPI) by romanvht, which runs the [ByeDPI](https://github.com/hufrea/byedpi) engine by hufrea. All the bypass technology comes from those projects. This project's aim is to improve the user experience: to make that technology easier to understand and use for people who aren't technical. See [What Packet Guard adds](#what-packet-guard-adds).
+
 <p align="center">
   <img src="docs/images/icon.svg" width="112" height="112" alt="Packet Guard app icon">
 </p>
@@ -22,9 +25,6 @@
   &nbsp;
   <img src="docs/screenshots/generator-hero.png" width="30%" alt="The command line generator: Make one just for me selected with Quick chosen, and the result -d1 -r1+s, which opens 7 of 7 blocked sites at Fast speed, with a Use this command line button">
 </p>
-
-> [!NOTE]
-> **Packet Guard is not an original work.** It is a modified version of [ByeByeDPI](https://github.com/romanvht/ByeByeDPI) by romanvht, which runs the [ByeDPI](https://github.com/hufrea/byedpi) engine by hufrea. All the bypass technology comes from those projects. This project's aim is to improve the user experience: to make that technology easier to understand and use for people who aren't technical. See [What Packet Guard adds](#what-packet-guard-adds).
 
 ## Highlights
 

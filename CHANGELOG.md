@@ -6,6 +6,16 @@ from 2.5.0 on (**Settings → About → Updates**); earlier versions are install
 
 The first lines under each version are what the app shows as "What's new", so keep them short.
 
+## 3.3.1 (November 2026)
+
+- Settings → About now starts by saying where Packet Guard comes from
+- Packet Guard is a modified version of ByeByeDPI, which runs the ByeDPI engine
+- The ByeByeDPI link in the credits points to the project's current page
+
+The rest, in more detail:
+
+- The same statement opens the README and the store description: all the bypass technology comes from ByeDPI and ByeByeDPI, and Packet Guard's aim is to make it easier to understand and use.
+
 ## 3.3.0 (November 2026)
 
 - Benchmark is now two cards: the answer first, then the test

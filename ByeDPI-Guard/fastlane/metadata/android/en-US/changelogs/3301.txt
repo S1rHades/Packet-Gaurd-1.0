@@ -1,0 +1,2 @@
+- Settings > About now starts by saying where Packet Guard comes from: it is a modified version of ByeByeDPI, which runs the ByeDPI engine
+- Updated credit links

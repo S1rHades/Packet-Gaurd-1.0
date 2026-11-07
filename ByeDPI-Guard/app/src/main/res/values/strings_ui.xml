@@ -185,6 +185,7 @@
     <string name="pg_section_lists">Benchmark link lists</string>
     <string name="pg_settings_exported">Settings exported</string>
     <string name="pg_about_version">Version %1$s · %2$s</string>
+    <string name="pg_about_origin">Packet Guard is not an original work. It is a modified version of ByeByeDPI by romanvht, which runs the ByeDPI engine by hufrea. All the bypass technology comes from them. Packet Guard’s aim is to make it easier to understand and use.</string>
     <string name="pg_about_blurb">Packet Guard runs a DPI-bypass engine on your phone and routes your traffic through it. There is no remote server: your connections go straight to the sites you visit.</string>
     <string name="pg_backup">Backup and restore</string>
     <string name="pg_export_settings">Export settings</string>
@@ -198,7 +199,7 @@
     <string name="pg_copy_diagnostics_help">Device, network and engine details to paste into a bug report</string>
     <string name="pg_open_source">Open source</string>
     <string name="pg_credit_byedpi">The bypass engine, by hufrea · GPL-3.0</string>
-    <string name="pg_credit_byebyedpi">The Android app Packet Guard is built on, by romanvht · GPL-3.0</string>
+    <string name="pg_credit_byebyedpi">The original app, by romanvht. Packet Guard is a modified version of it · GPL-3.0</string>
     <string name="pg_credit_hev">The VPN-to-proxy tunnel, by heiher · MIT</string>
     <string name="pg_export">Export</string>
     <string name="pg_import">Import</string>

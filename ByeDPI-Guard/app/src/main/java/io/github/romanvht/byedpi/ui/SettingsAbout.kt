@@ -1,5 +1,7 @@
 package io.github.romanvht.byedpi.ui
 
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.filled.Info
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
@@ -92,6 +94,13 @@ fun AboutSettings(onMessage: (String) -> Unit) {
         if (uri != null) pendingImport = SettingsUtils.readSettings(ctx, uri)
     }
 
+    // First thing on this screen: where Packet Guard comes from.
+    InfoBanner(
+        stringResource(R.string.pg_about_origin),
+        Icons.Filled.Info,
+        modifier = Modifier.padding(bottom = 4.dp)
+    )
+
     SettingsGroup("Packet Guard") {
         Row(verticalAlignment = Alignment.CenterVertically) {
             BrandMark(44)
@@ -145,7 +154,7 @@ fun AboutSettings(onMessage: (String) -> Unit) {
             trailing = { Icon(Icons.AutoMirrored.Filled.OpenInNew, null, tint = Palette.TextSecondary) }
         )
         NavRow(
-            "ByeByeDPI for Android", onClick = { ctx.openUrl("https://github.com/romanvht/ByeDPIAndroid") },
+            "ByeByeDPI", onClick = { ctx.openUrl("https://github.com/romanvht/ByeByeDPI") },
             value = stringResource(R.string.pg_credit_byebyedpi),
             icon = Icons.Filled.Code,
             trailing = { Icon(Icons.AutoMirrored.Filled.OpenInNew, null, tint = Palette.TextSecondary) }

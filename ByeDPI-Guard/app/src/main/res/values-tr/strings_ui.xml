@@ -185,6 +185,7 @@
     <string name="pg_section_lists">Test site listeleri</string>
     <string name="pg_settings_exported">Ayarlar dışa aktarıldı</string>
     <string name="pg_about_version">Sürüm %1$s · %2$s</string>
+    <string name="pg_about_origin">Packet Guard özgün bir çalışma değildir. romanvht’nin ByeByeDPI uygulamasının değiştirilmiş bir sürümüdür ve hufrea’nın ByeDPI motorunu kullanır. Tüm engel aşma teknolojisi bu projelerden gelir. Packet Guard’ın amacı onu daha anlaşılır ve kolay kullanılır hale getirmektir.</string>
     <string name="pg_about_blurb">Packet Guard telefonunuzda bir DPI atlatma motoru çalıştırır ve trafiğinizi onun üzerinden geçirir. Uzak sunucu yoktur: bağlantılarınız doğrudan ziyaret ettiğiniz sitelere gider.</string>
     <string name="pg_backup">Yedekleme ve geri yükleme</string>
     <string name="pg_export_settings">Ayarları dışa aktar</string>
@@ -198,7 +199,7 @@
     <string name="pg_copy_diagnostics_help">Hata raporuna yapıştırmak için cihaz, ağ ve motor bilgileri</string>
     <string name="pg_open_source">Açık kaynak</string>
     <string name="pg_credit_byedpi">Atlatma motoru, hufrea · GPL-3.0</string>
-    <string name="pg_credit_byebyedpi">Packet Guard\'ın temel aldığı Android uygulaması, romanvht · GPL-3.0</string>
+    <string name="pg_credit_byebyedpi">Özgün uygulama, romanvht. Packet Guard bunun değiştirilmiş bir sürümüdür · GPL-3.0</string>
     <string name="pg_credit_hev">VPN\'den proxy\'ye tünel, heiher · MIT</string>
     <string name="pg_export">Dışa aktar</string>
     <string name="pg_import">İçe aktar</string>

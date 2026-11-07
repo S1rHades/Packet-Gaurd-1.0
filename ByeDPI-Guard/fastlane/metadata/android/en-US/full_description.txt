@@ -1,3 +1,4 @@
+<p><i>Packet Guard is not an original work. It is a modified version of <a href='https://github.com/romanvht/ByeByeDPI' target='_blank' rel='nofollow noopener'>ByeByeDPI</a> by romanvht, which runs the ByeDPI engine by hufrea. All the bypass technology comes from those projects; Packet Guard's aim is to make it easier to understand and use.</i></p>
 <p><b>Packet Guard</b> helps you open sites that your network blocks by inspecting traffic (DPI). It runs the <a href='https://github.com/hufrea/byedpi' target='_blank' rel='nofollow noopener'>ByeDPI</a> engine on your phone, finds the setting that works on your connection, and keeps it on.</p>
 <p>There is no VPN server and no account. Your traffic goes straight to the sites you visit. The app does not send it to any remote server, does not encrypt it and does not hide your IP address. It also cannot help when a site is blocked by its address rather than by inspecting traffic.</p>
 <p>
