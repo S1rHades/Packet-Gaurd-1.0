@@ -42,7 +42,7 @@ jobs:
           chmod +x gradlew
           ./gradlew testDebugUnitTest lintDebug --no-daemon
 
-      # Screenshots of the main screens (English and Russian, normal and 200% text) against the
+      # Screenshots of the main screens (English and Russian) against the
       # images in app/src/test/snapshots. After an intended change: ./gradlew recordPaparazziDebug.
       - name: Screenshot tests
         run: ./gradlew verifyPaparazziDebug --no-daemon

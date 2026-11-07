@@ -169,7 +169,7 @@ The Kotlin package stays `io.github.romanvht.byedpi` because the native JNI symb
 
 **Text.** The interface's text is in `res/values*/strings_ui.xml` (keys start with `pg_`). English is the default; add each new key to every language.
 
-**Checks.** `./gradlew verifyPaparazziDebug` compares the main screens (English and Russian, normal and 200% text) with the images in `app/src/test/snapshots`; after an intended change, run `./gradlew recordPaparazziDebug` and commit the new images. CI also runs `ConnectSmokeTest` on an Android emulator: tap the shield, reach Protected, disconnect. Translations needing review are listed in [docs/translations.md](docs/translations.md).
+**Checks.** `./gradlew verifyPaparazziDebug` compares the main screens (English and Russian) with the images in `app/src/test/snapshots`; after an intended change, run `./gradlew recordPaparazziDebug` and commit the new images. CI also runs `ConnectSmokeTest` on an Android emulator: tap the shield, reach Protected, disconnect. Translations needing review are listed in [docs/translations.md](docs/translations.md).
 
 **Usability.** Changes to the interface follow 20 UX laws; [docs/usability-test.md](docs/usability-test.md) is a 15-minute test to run with five people after each release.
 

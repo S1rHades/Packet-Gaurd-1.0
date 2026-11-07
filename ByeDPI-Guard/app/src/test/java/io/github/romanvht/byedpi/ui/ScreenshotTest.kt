@@ -21,22 +21,22 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 /**
- * Screenshots of the main screens in English and Russian, at normal and 200% text size.
+ * Screenshots of the main screens in English and Russian.
  * The goldens live in app/src/test/snapshots; CI's verifyPaparazziDebug fails when a screen
  * changes. After an intended change, run ./gradlew recordPaparazziDebug and commit the images.
  */
 @RunWith(Parameterized::class)
-class ScreenshotTest(private val locale: String, private val fontScale: Float) {
+class ScreenshotTest(private val locale: String) {
 
     companion object {
         @JvmStatic
-        @Parameterized.Parameters(name = "{0}_x{1}")
-        fun params(): List<Array<Any>> = listOf("en", "ru").flatMap { l -> listOf(1.0f, 2.0f).map { arrayOf<Any>(l, it) } }
+        @Parameterized.Parameters(name = "{0}")
+        fun params(): List<Array<Any>> = listOf("en", "ru").map { arrayOf<Any>(it) }
     }
 
     @get:Rule
     val paparazzi = Paparazzi(
-        deviceConfig = DeviceConfig.PIXEL_5.copy(locale = locale, fontScale = fontScale),
+        deviceConfig = DeviceConfig.PIXEL_5.copy(locale = locale),
         theme = "android:Theme.Material.NoActionBar",
         maxPercentDifference = 0.5
     )

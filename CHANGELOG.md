@@ -13,7 +13,7 @@ The first lines under each version are what the app shows as "What's new", so ke
 
 The rest, in more detail:
 
-- **Screenshot tests.** The Connect, Benchmark and first-run screens are rendered in English and Russian, at normal and 200% text size, and compared with saved images on every build; a change that wasn't meant fails the build. They already caught the Connect screen squeezing "Profile" and cutting off "Success rate" at large text in Russian.
+- **Screenshot tests.** The Connect, Benchmark and first-run screens are rendered in English and Russian and compared with saved images on every build; a change that wasn't meant fails the build.
 - **Phone test.** Every build also starts an Android emulator, opens Packet Guard, taps the shield, waits for "Protected" with the real engine and VPN, and disconnects.
 - **Translations.** [docs/translations.md](docs/translations.md) marks which languages still need a native speaker's review, and how to do one.
 
