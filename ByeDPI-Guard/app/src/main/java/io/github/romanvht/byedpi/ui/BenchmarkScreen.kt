@@ -1,5 +1,6 @@
 package io.github.romanvht.byedpi.ui
 
+import androidx.compose.material.icons.filled.ExpandLess
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -139,38 +140,29 @@ fun BenchmarkScreen(
     val anyDone = test.strategies.any { it.isCompleted }
     val decision = remember(dashboard, ui.lists) { decide(dashboard, ui.lists) }
 
-    // Results first: after a test the setup folds into one line ("Tested … · Test again").
-    val hasResults = !running && (if (generate) gen.result != null || gen.failed else anyDone)
-    var setupOpen by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(running) { if (running) setupOpen = false }
-    val showSetup = running || !hasResults || setupOpen
+    val stopping = test.isStopping || gen.stopping
+    var linesOpen by rememberSaveable { mutableStateOf(false) }
 
-    // The start button, also pinned to the bottom (in thumb reach) while step 2 is off screen.
-    val MainAction: @Composable (Modifier) -> Unit = { m ->
-        PrimaryButton(
-            text = when {
-                test.isStopping || gen.stopping -> stringResource(R.string.pg_stopping)
-                running -> stringResource(R.string.pg_stop)
-                generate -> stringResource(R.string.pg_gen_start)
-                else -> stringResource(R.string.pg_step2_start)
-            },
-            icon = if (running) Icons.Filled.Stop else if (generate) Icons.Filled.AutoAwesome else Icons.Filled.PlayArrow,
-            onClick = { if (running) vm.stop() else vm.start() },
-            enabled = !test.isStopping && !gen.stopping,
-            container = if (running) Palette.SurfaceHigher else Palette.AccentBlue,
-            modifier = m,
-            height = 64
-        )
-    }
+    // While a test runs and its card is scrolled away, Stop stays pinned in thumb reach.
     val listState = rememberLazyListState()
     val pinAction by remember {
         derivedStateOf {
             val info = listState.layoutInfo
-            val setup = info.visibleItemsInfo.firstOrNull { it.key == "setup" }
-            val setupShown = setup != null && setup.offset + setup.size <= info.viewportEndOffset
-            val resultsShown = info.visibleItemsInfo.any { it.key == "results" || it.key == "summary" }
-            info.totalItemsCount > 0 && !setupShown && !resultsShown && (setup != null || info.visibleItemsInfo.none { it.key == "summary" })
+            val card = info.visibleItemsInfo.firstOrNull { it.key == "test" }
+            val shown = card != null && card.offset < info.viewportEndOffset - 200 && card.offset + card.size > 200
+            running && info.totalItemsCount > 0 && !shown
         }
+    }
+    val StopAction: @Composable (Modifier) -> Unit = { m ->
+        PrimaryButton(
+            text = stringResource(if (stopping) R.string.pg_stopping else R.string.pg_stop),
+            icon = Icons.Filled.Stop,
+            onClick = vm::stop,
+            enabled = !stopping,
+            container = Palette.SurfaceHigher,
+            modifier = m,
+            height = 64
+        )
     }
 
     Box(modifier.fillMaxSize()) {
@@ -188,73 +180,13 @@ fun BenchmarkScreen(
             )
         }
 
-        // The setup: what to open and how to test. Folds into one line once there's an answer.
-        if (showSetup) {
-            item(key = "setup") {
-                AppCard(Modifier.animateItem().staggeredEnter(1), contentPadding = PaddingValues(20.dp)) {
-                    if (ui.lists.isEmpty()) {
-                        BigHint(stringResource(R.string.pg_step1_empty))
-                    } else {
-                        ListTiles(ui.lists, enabled = !running, onToggle = vm::toggleList)
-                        BigHint(stringResource(R.string.pg_step1_hint), Modifier.padding(top = 12.dp))
-                    }
-                    Spacer(Modifier.height(18.dp))
-                    ModeChoice(mode, plan, enabled = !running, onMode = vm::selectMode, onPlan = vm::selectPlan)
-                    Spacer(Modifier.height(14.dp))
-                    AnimatedVisibility(
-                        visible = bypassActive && !running,
-                        enter = expandVertically() + fadeIn(),
-                        exit = shrinkVertically() + fadeOut()
-                    ) {
-                        InfoBanner(
-                            stringResource(R.string.pg_step2_pause),
-                            Icons.Filled.Info,
-                            modifier = Modifier.padding(bottom = 12.dp)
-                        )
-                    }
-                    MainAction(Modifier.fillMaxWidth())
-                    if (generate) {
-                        AnimatedVisibility(
-                            visible = gen.running || gen.failed,
-                            enter = expandVertically() + fadeIn(),
-                            exit = shrinkVertically() + fadeOut()
-                        ) { GenProgress(gen, plan) }
-                    } else {
-                        AnimatedVisibility(
-                            visible = running,
-                            enter = expandVertically() + fadeIn(),
-                            exit = shrinkVertically() + fadeOut()
-                        ) {
-                            BigProgress(test, ui, sni, customName)
-                        }
-                    }
-                    if (!running && !hasResults) {
-                        BigHint(stringResource(R.string.pg_step2_keep_open), Modifier.padding(top = 12.dp))
-                    }
-                    if (hasResults && setupOpen) {
-                        TextButton(onClick = { setupOpen = false }, modifier = Modifier.align(Alignment.End).heightIn(min = 48.dp)) {
-                            Text(stringResource(R.string.pg_setup_close))
-                        }
-                    }
-                }
-            }
-        } else {
-            item(key = "summary") {
-                val tested = ui.lists.filter { it.active }.joinToString(", ") { it.name }
-                TestedSummary(
-                    stringResource(R.string.pg_tested_summary, tested.ifEmpty { "—" }),
-                    onTestAgain = { setupOpen = true },
-                    modifier = Modifier.animateItem().staggeredEnter(1)
-                )
-            }
-        }
-
-        // The answer, first thing after a test.
+        // 1. The answer: one card with the recommendation, other goals, site groups and the
+        //    combined line. A search's own answer takes its place after "Make one just for me".
         if (generate) {
             if (gen.result != null || (!gen.running && gen.failed)) {
                 item(key = "results") {
                     AppCard(
-                        Modifier.animateItem().staggeredEnter(2),
+                        Modifier.animateItem().staggeredEnter(1),
                         borderColor = if (gen.result?.command != null && !gen.running) Palette.Glow else Palette.Border,
                         contentPadding = PaddingValues(20.dp)
                     ) {
@@ -264,7 +196,7 @@ fun BenchmarkScreen(
                             onApply = { command -> vm.apply(command, ctx.getString(R.string.pg_gen_made)) },
                             onSearchLonger = {
                                 vm.selectPlan(SearchPlan.Thorough)
-                                vm.start()
+                                vm.startGenerator()
                             }
                         )
                     }
@@ -275,38 +207,14 @@ fun BenchmarkScreen(
                 RecommendedCard(
                     decision, running = running, applied = ui.applied,
                     onApply = { c -> vm.apply(c.command, ctx.getString(R.string.pg_bench_winner_label, c.name)) },
-                    modifier = Modifier.animateItem().staggeredEnter(2)
+                    onApplyGoal = { c -> vm.apply(c.command, ctx.getString(R.string.pg_bench_result_label, c.name)) },
+                    onApplyCombined = { vm.apply(it.command, ctx.getString(R.string.pg_comb_label)) },
+                    modifier = Modifier.animateItem().staggeredEnter(1)
                 )
-            }
-            if (!running) {
-                decision.combined?.let { comb ->
-                    item(key = "combined") {
-                        CombinedCard(
-                            comb, applied = ui.applied,
-                            onApply = { vm.apply(it.command, ctx.getString(R.string.pg_comb_label)) },
-                            modifier = Modifier.animateItem()
-                        )
-                    }
-                }
-                item(key = "goals") {
-                    GoalPicker(
-                        decision, applied = ui.applied,
-                        onApply = { c -> vm.apply(c.command, ctx.getString(R.string.pg_bench_result_label, c.name)) },
-                        modifier = Modifier.animateItem()
-                    )
-                }
-                item(key = "groups") { GroupsCard(decision.groups, Modifier.animateItem()) }
-                item(key = "all") {
-                    AllResultsCard(
-                        decision, applied = ui.applied, canApply = !running,
-                        onApply = { c -> vm.apply(c.command, ctx.getString(R.string.pg_bench_result_label, c.name)) },
-                        modifier = Modifier.animateItem()
-                    )
-                }
             }
         } else if (anyDone && !running) {
             item(key = "results") {
-                AppCard(Modifier.animateItem().staggeredEnter(2), contentPadding = PaddingValues(20.dp)) {
+                AppCard(Modifier.animateItem().staggeredEnter(1), contentPadding = PaddingValues(20.dp)) {
                     ResultPanel(
                         winner = null,
                         finished = true,
@@ -314,48 +222,44 @@ fun BenchmarkScreen(
                         applied = false,
                         onApply = {},
                         onTryGenerator = {
-                            vm.suggestGenerator()
-                            vm.start()
+                            vm.selectPlan(SearchPlan.Thorough)
+                            vm.startGenerator()
                         }
                     )
                 }
             }
         }
 
-        // Advanced options, closed by default
+        // 2. The test: what it opens, which command lines it tries, the Test button and its
+        //    progress, and under it the generator, all in one card.
+        item(key = "test") {
+            TestCard(
+                ui = ui, test = test, gen = gen, plan = plan, generate = generate, anyDone = anyDone,
+                bypassActive = bypassActive, sni = sni, customName = customName,
+                linesOpen = linesOpen, onToggleLines = { linesOpen = !linesOpen },
+                onToggleList = vm::toggleList, onSelectPack = vm::selectPack, onSelectAll = vm::selectAllVisible,
+                onClear = vm::clearVisible, onToggleProfile = vm::toggleProfile,
+                onTest = vm::startTest, onGenerate = vm::startGenerator, onStop = vm::stop, onPlan = vm::selectPlan,
+                modifier = Modifier.animateItem().staggeredEnter(2)
+            )
+        }
+
+        // 3. Every result, folded, for anyone who wants to compare them all.
+        if (!generate && decision.recommended != null && !running) {
+            item(key = "all") {
+                AllResultsCard(
+                    decision, applied = ui.applied, canApply = true,
+                    onApply = { c -> vm.apply(c.command, ctx.getString(R.string.pg_bench_result_label, c.name)) },
+                    modifier = Modifier.animateItem()
+                )
+            }
+        }
+
+        // Advanced options, closed by default: editing site lists and the best line per site.
         item(key = "advancedToggle") {
             AdvancedToggle(advanced, onToggle = { advanced = !advanced }, modifier = Modifier.animateItem())
         }
         if (advanced) {
-            item(key = "advProfiles") {
-                AppCard(Modifier.animateItem()) {
-                    SectionTitle(stringResource(R.string.pg_profiles_to_test)) {
-                        Text(
-                            stringResource(R.string.pg_n_selected, ui.selected.size),
-                            color = Palette.TextSecondary, fontSize = 13.sp
-                        )
-                    }
-                    PillTabs(
-                        items = ProfilePack.entries.toList(),
-                        selected = ui.pack,
-                        onSelect = vm::selectPack,
-                        label = { pack -> "${stringResource(pack.label)} (${ui.profiles.count { it.pack == pack }})" }
-                    )
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        TextButton(onClick = vm::selectAllVisible, enabled = !running) { Text(stringResource(R.string.pg_select_all)) }
-                        TextButton(onClick = vm::clearVisible, enabled = !running) { Text(stringResource(R.string.pg_clear)) }
-                    }
-                    if (ui.pack == ProfilePack.Custom && ui.visibleProfiles.isEmpty()) {
-                        HelperText(stringResource(R.string.pg_bench_no_custom))
-                    }
-                    if (ui.pack == ProfilePack.Community) {
-                        HelperText(stringResource(R.string.pg_bench_community_help))
-                    }
-                }
-            }
-            items(ui.visibleProfiles, key = { "p:" + it.pack.name + it.command }) { p ->
-                ProfileRow(p, selected = p.command in ui.selected, enabled = !running, onToggle = { vm.toggleProfile(p.command) }, Modifier.animateItem())
-            }
             item(key = "advLists") {
                 ManageLists(
                     lists = ui.lists,
@@ -383,7 +287,7 @@ fun BenchmarkScreen(
                 .fillMaxWidth()
                 .background(Brush.verticalGradient(listOf(Color.Transparent, Palette.Background.copy(alpha = 0.92f))))
                 .padding(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 12.dp)
-        ) { MainAction(Modifier.fillMaxWidth()) }
+        ) { StopAction(Modifier.fillMaxWidth()) }
     }
     }
 
@@ -404,6 +308,174 @@ fun BenchmarkScreen(
             },
             dismissButton = { TextButton(onClick = { deleting = null }) { Text(stringResource(R.string.pg_cancel)) } }
         )
+    }
+}
+
+/**
+ * The test, in one card: which sites it opens, which command lines it tries, the Test button and
+ * its progress, and under it "Make one just for me".
+ */
+@Composable
+internal fun TestCard(
+    ui: BenchUi,
+    test: TestState,
+    gen: GenState,
+    plan: SearchPlan,
+    generate: Boolean,
+    anyDone: Boolean,
+    bypassActive: Boolean,
+    sni: String,
+    customName: String,
+    linesOpen: Boolean,
+    onToggleLines: () -> Unit,
+    onToggleList: (String) -> Unit,
+    onSelectPack: (ProfilePack) -> Unit,
+    onSelectAll: () -> Unit,
+    onClear: () -> Unit,
+    onToggleProfile: (String) -> Unit,
+    onTest: () -> Unit,
+    onGenerate: () -> Unit,
+    onStop: () -> Unit,
+    onPlan: (SearchPlan) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val running = test.isRunning || gen.running
+    val benchRunning = test.isRunning && !gen.running
+    val stopping = test.isStopping || gen.stopping
+    AppCard(modifier, contentPadding = PaddingValues(20.dp)) {
+        Text(stringResource(R.string.pg_test_sites), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        Spacer(Modifier.height(10.dp))
+        if (ui.lists.isEmpty()) {
+            BigHint(stringResource(R.string.pg_step1_empty))
+        } else {
+            ListTiles(ui.lists, enabled = !running, onToggle = onToggleList)
+            BigHint(stringResource(R.string.pg_step1_hint), Modifier.padding(top = 10.dp))
+        }
+
+        Spacer(Modifier.height(16.dp))
+        TestLines(ui, linesOpen, enabled = !running, onToggleOpen = onToggleLines, onSelectPack, onSelectAll, onClear, onToggleProfile)
+
+        Spacer(Modifier.height(16.dp))
+        AnimatedVisibility(
+            visible = bypassActive && !running,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            InfoBanner(stringResource(R.string.pg_step2_pause), Icons.Filled.Info, modifier = Modifier.padding(bottom = 12.dp))
+        }
+        PrimaryButton(
+            text = when {
+                benchRunning && test.isStopping -> stringResource(R.string.pg_stopping)
+                benchRunning -> stringResource(R.string.pg_stop)
+                anyDone && !generate -> stringResource(R.string.pg_test_again)
+                else -> stringResource(R.string.pg_step2_start)
+            },
+            icon = if (benchRunning) Icons.Filled.Stop else Icons.Filled.PlayArrow,
+            onClick = { if (benchRunning) onStop() else onTest() },
+            enabled = !stopping && !gen.running,
+            container = if (benchRunning) Palette.SurfaceHigher else Palette.AccentBlue,
+            modifier = Modifier.fillMaxWidth(),
+            height = 64
+        )
+        AnimatedVisibility(
+            visible = benchRunning,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) { BigProgress(test, ui, sni, customName) }
+
+        // The generator, under the Test button.
+        HorizontalDivider(color = Color.White.copy(alpha = 0.08f), modifier = Modifier.padding(top = 20.dp, bottom = 16.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Filled.AutoAwesome, null, tint = Palette.Sky, modifier = Modifier.size(22.dp))
+            Spacer(Modifier.width(10.dp))
+            Text(stringResource(R.string.pg_mode_gen_title), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        }
+        BigHint(stringResource(R.string.pg_mode_gen_sub), Modifier.padding(top = 4.dp, bottom = 12.dp))
+        Segmented(
+            items = SearchPlan.entries.toList(),
+            selected = plan,
+            onSelect = onPlan,
+            label = { stringResource(if (it == SearchPlan.Quick) R.string.pg_gen_quick else R.string.pg_gen_thorough) },
+            enabled = !running
+        )
+        SecondaryButton(
+            text = when {
+                gen.stopping -> stringResource(R.string.pg_stopping)
+                gen.running -> stringResource(R.string.pg_stop)
+                else -> stringResource(R.string.pg_gen_start)
+            },
+            icon = if (gen.running) Icons.Filled.Stop else Icons.Filled.AutoAwesome,
+            onClick = { if (gen.running) onStop() else onGenerate() },
+            enabled = !stopping && !benchRunning,
+            modifier = Modifier.fillMaxWidth().padding(top = 12.dp).heightIn(min = 56.dp)
+        )
+        AnimatedVisibility(
+            visible = gen.running || (generate && gen.failed),
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) { GenProgress(gen, plan) }
+        if (!running) {
+            BigHint(stringResource(R.string.pg_step2_keep_open), Modifier.padding(top = 12.dp))
+        }    }
+}
+
+/**
+ * Which command lines the Test button tries: a one-line summary ("9 selected · Basic 9"), and
+ * when opened the packs (Basic, Community, Custom) with a checkbox per line.
+ */
+@Composable
+private fun TestLines(
+    ui: BenchUi,
+    open: Boolean,
+    enabled: Boolean,
+    onToggleOpen: () -> Unit,
+    onSelectPack: (ProfilePack) -> Unit,
+    onSelectAll: () -> Unit,
+    onClear: () -> Unit,
+    onToggleProfile: (String) -> Unit
+) {
+    val byPack = ProfilePack.entries.mapNotNull { pack ->
+        val n = ui.profiles.count { it.pack == pack && it.command in ui.selected }
+        if (n == 0) null else "${stringResource(pack.label)} $n"
+    }
+    Row(
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable(onClick = onToggleOpen).heightIn(min = 48.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(stringResource(R.string.pg_test_lines), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                (listOf(stringResource(R.string.pg_n_selected, ui.selected.size)) + byPack).joinToString("  ·  "),
+                color = if (ui.selected.isEmpty()) Palette.Warning else Palette.TextSecondary, fontSize = 13.sp
+            )
+        }
+        Text(stringResource(if (open) R.string.pg_test_lines_hide else R.string.pg_test_lines_choose), color = Palette.Sky, fontSize = 14.sp)
+        Icon(if (open) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore, null, tint = Palette.Sky)
+    }
+    AnimatedVisibility(open, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
+        Column(Modifier.padding(top = 8.dp)) {
+            PillTabs(
+                items = ProfilePack.entries.toList(),
+                selected = ui.pack,
+                onSelect = onSelectPack,
+                label = { pack -> "${stringResource(pack.label)} (${ui.profiles.count { it.pack == pack }})" }
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                TextButton(onClick = onSelectAll, enabled = enabled) { Text(stringResource(R.string.pg_select_all)) }
+                TextButton(onClick = onClear, enabled = enabled) { Text(stringResource(R.string.pg_clear)) }
+            }
+            if (ui.pack == ProfilePack.Custom && ui.visibleProfiles.isEmpty()) {
+                HelperText(stringResource(R.string.pg_bench_no_custom))
+            }
+            if (ui.pack == ProfilePack.Community) {
+                HelperText(stringResource(R.string.pg_bench_community_help))
+            }
+            ui.visibleProfiles.forEach { p ->
+                key(p.pack.name + p.command) {
+                    ProfileRow(p, selected = p.command in ui.selected, enabled = enabled, onToggle = { onToggleProfile(p.command) }, Modifier.padding(top = 6.dp))
+                }
+            }
+        }
     }
 }
 
@@ -900,93 +972,6 @@ private fun checkboxColors() = CheckboxDefaults.colors(
 )
 
 // ---- command line generator -------------------------------------------------------------------
-
-/** Step 2's two ways to test, as big tiles; the generator also offers a quick or thorough search. */
-@Composable
-private fun ModeChoice(
-    mode: BenchMode,
-    plan: SearchPlan,
-    enabled: Boolean,
-    onMode: (BenchMode) -> Unit,
-    onPlan: (SearchPlan) -> Unit
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        ModeTile(
-            icon = Icons.Filled.PlayArrow,
-            title = stringResource(R.string.pg_mode_ready_title),
-            subtitle = stringResource(R.string.pg_mode_ready_sub),
-            badge = stringResource(R.string.pg_recommended),
-            selected = mode == BenchMode.ReadyMade,
-            enabled = enabled,
-            onClick = { onMode(BenchMode.ReadyMade) }
-        )
-        ModeTile(
-            icon = Icons.Filled.AutoAwesome,
-            title = stringResource(R.string.pg_mode_gen_title),
-            subtitle = stringResource(R.string.pg_mode_gen_sub),
-            selected = mode == BenchMode.Generate,
-            enabled = enabled,
-            onClick = { onMode(BenchMode.Generate) }
-        )
-        AnimatedVisibility(
-            visible = mode == BenchMode.Generate,
-            enter = expandVertically() + fadeIn(),
-            exit = shrinkVertically() + fadeOut()
-        ) {
-            Segmented(
-                items = SearchPlan.entries.toList(),
-                selected = plan,
-                onSelect = onPlan,
-                label = { stringResource(if (it == SearchPlan.Quick) R.string.pg_gen_quick else R.string.pg_gen_thorough) },
-                enabled = enabled
-            )
-        }
-    }
-}
-
-@Composable
-private fun ModeTile(
-    icon: ImageVector,
-    title: String,
-    subtitle: String,
-    selected: Boolean,
-    enabled: Boolean,
-    onClick: () -> Unit,
-    badge: String? = null
-) {
-    val accent by animateFloatAsState(if (selected) 1f else 0f, tween(Motion.MEDIUM), label = "modeOn")
-    val border by animateColorAsState(if (selected) Palette.Glow else Glass.InsetBorder, tween(Motion.MEDIUM), label = "modeBorder")
-    val shape = RoundedCornerShape(18.dp)
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clip(shape)
-            .background(Glass.Inset)
-            .background(Palette.Glow.copy(alpha = 0.16f * accent))
-            .border(if (selected) 2.dp else 1.dp, border, shape)
-            .clickable(enabled = enabled, role = Role.RadioButton, onClick = onClick)
-            .padding(14.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            Modifier.size(40.dp).clip(RoundedCornerShape(12.dp)).background(Palette.Sky.copy(alpha = 0.16f)),
-            contentAlignment = Alignment.Center
-        ) { Icon(icon, null, tint = Palette.Sky, modifier = Modifier.size(22.dp)) }
-        Spacer(Modifier.width(12.dp))
-        Column(Modifier.weight(1f)) {
-            Text(title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
-            if (badge != null) MetricPill(badge, Palette.Success, Modifier.padding(vertical = 3.dp))
-            Text(subtitle, color = Palette.TextSecondary, fontSize = 13.sp, lineHeight = 18.sp)
-        }
-        Spacer(Modifier.width(8.dp))
-        Icon(
-            if (selected) Icons.Filled.CheckCircle else Icons.Filled.RadioButtonUnchecked,
-            null,
-            tint = if (selected) Palette.Success else Palette.TextSecondary,
-            modifier = Modifier.size(26.dp)
-        )
-    }
-}
 
 /** The search's progress: a big percentage, a thick bar and what it's doing in plain words. */
 @Composable

@@ -227,7 +227,6 @@
     <string name="pg_delete_named">Xóa %1$s</string>
     <string name="pg_new_list">Danh sách mới</string>
     <string name="pg_restore_defaults">Khôi phục mặc định</string>
-    <string name="pg_profiles_to_test">Cấu hình cần kiểm tra</string>
     <string name="pg_select_all">Chọn tất cả</string>
     <string name="pg_bench_no_custom">Chưa có cấu hình tùy chỉnh. Hãy thêm tại Cài đặt → Kiểm tra → Cấu hình tùy chỉnh.</string>
     <string name="pg_bench_community_help">Các chiến lược được cộng đồng ByeByeDPI thử nghiệm. Kiểm tra hết sẽ mất một lúc.</string>
@@ -270,8 +269,6 @@
     <string name="pg_adv_title">Tùy chọn nâng cao</string>
     <string name="pg_adv_subtitle">Chọn cấu hình, sửa danh sách trang, xem từng trang</string>
     <string name="pg_adv_lists">Sửa danh sách trang</string>
-    <string name="pg_mode_ready_title">Thử cấu hình có sẵn</string>
-    <string name="pg_mode_ready_sub">Nhanh nhất. Kiểm tra các cấu hình đi kèm ứng dụng.</string>
     <string name="pg_mode_gen_title">Tạo riêng cho tôi</string>
     <string name="pg_mode_gen_sub">Tạo các dòng lệnh mới cho kết nối của bạn, kiểm tra và giữ dòng lệnh tốt nhất.</string>
     <string name="pg_gen_quick">Nhanh · khoảng 3 phút</string>
@@ -332,7 +329,6 @@
     <string name="pg_advanced_settings">Nâng cao</string>
     <string name="pg_show_advanced">Hiện cài đặt nâng cao</string>
     <string name="pg_show_advanced_help">Địa chỉ proxy, giới hạn của bộ máy và thời gian kiểm tra</string>
-    <string name="pg_recommended">Khuyên dùng</string>
     <string name="pg_field_sni">tên trang</string>
     <string name="pg_field_host">tiêu đề Host</string>
     <string name="pg_pos_at">tại vị trí %1$d</string>
@@ -407,9 +403,7 @@
     <string name="pg_score_reach">Trang</string>
     <string name="pg_score_speed">Tốc độ</string>
     <string name="pg_score_success">Thành công</string>
-    <string name="pg_setup_close">Đóng</string>
     <string name="pg_test_again">Kiểm tra lại</string>
-    <string name="pg_tested_summary">Đã kiểm tra: %1$s</string>
     <string name="pg_tr_faster">nhanh hơn %1$d ms</string>
     <string name="pg_tr_less_dep">Lỗi thường hơn</string>
     <string name="pg_tr_more_dep">Ổn định hơn</string>
@@ -430,6 +424,10 @@
     <string name="pg_notif_gen_checking">Đang kiểm tra trang nào bị chặn</string>
     <string name="pg_notif_gen_round">Vòng %1$d/%2$d · %3$d%%</string>
     <string name="pg_notif_gen_verifying">Đang thử lại các dòng tốt nhất · %1$d%%</string>
+    <string name="pg_test_sites">Trang cần mở</string>
+    <string name="pg_test_lines">Dòng lệnh để thử</string>
+    <string name="pg_test_lines_choose">Chọn</string>
+    <string name="pg_test_lines_hide">Ẩn</string>
     <string name="pg_err_storage">Không thể đọc hoặc lưu dữ liệu. Hãy thử lại.</string>
     <string name="pg_err_reset">Không thể đặt lại cài đặt</string>
     <plurals name="pg_sites">

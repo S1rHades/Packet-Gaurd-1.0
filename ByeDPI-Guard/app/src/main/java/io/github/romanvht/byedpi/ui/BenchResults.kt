@@ -175,6 +175,8 @@ fun RecommendedCard(
     running: Boolean,
     applied: String?,
     onApply: (Choice) -> Unit,
+    onApplyGoal: (Choice) -> Unit,
+    onApplyCombined: (Combined) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val c = d.recommended ?: return
@@ -221,19 +223,41 @@ fun RecommendedCard(
             modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
             height = 60
         )
+        // Everything else about the answer lives in the same card: other goals, then how it
+        // does on each site group, then one line for all groups when that opens more.
+        if (!running) {
+            if (d.goals.isNotEmpty()) {
+                SectionDivider()
+                GoalSection(d, applied, onApplyGoal)
+            }
+            if (d.groups.isNotEmpty()) {
+                SectionDivider()
+                GroupsSection(d.groups)
+            }
+            d.combined?.let { comb ->
+                SectionDivider()
+                CombinedSection(comb, applied, onApplyCombined)
+            }
+        }
     }
 }
+
+@Composable
+private fun SectionDivider() = HorizontalDivider(
+    color = Color.White.copy(alpha = 0.08f),
+    modifier = Modifier.padding(top = 20.dp, bottom = 16.dp)
+)
 
 private fun goalKey(g: GoalOption) = g.kind.name + (g.listId ?: "")
 
 /** "Care about something else?": one chip per goal, and the option for the chosen one. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun GoalPicker(d: Decision, applied: String?, onApply: (Choice) -> Unit, modifier: Modifier = Modifier) {
+private fun GoalSection(d: Decision, applied: String?, onApply: (Choice) -> Unit, modifier: Modifier = Modifier) {
     if (d.goals.isEmpty()) return
     var picked by rememberSaveable { mutableStateOf(goalKey(d.goals.first())) }
     val goal = d.goals.firstOrNull { goalKey(it) == picked } ?: d.goals.first()
-    AppCard(modifier) {
+    Column(modifier.fillMaxWidth()) {
         Text(stringResource(R.string.pg_goal_question), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
         FlowRow(
             Modifier.padding(top = 10.dp),
@@ -298,10 +322,10 @@ fun GoalPicker(d: Decision, applied: String?, onApply: (Choice) -> Unit, modifie
     }
 }
 
-/** When each group has its own best setting: one line that uses each where it works best. */
+/** When each group has its own best setting: one line that uses each where it works best (inside the recommendation). */
 @Composable
-fun CombinedCard(c: Combined, applied: String?, onApply: (Combined) -> Unit, modifier: Modifier = Modifier) {
-    AppCard(modifier) {
+private fun CombinedSection(c: Combined, applied: String?, onApply: (Combined) -> Unit, modifier: Modifier = Modifier) {
+    Column(modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Filled.Hub, null, tint = Palette.Sky, modifier = Modifier.size(22.dp))
             Spacer(Modifier.width(10.dp))
@@ -320,7 +344,7 @@ fun CombinedCard(c: Combined, applied: String?, onApply: (Combined) -> Unit, mod
             }
         }
         val inUse = applied == c.command
-        PrimaryButton(
+        SecondaryButton(
             text = stringResource(if (inUse) R.string.pg_step3_in_use else R.string.pg_comb_use),
             onClick = { onApply(c) },
             enabled = !inUse,
@@ -331,11 +355,11 @@ fun CombinedCard(c: Combined, applied: String?, onApply: (Combined) -> Unit, mod
     }
 }
 
-/** How the recommendation does on each site group. */
+/** How the recommendation does on each site group (inside the recommendation). */
 @Composable
-fun GroupsCard(groups: List<GroupRow>, modifier: Modifier = Modifier) {
+private fun GroupsSection(groups: List<GroupRow>, modifier: Modifier = Modifier) {
     if (groups.isEmpty()) return
-    AppCard(modifier) {
+    Column(modifier.fillMaxWidth()) {
         Text(stringResource(R.string.pg_groups_title), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
         HelperText(stringResource(R.string.pg_groups_help), Modifier.padding(top = 2.dp, bottom = 8.dp))
         groups.forEachIndexed { i, g ->
@@ -397,25 +421,6 @@ fun AllResultsCard(d: Decision, applied: String?, canApply: Boolean, onApply: (C
                     HelperText(pluralStringResource(R.plurals.pg_outclassed, d.outclassed, d.outclassed), Modifier.padding(top = 6.dp))
                 }
             }
-        }
-    }
-}
-
-/** After a test: what was tested, in one line, with a button to test again. */
-@Composable
-fun TestedSummary(text: String, onTestAgain: () -> Unit, modifier: Modifier = Modifier) {
-    Row(
-        modifier
-            .fillMaxWidth()
-            .glassInset()
-            .padding(start = 14.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(text, fontSize = 14.sp, color = Palette.TextSecondary, modifier = Modifier.weight(1f), maxLines = 2, overflow = TextOverflow.Ellipsis)
-        TextButton(onClick = onTestAgain, modifier = Modifier.heightIn(min = 48.dp)) {
-            Icon(Icons.Filled.Refresh, null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(6.dp))
-            Text(stringResource(R.string.pg_test_again))
         }
     }
 }

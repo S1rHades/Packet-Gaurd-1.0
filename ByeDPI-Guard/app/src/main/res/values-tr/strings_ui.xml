@@ -227,7 +227,6 @@
     <string name="pg_delete_named">%1$s sil</string>
     <string name="pg_new_list">Yeni liste</string>
     <string name="pg_restore_defaults">Varsayılanları geri yükle</string>
-    <string name="pg_profiles_to_test">Test edilecek profiller</string>
     <string name="pg_select_all">Tümünü seç</string>
     <string name="pg_bench_no_custom">Henüz özel profil yok. Ayarlar → Test → Özel profiller altından ekleyin.</string>
     <string name="pg_bench_community_help">ByeByeDPI topluluğunun denediği stratejiler. Hepsini test etmek biraz sürer.</string>
@@ -270,8 +269,6 @@
     <string name="pg_adv_title">Gelişmiş seçenekler</string>
     <string name="pg_adv_subtitle">Profil seçimi, site listeleri, site bazında sonuçlar</string>
     <string name="pg_adv_lists">Site listelerini düzenle</string>
-    <string name="pg_mode_ready_title">Hazır profilleri dene</string>
-    <string name="pg_mode_ready_sub">En hızlısı. Uygulamayla gelen profilleri test eder.</string>
     <string name="pg_mode_gen_title">Bana özel oluştur</string>
     <string name="pg_mode_gen_sub">Bağlantınız için yeni komut satırları oluşturur, test eder ve en iyisini tutar.</string>
     <string name="pg_gen_quick">Hızlı · yaklaşık 3 dk</string>
@@ -332,7 +329,6 @@
     <string name="pg_advanced_settings">Gelişmiş</string>
     <string name="pg_show_advanced">Gelişmiş ayarları göster</string>
     <string name="pg_show_advanced_help">Proxy adresi, motor sınırları ve test süreleri</string>
-    <string name="pg_recommended">Önerilen</string>
     <string name="pg_field_sni">site adının</string>
     <string name="pg_field_host">Host başlığının</string>
     <string name="pg_pos_at">%1$d. konumda</string>
@@ -407,9 +403,7 @@
     <string name="pg_score_reach">Siteler</string>
     <string name="pg_score_speed">Hız</string>
     <string name="pg_score_success">Başarı</string>
-    <string name="pg_setup_close">Kapat</string>
     <string name="pg_test_again">Tekrar test et</string>
-    <string name="pg_tested_summary">Test edildi: %1$s</string>
     <string name="pg_tr_faster">%1$d ms daha hızlı</string>
     <string name="pg_tr_less_dep">Daha sık başarısız olur</string>
     <string name="pg_tr_more_dep">Daha sık çalışır</string>
@@ -430,6 +424,10 @@
     <string name="pg_notif_gen_checking">Hangi sitelerin engellendiği kontrol ediliyor</string>
     <string name="pg_notif_gen_round">Tur %1$d / %2$d · %%%3$d</string>
     <string name="pg_notif_gen_verifying">En iyiler yeniden test ediliyor · %%%1$d</string>
+    <string name="pg_test_sites">Açılacak siteler</string>
+    <string name="pg_test_lines">Test edilecek komut satırları</string>
+    <string name="pg_test_lines_choose">Seç</string>
+    <string name="pg_test_lines_hide">Gizle</string>
     <string name="pg_err_storage">Verileriniz okunamadı veya kaydedilemedi. Tekrar deneyin.</string>
     <string name="pg_err_reset">Ayarlar sıfırlanamadı</string>
     <plurals name="pg_sites">

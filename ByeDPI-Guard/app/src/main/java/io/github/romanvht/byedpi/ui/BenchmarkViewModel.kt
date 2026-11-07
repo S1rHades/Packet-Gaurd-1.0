@@ -236,7 +236,21 @@ class BenchmarkViewModel(app: Application) : AndroidViewModel(app) {
 
     // ---- run ----------------------------------------------------------------------------
 
-    /** Starts whichever test step 2 has selected. */
+    /** The Test button: the ready-made (and chosen) command lines on the switched-on sites. */
+    fun startTest() = startAs(BenchMode.ReadyMade)
+
+    /** The generator button under it: builds a command line for these sites. */
+    fun startGenerator() = startAs(BenchMode.Generate)
+
+    private fun startAs(mode: BenchMode) {
+        // Check first, so a refused start doesn't hide the results that are on screen.
+        if (ui.value.activeSites == 0) return say(ctx.getString(R.string.pg_err_no_list))
+        if (mode == BenchMode.ReadyMade && ui.value.selected.isEmpty()) return say(ctx.getString(R.string.pg_err_no_profile))
+        selectMode(mode)
+        start()
+    }
+
+    /** Starts the kind of test last chosen ([mode]); its results are the ones shown. */
     fun start() {
         val s = ui.value
         if (s.activeSites == 0) return say(ctx.getString(R.string.pg_err_no_list))

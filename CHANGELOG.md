@@ -6,6 +6,21 @@ from 2.5.0 on (**Settings → About → Updates**); earlier versions are install
 
 The first lines under each version are what the app shows as "What's new", so keep them short.
 
+## 3.3.0 (November 2026)
+
+- Benchmark is now two cards: the answer first, then the test
+- Recommended for you also holds the other goals, site groups and the combined line
+- The test card holds the sites, the command lines it tests and the Test button
+- Make one just for me sits under the Test button, in the same card
+
+The rest, in more detail:
+
+- **Recommended for you** keeps the setting, its score, the reason and **Use this setting** at the top. Under them, in the same card: **Care about something else?**, **By site group**, and **Use the best for each group** when it opens more. While a test runs, only the best so far is shown.
+- **The test card**: **Sites to open** (the list tiles), **Command lines to test** with how many are selected per pack and **Choose** to pick them (moved here from Advanced options), the **Test** button (**Test again** after a test) with its progress, and then **Make one just for me** with Quick or Thorough and its own button and progress.
+- The two-way "ready-made or make one" choice and the folded "Tested … · Test again" line are gone: each kind of test has its own button. The answer shown is from whichever ran last.
+- While a test runs and its card is scrolled away, **Stop** stays pinned at the bottom.
+- **All results** follows the test card; **Advanced options** keeps editing site lists and the best setting per site.
+
 ## 3.2.0 (November 2026)
 
 - Notifications now look like the app: the shield in its blue, the same words and buttons
