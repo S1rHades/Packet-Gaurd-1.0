@@ -9,7 +9,7 @@ import android.os.Build
 import android.util.Log
 import io.github.romanvht.byedpi.R
 import io.github.romanvht.byedpi.data.*
-import io.github.romanvht.byedpi.utility.createPauseNotification
+import io.github.romanvht.byedpi.utility.LiveNotifications
 import io.github.romanvht.byedpi.utility.registerNotificationChannel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.selects.select
@@ -132,9 +132,7 @@ object ServiceManager {
                         val channel = if (activeMode == Mode.VPN) "ByeDPIVpn" else "ByeDPI Proxy"
                         val name = if (activeMode == Mode.VPN) R.string.vpn_channel_name else R.string.proxy_channel_name
                         registerNotificationChannel(app, channel, name)
-                        notifications.notify(PAUSE_NOTIFICATION_ID, createPauseNotification(
-                            app, channel, R.string.notification_title, R.string.service_paused_text, activeMode,
-                        ))
+                        notifications.notify(PAUSE_NOTIFICATION_ID, LiveNotifications.paused(app, channel, activeMode))
                     }
                 }
             }

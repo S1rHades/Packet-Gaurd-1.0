@@ -102,6 +102,10 @@ Four tabs:
 
 Packet Guard looks for a new version a few seconds after it opens and every 6 hours while it stays open. When there is one, a banner on the Connect screen says so, with what's new; **Update** downloads it and Android asks you to confirm the install. **Settings → About → Updates** shows your version, a **Check for updates** button and a switch to stop the automatic checks. The first time, Android asks you to allow Packet Guard to install apps.
 
+### Notifications
+
+The notifications use the app's look and words. While protected: "Protected", where your traffic goes, the setting in use, how long it has been on, and **Pause** and **Disconnect**. During a Benchmark or a search: a progress bar with the percentage, the round, and **Stop**. On Android 16 and later they appear as Live Updates, with a chip in the status bar; this can be turned off for Packet Guard in the system's notification settings.
+
 ## Install
 
 1. On your phone, tap **Download Packet Guard** above (or open the [latest release](https://github.com/S1rHades/Packet-Gaurd-1.0/releases/latest) and choose `PacketGuard.apk`).

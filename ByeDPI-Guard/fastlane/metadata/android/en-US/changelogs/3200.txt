@@ -1,0 +1,4 @@
+- Notifications now match the app: the shield in its blue, the same words and buttons
+- On Android 16, protection and tests show as Live Updates with a status bar chip
+- While protected: how long for and which setting is in use, with Pause and Disconnect
+- Tests show one progress bar with the percentage and Stop

@@ -1,10 +1,8 @@
 <resources>
     <string name="app_name">Packet Guard</string>
     <string name="toggle_connect">Aç/Kapat</string>
-    <string name="service_start_btn">Başlat</string>
     <string name="service_pause_btn">Duraklat</string>
     <string name="service_stop_btn">Durdur</string>
-    <string name="service_paused_text">Hizmet duraklatıldı</string>
     <string name="export_failed">Ayarlar dışa aktarılamadı</string>
     <string name="import_failed">Ayarlar içe aktarılamadı</string>
     <string name="mode_setting">Mod</string>
@@ -14,15 +12,11 @@
     <string name="failed_to_start">Başlatırken hata oluştu ( %1$s )</string>
     <string name="vpn_channel_name">VPN</string>
     <string name="proxy_channel_name">Proxy</string>
-    <string name="notification_title">Packet Guard</string>
-    <string name="vpn_notification_content">VPN çalışıyor</string>
-    <string name="proxy_notification_content">Proxy çalışıyor</string>
     <string name="ipv6_setting">IPv6</string>
     <string name="applist_setting">Uygulama filtresi</string>
     <string name="storage_access">Depolama erişimi</string>
     <string name="title_test">Proxy testi</string>
     <string name="test_stop">Testi durdur</string>
-    <string name="test_process">Kontrol ediliyor %1$d/%2$d</string>
     <string name="toast_copied">Sonuç kopyalandı</string>
     <string name="test_settings_sni">SNI sahte paketleri</string>
     <string name="test_settings_domain_empty">Test edilecek alan adı yok</string>

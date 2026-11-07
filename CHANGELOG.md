@@ -6,6 +6,20 @@ from 2.5.0 on (**Settings → About → Updates**); earlier versions are install
 
 The first lines under each version are what the app shows as "What's new", so keep them short.
 
+## 3.2.0 (November 2026)
+
+- Notifications now look like the app: the shield in its blue, the same words and buttons
+- On Android 16, protection and tests show as Live Updates with a status bar chip
+- While protected, the notification shows how long for and which setting is in use
+- Tests and searches show one progress bar with the percentage, round and Stop
+
+The rest, in more detail:
+
+- **Connection.** "Protected", where traffic goes (your apps, or the proxy's address), the setting in use (its saved name, or the command line), a running timer since it started, and **Pause** and **Disconnect**. Tapping it opens Connect.
+- **Paused.** "Paused" with **Resume**, and a reminder that sites may be blocked again.
+- **Benchmark and Make one just for me.** A progress bar with the percentage (also in the status bar chip on Android 16), "Setting 4 of 12" or "Round 2 of 3", and **Stop**. A search shows its whole progress rather than restarting for each round. Tapping it opens Benchmark.
+- **Live Updates** need Android 16 and can be turned off for Packet Guard in the system's notification settings; older versions show the same notifications without the chip.
+
 ## 3.1.0 (November 2026)
 
 - "Make one just for me" now learns from every line already tested on your phone

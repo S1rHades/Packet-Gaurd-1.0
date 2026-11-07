@@ -81,13 +81,7 @@ class ByeDpiVpnService : VpnService() {
     private fun startForeground() {
         val notifications = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         notifications.cancel(PAUSE_NOTIFICATION_ID)
-        val notification: Notification = createConnectionNotification(
-            this,
-            NOTIFICATION_CHANNEL_ID,
-            R.string.notification_title,
-            R.string.vpn_notification_content,
-            Mode.VPN,
-        )
+        val notification: Notification = LiveNotifications.connection(this, NOTIFICATION_CHANNEL_ID, Mode.VPN, System.currentTimeMillis())
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(FOREGROUND_SERVICE_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED)
         } else {
