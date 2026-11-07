@@ -6,6 +6,20 @@ from 2.5.0 on (**Settings → About → Updates**); earlier versions are install
 
 The first lines under each version are what the app shows as "What's new", so keep them short.
 
+## 3.4.0 (November 2026)
+
+- New: a short guide the first time you open Packet Guard
+- It explains the app, asks for the VPN permission, then finds a setting for you
+- "Find it for me" runs a quick test, switches on the best setting and connects
+- Skip is always there, and the guide never comes back
+
+The rest, in more detail:
+
+- **Three screens.** "Open blocked sites" (what the app does, with no server and no account), "Allow the VPN" (Android's one-time question, explained before it appears) and "Let's find what works on your network".
+- **Find it for me** tests the basic profiles on the switched-on lists (YouTube and common sites on a new install), switches on the recommended setting with Undo, and connects. If nothing works, it suggests Make one just for me.
+- The notification and battery questions now come after the guide, not over it.
+- Anyone who used Packet Guard before this version doesn't see the guide.
+
 ## 3.3.2 (November 2026)
 
 - Make one just for me keeps going when you leave the app during a long search

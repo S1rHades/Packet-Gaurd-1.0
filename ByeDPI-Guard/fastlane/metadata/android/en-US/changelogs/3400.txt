@@ -1,0 +1,3 @@
+- New: a short guide the first time you open the app
+- It explains the app, asks for the VPN permission, then finds a setting for you
+- "Find it for me" runs a quick test, switches on the best setting and connects

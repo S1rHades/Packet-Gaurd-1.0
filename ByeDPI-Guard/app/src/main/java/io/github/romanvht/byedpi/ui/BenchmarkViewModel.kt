@@ -274,7 +274,44 @@ class BenchmarkViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun stop() {
+        firstSetupStopped = true
         if (CommandGenerator.isRunning) CommandGenerator.stop() else TestService.stop()
+    }
+
+    // ---- first run ----------------------------------------------------------------------
+
+    private val _firstSetup = MutableSharedFlow<Boolean>(extraBufferCapacity = 1)
+
+    /** The first-run test finished: true when it switched on a setting, false when none worked. */
+    val firstSetupDone: SharedFlow<Boolean> = _firstSetup.asSharedFlow()
+    private var firstSetupStopped = false
+
+    /**
+     * The first-run guide's "Find it for me": a test of the selected profiles (the basic ones on
+     * a new install) on the switched-on sites, then the recommended setting is switched on (with Undo). Stopping it skips that.
+     */
+    fun runFirstSetup() {
+        if (TestService.isRunning || CommandGenerator.isRunning) return
+        firstSetupStopped = false
+        startTest()
+        if (!TestService.isRunning) return
+        viewModelScope.launch {
+            TestService.awaitStopped()
+            if (firstSetupStopped) return@launch
+            val st = TestService.state.value
+            val s = ui.value
+            val custom = ctx.getString(R.string.pg_custom_strategy)
+            val rec = decide(buildDashboard(st.strategies, s.lists) { s.nameFor(it, sni, custom) }, s.lists).recommended
+            if (st.failed || rec == null) {
+                _firstSetup.tryEmit(false)
+                return@launch
+            }
+            local.update { it.copy(applied = rec.command) }
+            val ok = guarded {
+                withContext(Dispatchers.IO) { StrategyApplier.apply(ctx, rec.command, ctx.getString(R.string.pg_bench_winner_label, rec.name)) }
+            } != null
+            _firstSetup.tryEmit(ok)
+        }
     }
 
     // ---- apply --------------------------------------------------------------------------

@@ -38,6 +38,12 @@
 
 ## A tour
 
+### First run
+
+<img src="docs/screenshots/first-run.png" alt="The first-run guide: Open blocked sites, Allow the VPN, and Let's find what works on your network with a Find it for me button">
+
+The first time you open it, three short screens explain what Packet Guard does, ask for Android's VPN permission, and offer **Find it for me**: a quick test that switches on the best setting and connects. **Skip** is always there, and the guide never comes back.
+
 ### Connect
 
 Tap the shield to turn protection on or off. The card below says whether it's running, the mode (the whole phone through Android's VPN, or a local proxy for chosen apps), which profile is in use, and a live latency and success rate, checked every 20 seconds while you're connected. Pull down to check again straight away.
