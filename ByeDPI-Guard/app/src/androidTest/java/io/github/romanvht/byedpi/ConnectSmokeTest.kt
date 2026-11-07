@@ -28,6 +28,15 @@ class ConnectSmokeTest {
 
     private fun shell(cmd: String) = inst.uiAutomation.executeShellCommand(cmd).close()
 
+    /** What's on screen, for the failure message: text and descriptions of every node. */
+    private fun screen(): String {
+        val out = java.io.ByteArrayOutputStream()
+        runCatching { device.dumpWindowHierarchy(out) }
+        val xml = out.toString()
+        val shown = Regex("""(?:text|content-desc)="([^"]+)"""").findAll(xml).map { it.groupValues[1] }.toList()
+        return "On screen: " + shown.joinToString(" | ").take(3000)
+    }
+
     @Test
     fun shieldConnectsAndDisconnects() {
         // No first-run guide, permission prompts or update check in the way.
@@ -45,19 +54,19 @@ class ConnectSmokeTest {
 
         ActivityScenario.launch(ModernActivity::class.java).use {
             val connect = device.wait(Until.findObject(By.desc(ctx.getString(R.string.pg_shield_connect))), 30_000)
-            assertNotNull("The shield's Connect button should appear", connect)
+            assertNotNull("The shield's Connect button should appear. ${screen()}", connect)
             connect.click()
 
             // The Connect status is one spoken item: "Protected. …"
             val protectedText = ctx.getString(R.string.pg_connect_protected).lowercase()
             val connected = device.wait(Until.hasObject(By.descContains(protectedText.replaceFirstChar { it.uppercase() })), 60_000)
-            assertTrue("Should reach Protected within a minute", connected)
+            assertTrue("Should reach Protected within a minute. ${screen()}", connected)
 
             val disconnect = device.wait(Until.findObject(By.desc(ctx.getString(R.string.pg_shield_disconnect))), 10_000)
-            assertNotNull("The shield should offer Disconnect", disconnect)
+            assertNotNull("The shield should offer Disconnect. ${screen()}", disconnect)
             disconnect.click()
             assertTrue(
-                "Should disconnect",
+                "Should disconnect. ${screen()}",
                 device.wait(Until.hasObject(By.desc(ctx.getString(R.string.pg_shield_connect))), 30_000)
             )
         }
