@@ -23,6 +23,9 @@
   <img src="docs/screenshots/generator-hero.png" width="30%" alt="The command line generator: Make one just for me selected with Quick chosen, and the result -d1 -r1+s, which opens 7 of 7 blocked sites at Fast speed, with a Use this command line button">
 </p>
 
+> [!NOTE]
+> **Packet Guard is not an original work.** It is a modified version of [ByeByeDPI](https://github.com/romanvht/ByeByeDPI) by romanvht, which runs the [ByeDPI](https://github.com/hufrea/byedpi) engine by hufrea. All the bypass technology comes from those projects. This project's aim is to improve the user experience: to make that technology easier to understand and use for people who aren't technical. See [What Packet Guard adds](#what-packet-guard-adds).
+
 ## Highlights
 
 - **One tap to protect.** Tap the shield and every app goes through the bypass, or only the apps you choose.
@@ -172,6 +175,27 @@ The screenshots above were rendered from the app's own Compose code with sample 
 
 ## Credits and license
 
-Packet Guard is built on [ByeByeDPI for Android](https://github.com/romanvht/ByeDPIAndroid) by romanvht and the [ByeDPI](https://github.com/hufrea/byedpi) engine by hufrea, both GPL-3.0, with [hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel) by heiher (MIT). The community profiles come from ByeByeDPI.
+### Where it comes from
 
-Packet Guard is licensed under the [GNU General Public License v3.0](ByeDPI-Guard/LICENSE).
+Packet Guard is a fork of [ByeByeDPI](https://github.com/romanvht/ByeByeDPI) (formerly ByeDPIAndroid) by romanvht. The parts that do the actual work are theirs and their upstream authors':
+
+- **The bypass engine**, [ByeDPI](https://github.com/hufrea/byedpi) (`ciadpi`) by hufrea: every technique Packet Guard uses (splitting, disorder, out-of-band data, fake packets, TLS record splits) is ByeDPI's.
+- **The Android app around it**, from ByeByeDPI: the VPN and proxy services, running the engine on the phone, the test service behind the Benchmark, split tunnelling by app, auto-start, the quick-settings tile, settings import and export, the site lists and the 60 community profiles.
+- **The VPN tunnel**, [hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel) by heiher.
+
+### What Packet Guard adds
+
+The goal is to make that technology approachable for people who don't know what DPI or a command line is. The changes are about the experience, not the bypass itself:
+
+- a new interface (Jetpack Compose) built around one-tap protection, plain words and big touch targets;
+- a Benchmark that scores each setting out of 100, recommends one with a reason, and explains what you'd gain or give up with another;
+- a command line generator that builds and tests settings for your own network and learns from earlier tests;
+- plain-language explanations of command lines, in-app updates, Live Update notifications, and translations.
+
+If you want the original app, or more control over the engine, use [ByeByeDPI](https://github.com/romanvht/ByeByeDPI) directly. Problems with the bypass techniques themselves belong to [ByeDPI](https://github.com/hufrea/byedpi); problems with Packet Guard's interface belong [here](https://github.com/S1rHades/Packet-Gaurd-1.0/issues).
+
+### Licenses
+
+Packet Guard is built on [ByeByeDPI for Android](https://github.com/romanvht/ByeByeDPI) by romanvht and the [ByeDPI](https://github.com/hufrea/byedpi) engine by hufrea, both GPL-3.0, with [hev-socks5-tunnel](https://github.com/heiher/hev-socks5-tunnel) by heiher (MIT). The community profiles come from ByeByeDPI.
+
+As a modified version of GPL-3.0 software, Packet Guard is licensed under the [GNU General Public License v3.0](ByeDPI-Guard/LICENSE), and its full source is in this repository.
