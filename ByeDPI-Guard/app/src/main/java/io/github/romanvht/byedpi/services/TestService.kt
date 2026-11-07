@@ -18,7 +18,8 @@ import androidx.core.content.edit
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.romanvht.byedpi.R
-import io.github.romanvht.byedpi.ui.ModernActivity
+import io.github.romanvht.byedpi.ui.CommandGenerator
+import io.github.romanvht.byedpi.ui.GenPhase
 import io.github.romanvht.byedpi.data.*
 import io.github.romanvht.byedpi.utility.*
 import kotlinx.coroutines.*
@@ -415,22 +416,28 @@ class TestService : Service() {
 
     private fun notification(): Notification {
         val value = state.value
-        return NotificationCompat.Builder(this, CHANNEL)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(getString(R.string.title_test))
-            .setContentText(getString(R.string.test_process, value.currentStrategy, value.strategies.size))
-            .setProgress(value.strategies.size, value.strategies.count { it.isCompleted }, value.currentStrategy == 0)
-            .setOngoing(true)
-            .setOnlyAlertOnce(true)
-            .setSilent(true)
-            .setContentIntent(PendingIntent.getActivity(this, OPEN_BENCHMARK_REQUEST,
-                Intent(this, ModernActivity::class.java)
-                    .putExtra(ModernActivity.EXTRA_OPEN_TAB, "benchmark")
-                    .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP),
-                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT))
-            .addAction(0, getString(R.string.test_stop), PendingIntent.getService(this, 0,
-                Intent(this, TestService::class.java).setAction(STOP_ACTION), PendingIntent.FLAG_IMMUTABLE))
-            .build()
+        val open = LiveNotifications.openApp(this, "benchmark", OPEN_BENCHMARK_REQUEST)
+        val stop = PendingIntent.getService(this, 0, Intent(this, TestService::class.java).setAction(STOP_ACTION), PendingIntent.FLAG_IMMUTABLE)
+        val gen = CommandGenerator.state.value
+        if (gen.running) {
+            // A command line search runs many short tests: show the whole search's progress.
+            val pct = if (gen.budget > 0) gen.done * 100 / gen.budget else 0
+            val text = when (gen.phase) {
+                GenPhase.Checking -> getString(R.string.pg_notif_gen_checking)
+                GenPhase.Verifying -> getString(R.string.pg_notif_gen_verifying, pct)
+                else -> getString(R.string.pg_notif_gen_round, gen.round.coerceAtLeast(1), gen.rounds, pct)
+            }
+            return LiveNotifications.progress(this, CHANNEL, getString(R.string.pg_notif_gen_title), text, gen.done, gen.budget, stop, open)
+        }
+        val total = value.strategies.size
+        val done = value.strategies.count { it.isCompleted }
+        val pct = if (total > 0) done * 100 / total else 0
+        return LiveNotifications.progress(
+            this, CHANNEL, getString(R.string.pg_notif_testing),
+            if (total > 0) getString(R.string.pg_notif_testing_text, value.currentStrategy.coerceAtLeast(1), total, pct)
+            else getString(R.string.pg_notif_gen_checking),
+            done, total, stop, open
+        )
     }
 
     private fun startForeground() {

@@ -73,13 +73,7 @@ class ByeDpiProxyService : Service() {
     private fun startForeground() {
         val notifications = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         notifications.cancel(PAUSE_NOTIFICATION_ID)
-        val notification: Notification = createConnectionNotification(
-            this,
-            NOTIFICATION_CHANNEL_ID,
-            R.string.notification_title,
-            R.string.proxy_notification_content,
-            Mode.Proxy,
-        )
+        val notification: Notification = LiveNotifications.connection(this, NOTIFICATION_CHANNEL_ID, Mode.Proxy, System.currentTimeMillis())
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(FOREGROUND_SERVICE_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
         } else {

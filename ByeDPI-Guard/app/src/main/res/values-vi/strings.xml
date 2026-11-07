@@ -2,10 +2,8 @@
 <resources>
     <string name="app_name">Packet Guard</string>
     <string name="toggle_connect">Bật/Tắt</string>
-    <string name="service_start_btn">Bắt đầu</string>
     <string name="service_pause_btn">Tạm dừng</string>
     <string name="service_stop_btn">Dừng</string>
-    <string name="service_paused_text">Dịch vụ tạm dừng</string>
     <string name="export_failed">Không thể xuất cài đặt</string>
     <string name="import_failed">Không thể nhập cài đặt</string>
     <string name="mode_setting">Chế độ</string>
@@ -15,15 +13,11 @@
     <string name="failed_to_start">Không thể khởi động %1$s</string>
     <string name="vpn_channel_name">VPN</string>
     <string name="proxy_channel_name">Proxy</string>
-    <string name="notification_title">Packet Guard</string>
-    <string name="vpn_notification_content">VPN đang chạy</string>
-    <string name="proxy_notification_content">Proxy đang chạy</string>
     <string name="ipv6_setting">IPv6</string>
     <string name="applist_setting">Bộ lọc ứng dụng</string>
     <string name="storage_access">Quyền truy cập bộ nhớ</string>
     <string name="title_test">Kiểm tra proxy</string>
     <string name="test_stop">Dừng kiểm tra</string>
-    <string name="test_process">Đang kiểm tra %1$d/%2$d</string>
     <string name="toast_copied">Đã sao chép</string>
     <string name="test_settings_sni">Gói giả SNI</string>
     <string name="test_settings_domain_empty">Không có tên miền để kiểm tra</string>
