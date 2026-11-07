@@ -414,6 +414,7 @@
     <string name="pg_tr_less_dep">Жиірек істемейді</string>
     <string name="pg_tr_more_dep">Жиірек жұмыс істейді</string>
     <string name="pg_tr_slower">%1$d мс баяуырақ</string>
+    <string name="pg_err_storage">Деректерді оқу не сақтау мүмкін болмады. Қайталап көріңіз.</string>
     <string name="pg_err_reset">Баптауларды қалпына келтіру мүмкін болмады</string>
     <plurals name="pg_sites">
         <item quantity="one">%d сайт</item>

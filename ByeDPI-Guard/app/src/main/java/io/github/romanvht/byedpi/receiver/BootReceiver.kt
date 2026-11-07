@@ -4,7 +4,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.net.VpnService
+import android.os.Build
 import android.os.SystemClock
+import android.provider.Settings
+import androidx.core.content.edit
 import android.util.Log
 import io.github.romanvht.byedpi.data.Mode
 import io.github.romanvht.byedpi.data.START_ACTION
@@ -18,6 +21,26 @@ import kotlinx.coroutines.launch
 class BootReceiver : BroadcastReceiver() {
     companion object {
         private const val TAG = "BootReceiver"
+        private const val PREF_LAST_BOOT = "autostart_last_boot_count"
+    }
+
+    /**
+     * Start at most once per boot. On Android 15 a force-stopped app gets BOOT_COMPLETED again
+     * when it's next opened, and on Android 10+ it only arrives after the first unlock, which can
+     * be hours after boot. Android 7+ counts boots, so remember which boot was handled; older
+     * versions fall back to "within 5 minutes of boot".
+     */
+    private fun firstTimeThisBoot(context: Context): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            return SystemClock.elapsedRealtime() <= 5 * 60 * 1000
+        }
+        val boot = runCatching {
+            Settings.Global.getInt(context.contentResolver, Settings.Global.BOOT_COUNT)
+        }.getOrNull() ?: return SystemClock.elapsedRealtime() <= 5 * 60 * 1000
+        val prefs = context.getPreferences()
+        if (prefs.getString(PREF_LAST_BOOT, null) == boot.toString()) return false
+        prefs.edit { putString(PREF_LAST_BOOT, boot.toString()) }
+        return true
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -25,12 +48,9 @@ class BootReceiver : BroadcastReceiver() {
             intent.action == Intent.ACTION_REBOOT ||
             intent.action == "android.intent.action.QUICKBOOT_POWERON") {
 
-            // for A15, todo: use wasForceStopped
-            if (SystemClock.elapsedRealtime() > 5 * 60 * 1000) {
-                return
-            }
-
             val preferences = context.getPreferences()
+            if (!firstTimeThisBoot(context)) return
+
             val autorunEnabled = preferences.getBoolean("autostart", false)
 
             if(autorunEnabled) {

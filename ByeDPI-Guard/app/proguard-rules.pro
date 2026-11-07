@@ -14,6 +14,11 @@
     <fields>;
 }
 
+# Saved as JSON in preferences (the command line generator's last result): keep the field
+# names, or a later release with a different mapping can't read them back.
+-keep,allowoptimization class io.github.romanvht.byedpi.ui.GenResult { <fields>; }
+-keep,allowoptimization class io.github.romanvht.byedpi.ui.GenAlternative { <fields>; }
+
 -keepattributes Signature
 -keepattributes *Annotation*
 

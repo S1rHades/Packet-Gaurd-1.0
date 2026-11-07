@@ -16,6 +16,8 @@ import io.github.romanvht.byedpi.utility.getCmdArgs
 import io.github.romanvht.byedpi.utility.getCmdEnable
 import io.github.romanvht.byedpi.utility.getPreferences
 import io.github.romanvht.byedpi.utility.getStringNotNull
+import android.util.Log
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -145,7 +147,7 @@ class BenchmarkViewModel(app: Application) : AndroidViewModel(app) {
 
     fun reload() {
         viewModelScope.launch {
-            val (lists, profiles) = withContext(Dispatchers.IO) {
+            val (lists, profiles) = guarded { withContext(Dispatchers.IO) {
                 DomainListUtils.syncLists(ctx)
                 val lists = orderLists(
                     DomainListUtils.getLists(ctx).map { ListItemUi(it.id, it.name, it.domains, it.isActive, it.isBuiltIn) },
@@ -161,7 +163,7 @@ class BenchmarkViewModel(app: Application) : AndroidViewModel(app) {
                         community.mapIndexed { i, c -> ProfileItem(c, ctx.getString(R.string.pg_community_n, i + 1), ProfilePack.Community) } +
                         custom.map { ProfileItem(it.second, it.first, ProfilePack.Custom) }
                     )
-            }
+            } } ?: return@launch
             local.update { old ->
                 val all = profiles.map { it.command }.toSet()
                 val saved = prefs.getStringSet(PREF_SELECTED, null)
@@ -199,9 +201,20 @@ class BenchmarkViewModel(app: Application) : AndroidViewModel(app) {
 
     private fun io(block: suspend () -> Unit) {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) { block() }
+            guarded { withContext(Dispatchers.IO) { block() } }
             reload()
         }
+    }
+
+    /** Runs [block], turning a storage failure into a message instead of a crash. */
+    private suspend fun <T> guarded(block: suspend () -> T): T? = try {
+        block()
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Log.e("BenchmarkViewModel", "Storage failure", e)
+        say(ctx.getString(R.string.pg_err_storage))
+        null
     }
 
     // ---- profiles -----------------------------------------------------------------------
@@ -257,7 +270,7 @@ class BenchmarkViewModel(app: Application) : AndroidViewModel(app) {
         // Show "In use" at once; the app's snackbar then says what happened, with Undo.
         local.update { it.copy(applied = resolvedCommand) }
         viewModelScope.launch {
-            withContext(Dispatchers.IO) { StrategyApplier.apply(ctx, resolvedCommand, label) }
+            guarded { withContext(Dispatchers.IO) { StrategyApplier.apply(ctx, resolvedCommand, label) } }
         }
     }
 

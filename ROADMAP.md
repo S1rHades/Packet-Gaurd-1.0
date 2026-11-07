@@ -52,6 +52,17 @@ permissions), then 4 (so later work can't quietly break screens), then 2, then 5
 - Scanning it on another phone shows the plain-language explanation and an **Add** button.
 - Import accepts only known engine options.
 
+## Known issues (bugs to fix next, not features)
+
+- **Generator in the background (Android 12+).** Each round of "Make one just for me" stops the
+  test service and starts it again. If you leave the app during a long search, Android may
+  refuse the restart and the search ends with "The test could not start". Fix: keep one test
+  service in the foreground for the whole search. It changes how every test runs, so it needs
+  testing on a phone first.
+- **Always-on VPN at boot (Android 13 and older).** The engine waits 10 s for its settings from
+  the main app; 3.0.1 gives that message priority, but a busy boot could still exceed it. Fix:
+  let the engine read its settings itself as a fallback.
+
 ## Smaller ideas
 
 - Test the combined "Use the best for each group" command line automatically after building

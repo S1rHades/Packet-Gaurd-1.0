@@ -414,6 +414,7 @@
     <string name="pg_tr_less_dep">Fails more often</string>
     <string name="pg_tr_more_dep">Works more often</string>
     <string name="pg_tr_slower">%1$d ms slower</string>
+    <string name="pg_err_storage">Couldn\'t read or save your data. Try again.</string>
     <string name="pg_err_reset">Couldn\'t reset settings</string>
     <plurals name="pg_sites">
         <item quantity="one">%d site</item>

@@ -6,6 +6,25 @@ from 2.5.0 on (**Settings → About → Updates**); earlier versions are install
 
 The first lines under each version are what the app shows as "What's new", so keep them short.
 
+## 3.0.1 (November 2026)
+
+- Fixes that could lose your own site lists or crash the app after importing settings
+- Auto-start now works when you unlock the phone long after it restarted
+- An update you started now shows Android's install screen when you come back to the app
+- Custom DNS and IP addresses are checked properly on Android 5 to 9
+
+The rest, in more detail. This is a stability release with no new features:
+
+- **Site lists.** Opening the app while connected could make two parts of the app rewrite the lists file at once and leave only the built-in lists. The file is now written safely and one change at a time, and a file that can't be read is never replaced.
+- **Importing settings.** A hand-edited backup, or one from another version, could store a value of the wrong type (a number where text was expected, "true" as text) and crash the app at every start until its data was cleared. Each value is now checked and anything unexpected is skipped. Broken site lists and saved commands in a backup are repaired or dropped.
+- **Only selected apps** with no app selected (or only uninstalled ones) no longer sends Packet Guard's own traffic into its tunnel.
+- **Updates.** If you left the app while an update downloaded, Android blocked the install screen and the update stayed on "Installing". It now opens when you return.
+- **Auto-start.** On Android 10 and later the start-up signal only arrives after the first unlock, so a phone unlocked more than 5 minutes after restarting didn't start protection. It now starts once per boot, whenever that is.
+- **Command line generator.** Its last result is saved in a form future versions can read. Results saved by 3.0.0 can't be read back and are cleared once.
+- **Settings → About → Export** no longer says "exported" when it failed.
+- Smaller fixes: the test notification no longer changes where the VPN notification opens; the VPN start signal gets priority at boot; Android 15's background time limit for tests is handled; phones without a VPN consent screen show a message instead of crashing; other apps can't change the proxy's address or port through the shortcut activity; and an error message that was only in English is translated.
+- Store listing, screenshots and a privacy policy ([PRIVACY.md](PRIVACY.md)) now describe Packet Guard itself.
+
 ## 3.0.0 (November 2026)
 
 - Benchmark results now give one recommendation, with a reason and one button

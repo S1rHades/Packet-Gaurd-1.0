@@ -414,6 +414,7 @@
     <string name="pg_tr_less_dep">Lỗi thường hơn</string>
     <string name="pg_tr_more_dep">Ổn định hơn</string>
     <string name="pg_tr_slower">chậm hơn %1$d ms</string>
+    <string name="pg_err_storage">Không thể đọc hoặc lưu dữ liệu. Hãy thử lại.</string>
     <string name="pg_err_reset">Không thể đặt lại cài đặt</string>
     <plurals name="pg_sites">
         <item quantity="other">%d trang</item>

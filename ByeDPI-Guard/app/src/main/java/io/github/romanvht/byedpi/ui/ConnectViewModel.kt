@@ -102,7 +102,7 @@ class ConnectViewModel(app: Application) : AndroidViewModel(app) {
             addAction(FAILED_BROADCAST)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            appCtx.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED)
+            appCtx.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
         } else {
             @Suppress("UnspecifiedRegisterReceiverFlag")
             appCtx.registerReceiver(receiver, filter)
@@ -201,7 +201,8 @@ class ConnectViewModel(app: Application) : AndroidViewModel(app) {
         samples.clear()
         _metrics.value = LiveMetrics()
         healthJob = viewModelScope.launch {
-            withContext(Dispatchers.IO) { DomainListUtils.syncLists(appCtx) }
+            // A failed sync only means the latency check uses the lists as they were.
+            withContext(Dispatchers.IO) { runCatching { DomainListUtils.syncLists(appCtx) } }
             delay(1_500) // let the proxy settle
             while (isActive) {
                 probeOnce()

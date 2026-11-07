@@ -131,7 +131,7 @@ class ByeDpiProxyUIPreferences(val settings: UISettings = UISettings()) : ByeDpi
             }
 
             if (settings.desyncMethod == UISettings.DesyncMethod.OOB || settings.desyncMethod == UISettings.DesyncMethod.DISOOB) {
-                args.add("-e${settings.oobChar[0].code.toByte()}")
+                args.add("-e${(settings.oobChar.firstOrNull() ?: 'a').code.toByte()}")
             }
 
             val modHttpFlags = buildList {

@@ -138,13 +138,19 @@ class ByeDpiVpnService : VpnService() {
             }
 
             "whitelist" -> {
+                var added = 0
                 for (packageName in configuration.apps) {
                     try {
                         builder.addAllowedApplication(packageName)
+                        added++
                     } catch (e: Exception) {
                         Log.e(TAG, "Не удалось добавить приложение $packageName в белый список", e)
                     }
                 }
+                // With no allowed app (none chosen, or all uninstalled) Android routes every
+                // app through the VPN, Packet Guard included, and the engine's own connections
+                // would loop back into the tunnel. Keep our own traffic out in that case.
+                if (added == 0) builder.addDisallowedApplication(applicationContext.packageName)
             }
 
             "disable" -> {
@@ -156,8 +162,11 @@ class ByeDpiVpnService : VpnService() {
     }
 
     private fun sendControl(action: String) {
+        // Foreground priority: at boot the background broadcast queue can be busy for longer
+        // than the engine waits for its configuration.
         sendBroadcast(Intent(this, ServiceActionReceiver::class.java)
             .setAction(action)
+            .addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
             .putExtra("pid", Process.myPid())
             .putExtra(ServiceActionReceiver.EXTRA_MODE, Mode.VPN.name))
     }

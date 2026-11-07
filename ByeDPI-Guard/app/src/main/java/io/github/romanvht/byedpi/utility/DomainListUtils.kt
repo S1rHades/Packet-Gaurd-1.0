@@ -3,9 +3,15 @@ package io.github.romanvht.byedpi.utility
 import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import android.util.AtomicFile
 import io.github.romanvht.byedpi.data.DomainList
 import java.io.File
 
+/**
+ * The site lists, kept in one JSON file. Every public function is @Synchronized for its
+ * whole read-change-write, because the Connect and Benchmark screens and the test service sync the
+ * lists at the same time; writes go through [AtomicFile] so a reader never sees a half-written file.
+ */
 object DomainListUtils {
     private const val DOMAIN_LISTS_FILE = "domain_lists.json"
 
@@ -16,8 +22,11 @@ object DomainListUtils {
         else -> setOf("youtube", "googlevideo", "social")
     }
 
+    @Synchronized
     fun syncLists(context: Context) {
-        val currentLists = getAllLists(context).toMutableList()
+        // A file that exists but can't be read is left alone rather than replaced by the
+        // built-in lists, which would throw away the user's own lists.
+        val currentLists = readLists(context)?.toMutableList() ?: return
 
         val builtInMap = currentLists
             .filter { it.isBuiltIn }
@@ -82,21 +91,36 @@ object DomainListUtils {
         saveLists(context, currentLists)
     }
 
-    fun getAllLists(context: Context): MutableList<DomainList> {
+    @Synchronized
+    fun getAllLists(context: Context): MutableList<DomainList> =
+        readLists(context)?.toMutableList() ?: mutableListOf()
+
+    /** The stored lists; empty when there is no file yet, null when the file can't be read. */
+    private fun readLists(context: Context): List<DomainList>? {
         val listsFile = File(context.filesDir, DOMAIN_LISTS_FILE)
-
-        if (!listsFile.exists()) {
-            return mutableListOf()
-        }
-
+        // AtomicFile keeps a .bak while it writes; if that's all there is, it restores from it.
+        if (!listsFile.exists() && !File(listsFile.path + ".bak").exists()) return emptyList()
         return try {
-            val json = listsFile.readText()
-            val type = object : TypeToken<List<DomainList>>() {}.type
-            val lists: List<DomainList> = gson.fromJson(json, type) ?: emptyList()
-            lists.toMutableList()
+            val json = String(AtomicFile(listsFile).readFully(), Charsets.UTF_8)
+            val type = object : TypeToken<List<DomainList?>>() {}.type
+            val lists: List<DomainList?> = gson.fromJson(json, type) ?: emptyList()
+            sanitize(lists)
         } catch (e: Exception) {
-            mutableListOf()
+            null
         }
+    }
+
+    /**
+     * Gson ignores Kotlin's non-null types, so a damaged file or an imported backup can hold
+     * lists with a missing id, name or domains. Drop those without an id and fill in the rest.
+     */
+    @Suppress("SENSELESS_COMPARISON", "USELESS_ELVIS")
+    internal fun sanitize(lists: List<DomainList?>): List<DomainList> = lists.mapNotNull { l ->
+        if (l == null || l.id == null || l.id.isBlank()) return@mapNotNull null
+        val domains = (l.domains ?: emptyList()).filter { it != null && it.isNotBlank() }
+        if (l.name == null || l.domains == null || domains.size != l.domains.size) {
+            l.copy(name = l.name ?: l.id, domains = domains)
+        } else l
     }
 
     fun getLists(context: Context): List<DomainList> {
@@ -107,12 +131,20 @@ object DomainListUtils {
         return getLists(context).filter { it.isActive }.flatMap { it.domains }.distinct()
     }
 
-    fun saveLists(context: Context, lists: List<DomainList>) {
-        val listsFile = File(context.filesDir, DOMAIN_LISTS_FILE)
-        val json = gson.toJson(lists)
-        listsFile.writeText(json)
+    @Synchronized
+    fun saveLists(context: Context, lists: List<DomainList?>) {
+        val file = AtomicFile(File(context.filesDir, DOMAIN_LISTS_FILE))
+        val out = file.startWrite()
+        try {
+            out.write(gson.toJson(sanitize(lists)).toByteArray(Charsets.UTF_8))
+            file.finishWrite(out)
+        } catch (e: Exception) {
+            file.failWrite(out)
+            throw e
+        }
     }
 
+    @Synchronized
     fun addList(context: Context, name: String, domains: List<String>): Boolean {
         val lists = getAllLists(context).toMutableList()
         val id = name.lowercase().replace(" ", "_")
@@ -152,6 +184,7 @@ object DomainListUtils {
         return true
     }
 
+    @Synchronized
     fun updateList(context: Context, id: String, name: String, domains: List<String>): Boolean {
         val lists = getAllLists(context).toMutableList()
         val index = lists.indexOfFirst { it.id == id }
@@ -170,6 +203,7 @@ object DomainListUtils {
         return true
     }
 
+    @Synchronized
     fun toggleListActive(context: Context, id: String): Boolean {
         val lists = getAllLists(context).toMutableList()
         val index = lists.indexOfFirst { it.id == id }
@@ -183,6 +217,7 @@ object DomainListUtils {
         return true
     }
 
+    @Synchronized
     fun deleteList(context: Context, id: String): Boolean {
         val lists = getAllLists(context).toMutableList()
         val index = lists.indexOfFirst { it.id == id }
@@ -204,13 +239,9 @@ object DomainListUtils {
         return true
     }
 
+    @Synchronized
     fun resetLists(context: Context) {
-        val file = File(context.filesDir, DOMAIN_LISTS_FILE)
-
-        if (file.exists()) {
-            file.delete()
-        }
-
+        AtomicFile(File(context.filesDir, DOMAIN_LISTS_FILE)).delete()
         syncLists(context)
     }
 }

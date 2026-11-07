@@ -85,8 +85,7 @@ fun AboutSettings(onMessage: (String) -> Unit) {
 
     val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri != null) {
-            SettingsUtils.exportSettings(ctx, uri, exportSections)
-            onMessage(ctx.getString(R.string.pg_settings_exported))
+            if (SettingsUtils.exportSettings(ctx, uri, exportSections)) onMessage(ctx.getString(R.string.pg_settings_exported))
         }
     }
     val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->

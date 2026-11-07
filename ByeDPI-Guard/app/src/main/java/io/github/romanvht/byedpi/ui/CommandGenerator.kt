@@ -104,9 +104,17 @@ object CommandGenerator {
     fun load(ctx: Context) {
         if (isRunning || mutable.value.result != null) return
         val json = ctx.getPreferences().getString(PREF_RESULT, null) ?: return
-        runCatching { gson.fromJson(json, GenResult::class.java) }.getOrNull()?.let { saved ->
-            mutable.value = GenState(phase = GenPhase.Done, result = saved)
+        // Gson skips Kotlin's defaults and null checks, and results saved by 3.0.0 and older
+        // used field names R8 had renamed: drop anything that didn't read back as a real result.
+        @Suppress("SENSELESS_COMPARISON", "USELESS_ELVIS")
+        val saved = runCatching { gson.fromJson(json, GenResult::class.java) }.getOrNull()
+            ?.takeIf { it.tested > 0 && it.totalSites > 0 }
+            ?.let { r -> r.copy(alternatives = (r.alternatives ?: emptyList()).filter { it != null && it.command != null }) }
+        if (saved == null) {
+            ctx.getPreferences().edit { remove(PREF_RESULT) }
+            return
         }
+        mutable.value = GenState(phase = GenPhase.Done, result = saved)
     }
 
     /** Forgets the last result, e.g. when a regular benchmark starts. */

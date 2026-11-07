@@ -15,9 +15,11 @@ import io.github.romanvht.byedpi.data.STOP_ACTION
 import io.github.romanvht.byedpi.receiver.ServiceActionReceiver
 import io.github.romanvht.byedpi.services.ServiceManager
 import io.github.romanvht.byedpi.services.appStatus
+import io.github.romanvht.byedpi.utility.checkIpAndPortInArgs
 import io.github.romanvht.byedpi.utility.getCmdArgs
 import io.github.romanvht.byedpi.utility.getPreferences
 import io.github.romanvht.byedpi.utility.mode
+import io.github.romanvht.byedpi.utility.shellSplit
 
 class ToggleActivity : Activity() {
 
@@ -117,6 +119,12 @@ class ToggleActivity : Activity() {
 
     private fun updateStrategy(strategy: String?): Boolean {
         val current = prefs.getCmdArgs()
+        // Any app can start this activity, so it may not move the proxy's address or port
+        // (e.g. --ip 0.0.0.0 would open the proxy to the whole local network).
+        if (strategy != null && shellSplit(strategy).checkIpAndPortInArgs() != Pair(null, null)) {
+            Log.w(TAG, "Ignored a strategy that sets the proxy address or port")
+            return false
+        }
         if (strategy != null && strategy != current) {
             prefs.edit(commit = true) { putString("byedpi_cmd_args", strategy) }
             Log.i(TAG, "Strategy updated to: $strategy")

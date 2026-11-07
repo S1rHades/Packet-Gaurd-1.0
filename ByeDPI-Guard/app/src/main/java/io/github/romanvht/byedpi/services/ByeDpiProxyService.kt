@@ -88,8 +88,11 @@ class ByeDpiProxyService : Service() {
     }
 
     private fun sendControl(action: String) {
+        // Foreground priority: at boot the background broadcast queue can be busy for longer
+        // than the engine waits for its configuration.
         sendBroadcast(Intent(this, ServiceActionReceiver::class.java)
             .setAction(action)
+            .addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
             .putExtra("pid", Process.myPid())
             .putExtra(ServiceActionReceiver.EXTRA_MODE, Mode.Proxy.name))
     }
