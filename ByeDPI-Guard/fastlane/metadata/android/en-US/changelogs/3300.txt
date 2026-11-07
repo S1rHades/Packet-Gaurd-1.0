@@ -1,0 +1,4 @@
+- Benchmark is now two cards: the answer first, then the test
+- Recommended for you also holds the other goals, site groups and the combined line
+- The test card holds the sites, the command lines it tests and the Test button
+- Make one just for me sits under the Test button

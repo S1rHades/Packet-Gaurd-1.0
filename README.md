@@ -43,30 +43,31 @@ It can also connect by itself when the app opens or when the phone starts (**Set
 
 ### Benchmark: find the best setting
 
-Switch on the site lists you care about (YouTube, Discord, social networks, news and more; each is a big tile), choose ready-made profiles or **Make one just for me**, and tap **Start test**. A large percentage, "Trying profile 4 of 8" and the minutes left show how far it has got; protection pauses while it runs.
-
-When it finishes, the answer comes first and the setup folds into one line, "Tested YouTube, Discord · Test again".
+The page has two cards. The answer comes first; under it is the test.
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/benchmark.png" alt="Recommended for you: TLS record split (SNI), score 88, opens 9 of 12 sites, Fast 96 ms, worked every time, with the reason, bars for sites, success and speed, what the command line does, and a Use this setting button"><br><sub><b>Recommended for you</b>: one setting, its score and why.</sub></td>
-    <td width="50%"><img src="docs/screenshots/dashboard.png" alt="Each group has its own best setting, with a Use the best for each group button, and Care about something else: Fastest is Disorder @1, score 83, 1 fewer site and 22 ms faster than the recommended one"><br><sub><b>Choose by goal</b>: what you gain and give up.</sub></td>
+    <td width="33%"><img src="docs/screenshots/benchmark.png" alt="Recommended for you: TLS record split (SNI), score 88, opens 9 of 12 sites, Fast 96 ms, worked every time, with the reason, bars for sites, success and speed, what the command line does, and a Use this setting button"><br><sub><b>Recommended for you</b>: one setting, its score and why.</sub></td>
+    <td width="33%"><img src="docs/screenshots/dashboard.png" alt="Lower in the same card: Care about something else with Fastest chosen (Disorder @1, score 79, 2 fewer sites and 34 ms faster), By site group (YouTube opens all, Discord 1 of 4) and Each group has its own best setting"><br><sub>In the same card: <b>other goals</b>, <b>site groups</b> and one line for all groups.</sub></td>
+    <td width="33%"><img src="docs/screenshots/benchmark-test.png" alt="The test card: Sites to open as tiles (YouTube and Discord on, Social off), Command lines to test, 9 selected, with Choose, a Test again button, and under it Make one just for me with Quick or Thorough and a Make my command line button"><br><sub><b>The test</b>: sites, command lines, Test, and the generator under it.</sub></td>
   </tr>
 </table>
 
-- **A score for every command line**, out of 100: sites opened count for half, how often it worked for 30% and speed for 20%. Bars show the three parts, so the number always makes sense.
-- **Recommended for you**: the best score among the settings nothing else beats, with the reason in one sentence ("it's the only one that opens every site") and one button.
-- **Care about something else?** **Fastest**, **Most reliable** and **For YouTube** (or any list) each show the setting for that goal and what you'd gain or give up compared with the recommended one, such as "22 ms faster" in green and "1 fewer site" in red. If the recommended one is already the best for that goal, it says so.
-- **Use the best for each group**: when two lists each prefer a different setting, one tap builds a command line that uses each where it works best.
-- **By site group** shows how the recommended setting does on each list, and **All results** lists every setting by score.
+**Recommended for you** holds everything about the answer:
 
-**Advanced options**, closed at first, holds the rest: which profiles to test (9 basic ones, 60 from the ByeByeDPI community, and your own), editing the site lists, and the best profile for each single site.
+- **A score for every command line**, out of 100: sites opened count for half, how often it worked for 30% and speed for 20%. Bars show the three parts, so the number always makes sense.
+- **The recommendation**: the best score among the settings nothing else beats, with the reason in one sentence ("it's the only one that opens every site") and one button.
+- **Care about something else?** **Fastest**, **Most reliable** and **For YouTube** (or any list) each show the setting for that goal and what you'd gain or give up compared with the recommended one, such as "22 ms faster" in green and "1 fewer site" in red. If the recommended one is already the best for that goal, it says so.
+- **By site group** shows how the recommended setting does on each list.
+- **Use the best for each group**: when two lists each prefer a different setting, one tap builds a command line that uses each where it works best.
+
+**The test card** holds everything about testing: the site lists as big tiles (YouTube, Discord, social networks, news and more), **Command lines to test** (9 basic ones, 60 from the ByeByeDPI community and your own; tap **Choose** to pick), and the **Test** button. A large percentage, "Trying profile 4 of 8" and the minutes left show how far it has got; protection pauses while it runs. Under it, in the same card, is **Make one just for me** (below). **All results** lists every setting by score, and **Advanced options** holds editing the site lists and the best setting for each single site.
 
 ### Make one just for me
 
 <img src="docs/screenshots/generator.png" align="right" width="38%" alt="Make one just for me: the result -d1 -r1+s opens 7 of 7 blocked sites, Speed Fast, with a Use this command line button and two other command lines that also worked">
 
-In step 2, choose **Make one just for me** instead of the ready-made profiles, then **Quick** (about 3 minutes) or **Thorough** (about 10). Packet Guard then writes its own command line, and explains each part of it in plain words:
+Under the **Test** button, choose **Quick** (about 3 minutes) or **Thorough** (about 10) and tap **Make my command line**. Packet Guard then writes its own command line, and explains each part of it in plain words:
 
 1. **Which sites are blocked?** It checks your sites with no bypass at all, and only searches for the ones your provider actually blocks. If none are blocked, it says so.
 2. **What this phone already knows.** Every command line tested here before (in any Benchmark, including the 60 community lines, and in earlier searches) is remembered site by site. The search starts from that: those results already count towards what works, and the three best earlier lines for your blocked sites are tested again in the first round, exactly as written. Newer results count more; a result loses half its weight every two weeks.
