@@ -64,9 +64,15 @@ class HistoryUtils(context: Context) {
 
     fun getHistory(): List<Command> {
         val historyJson = sharedPreferences.getString(historyKey, null)
-        return if (historyJson != null) {
-            Gson().fromJson(historyJson, Array<Command>::class.java).toList()
-        } else {
+        if (historyJson == null) return emptyList()
+        // A damaged or hand-edited backup can hold nulls or commands without text.
+        @Suppress("SENSELESS_COMPARISON")
+        return try {
+            Gson().fromJson(historyJson, Array<Command?>::class.java)
+                ?.filter { it != null && it.text != null }
+                ?.map { it!! }
+                ?: emptyList()
+        } catch (e: Exception) {
             emptyList()
         }
     }

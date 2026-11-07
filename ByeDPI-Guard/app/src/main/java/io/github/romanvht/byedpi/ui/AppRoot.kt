@@ -159,7 +159,11 @@ fun AppRoot(requestedTab: Tab? = null, onTabRequestHandled: () -> Unit = {}) {
                 TestService.isRunning || CommandGenerator.isRunning -> say(ctx.getString(R.string.pg_benchmark_running))
                 else -> {
                     val consent = if (ctx.getPreferences().mode() == Mode.VPN) VpnService.prepare(ctx) else null
-                    if (consent != null) vpnPermission.launch(consent) else connectVm.connect()
+                    when {
+                        consent == null -> connectVm.connect()
+                        // Some Android TV and OEM builds have no VPN consent screen.
+                        runCatching { vpnPermission.launch(consent) }.isFailure -> say(ctx.getString(R.string.pg_err_engine_start))
+                    }
                 }
             }
         }

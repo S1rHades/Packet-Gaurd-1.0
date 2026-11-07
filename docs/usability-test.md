@@ -36,7 +36,3 @@ Ask:
 ## Scoring
 
 For each task: **done alone**, **done with a hint**, or **not done**. If a task gets two or more "not done" or "hint" marks across the five testers, it is a problem to fix in the next release. Write it up as an issue with the tester's own words.
-
-## Reference
-
-Nielsen, J. and Landauer, T.K. (1993) 'A mathematical model of the finding of usability problems', in *Proceedings of INTERCHI '93*. New York: ACM, pp. 206–213.

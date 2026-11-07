@@ -414,6 +414,8 @@
     <string name="pg_tr_less_dep">Чаще сбоит</string>
     <string name="pg_tr_more_dep">Работает надёжнее</string>
     <string name="pg_tr_slower">на %1$d мс медленнее</string>
+    <string name="pg_err_storage">Не удалось прочитать или сохранить данные. Попробуйте ещё раз.</string>
+    <string name="pg_err_reset">Не удалось сбросить настройки</string>
     <plurals name="pg_sites">
         <item quantity="one">%d сайт</item>
         <item quantity="few">%d сайта</item>

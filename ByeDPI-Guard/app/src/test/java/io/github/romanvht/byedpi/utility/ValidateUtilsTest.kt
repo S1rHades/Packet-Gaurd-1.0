@@ -4,7 +4,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** checkIp/checkNotLocalIp call into android.net and are left to on-device testing. */
+/** checkIp/checkNotLocalIp call into android.net on Android 10+; older versions use [parseNumericIp]. */
 class ValidateUtilsTest {
 
     @Test
@@ -26,5 +26,13 @@ class ValidateUtilsTest {
     fun domain_rejectsMalformedNames() {
         listOf("", "localhost", ".example.com", "example.com.", "a".repeat(250) + ".com")
             .forEach { assertFalse(it, checkDomain(it)) }
+    }
+
+    @Test
+    fun numericIp_acceptsAddressesWithoutLookingNamesUp() {
+        listOf("1.1.1.1", "127.0.0.1", "255.255.255.255", "::1", "2606:4700:4700::1111", "::ffff:1.2.3.4")
+            .forEach { assertTrue(it, parseNumericIp(it) != null) }
+        listOf("", "dns.google", "1.1.1", "256.1.1.1", "01.1.1.1", "1.1.1.1.1", "1:2:3", "abc", "1.1.1.1 ")
+            .forEach { assertFalse(it, parseNumericIp(it) != null) }
     }
 }

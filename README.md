@@ -128,6 +128,8 @@ Packet Guard has no server of its own and collects nothing. It connects to:
 - the sites in your switched-on lists, during a Benchmark and for the Connect screen's latency check (up to three of them every 20 seconds while connected);
 - GitHub, to check for updates (switch off under **Settings → About → Updates**).
 
+The full [privacy policy](PRIVACY.md) also covers what's stored on the phone and why each permission is needed.
+
 ## Development
 
 ```
@@ -157,6 +159,8 @@ The Kotlin package stays `io.github.romanvht.byedpi` because the native JNI symb
 **Releases.** [`.github/workflows/build-apk.yml`](.github/workflows/build-apk.yml) runs the tests and lint on every push and pull request and keeps the APKs as a build artifact. On `main`, a new `versionName` in `app/build.gradle.kts` publishes a signed release, tagged `v<version>`, with `PacketGuard.apk`, `PacketGuard-v<version>-universal.apk` and per-processor builds. Its description is that version's section of [CHANGELOG.md](CHANGELOG.md), and the app shows the first bullet points as "What's new".
 
 **Signing.** Release APKs are signed with a key stored in four repository secrets: `KEYSTORE_BASE64` (the keystore, `base64 -w0 release.jks`), `KEYSTORE_PASSWORD`, `KEY_ALIAS` and `KEY_PASSWORD`. Without them the workflow builds debug APKs and publishes nothing. Keep a backup of the keystore: without the same key, users would have to uninstall to update. To sign locally, set `PG_KEYSTORE_FILE`, `PG_KEYSTORE_PASSWORD`, `PG_KEY_ALIAS` and `PG_KEY_PASSWORD` and run `./gradlew assembleRelease`.
+
+**Roadmap.** Planned features and known issues are in [ROADMAP.md](ROADMAP.md).
 
 The screenshots above were rendered from the app's own Compose code with sample results.
 

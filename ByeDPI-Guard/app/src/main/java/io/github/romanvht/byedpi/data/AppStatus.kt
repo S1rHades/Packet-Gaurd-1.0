@@ -18,7 +18,7 @@ enum class Mode {
         fun fromString(name: String): Mode = when (name) {
             "proxy" -> Proxy
             "vpn" -> VPN
-            else -> throw IllegalArgumentException("Invalid mode: $name")
+            else -> VPN
         }
     }
 }

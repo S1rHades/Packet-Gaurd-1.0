@@ -205,7 +205,14 @@ class InstallResultReceiver : BroadcastReceiver() {
             PackageInstaller.STATUS_PENDING_USER_ACTION -> {
                 @Suppress("DEPRECATION")
                 val confirm = intent.getParcelableExtra<Intent>(Intent.EXTRA_INTENT) ?: return
-                runCatching { context.startActivity(confirm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                confirm.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                // Android 10+ silently blocks activity starts from the background, so when the
+                // user has left the app during the download, show it once they come back.
+                if (!AppUpdates.inForeground) {
+                    AppUpdates.pendingConfirm = confirm
+                    return
+                }
+                runCatching { context.startActivity(confirm) }
                     .onFailure { AppUpdates.installFailed(UpdateProblem.Install) }
             }
             PackageInstaller.STATUS_SUCCESS -> Unit // the app restarts as the new version
@@ -234,6 +241,20 @@ object AppUpdates {
     private const val CHECK_EVERY_MS = 6 * 60 * 60 * 1000L
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
+    /** Whether the app's screen is showing; set by the activity. */
+    @Volatile var inForeground = false
+
+    /** Android's install confirmation, waiting for the app to come back to the foreground. */
+    @Volatile var pendingConfirm: Intent? = null
+
+    /** Called when the app's screen comes back: shows a waiting install confirmation. */
+    fun onAppResumed(ctx: Context) {
+        inForeground = true
+        val confirm = pendingConfirm ?: return
+        pendingConfirm = null
+        runCatching { ctx.startActivity(confirm) }.onFailure { installFailed(UpdateProblem.Install) }
+    }
     private val mutable = MutableStateFlow(UpdateState())
     val state: StateFlow<UpdateState> = mutable.asStateFlow()
     private var loop: Job? = null

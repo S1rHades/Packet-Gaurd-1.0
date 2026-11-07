@@ -42,7 +42,7 @@ data class UISettings(
                 "fake" -> Fake
                 "oob" -> OOB
                 "disoob" -> DISOOB
-                else -> throw IllegalArgumentException("Unknown desync method: $name")
+                else -> OOB
             }
         }
     }
@@ -55,7 +55,7 @@ data class UISettings(
                 "disable" -> Disable
                 "blacklist" -> Blacklist
                 "whitelist" -> Whitelist
-                else -> throw IllegalArgumentException("Unknown hosts mode: $name")
+                else -> Disable
             }
         }
     }

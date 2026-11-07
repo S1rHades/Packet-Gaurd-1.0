@@ -38,6 +38,8 @@ class TestService : Service() {
         private const val CHANNEL = "Proxy test"
         private const val RESULTS_FILE = "proxy_test_results.json"
         private const val NOTIFICATION_ID = 4
+        /** Its own request code, so this tap intent (which opens Benchmark) isn't shared with the VPN notification's. */
+        private const val OPEN_BENCHMARK_REQUEST = 4
 
         /** When set (one domain per line), a run tests these sites instead of the active link lists. */
         const val SITES_OVERRIDE_PREF = "bb_test_sites_override"
@@ -121,6 +123,16 @@ class TestService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
+
+    // Android 15 limits dataSync services to 6 hours a day and crashes the app unless the
+    // service stops within seconds of this call. A test never runs that long, but stop anyway.
+    override fun onTimeout(startId: Int, fgsType: Int) {
+        Log.w(TAG, "Foreground service time limit reached; stopping the test")
+        stop()
+        @Suppress("DEPRECATION")
+        stopForeground(true)
+        stopSelf()
+    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         lastStartId = startId
@@ -409,7 +421,7 @@ class TestService : Service() {
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setSilent(true)
-            .setContentIntent(PendingIntent.getActivity(this, 0,
+            .setContentIntent(PendingIntent.getActivity(this, OPEN_BENCHMARK_REQUEST,
                 Intent(this, ModernActivity::class.java)
                     .putExtra(ModernActivity.EXTRA_OPEN_TAB, "benchmark")
                     .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP),

@@ -1,0 +1,4 @@
+- Benchmark results now give one recommendation, with a reason and one button
+- Every command line gets a score out of 100 for sites, success and speed
+- Choose the fastest or most reliable instead and see what you gain and give up
+- "Use the best for each group" combines settings that suit different lists

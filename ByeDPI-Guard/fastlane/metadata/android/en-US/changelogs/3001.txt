@@ -1,0 +1,5 @@
+Stability release:
+- Fixes that could lose your own site lists or crash the app after importing settings
+- Auto-start works when you unlock long after a restart
+- Updates show Android's install screen when you return to the app
+- Custom DNS and IP addresses are checked properly on Android 5 to 9

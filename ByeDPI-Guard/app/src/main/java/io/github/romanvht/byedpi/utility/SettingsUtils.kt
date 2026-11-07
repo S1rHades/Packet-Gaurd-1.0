@@ -17,7 +17,7 @@ import java.io.File
 
 object SettingsUtils {
     private const val TAG = "SettingsUtils"
-    private val separatePreferenceKeys = setOf("byedpi_command_history", "selected_apps")
+    private val separatePreferenceKeys = setOf("byedpi_command_history", "selected_apps", "autostart_last_boot_count")
 
     enum class Section {
         SETTINGS,
@@ -73,13 +73,16 @@ object SettingsUtils {
         }
     }
 
-    fun exportSettings(context: Context, uri: Uri, sections: Set<Section>) {
-        try {
-            context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-                outputStream.write(settingsJson(context, sections).toByteArray())
-            }
+    /** Writes the backup to [uri]; false (after showing why) when it couldn't. */
+    fun exportSettings(context: Context, uri: Uri, sections: Set<Section>): Boolean {
+        return try {
+            val stream = context.contentResolver.openOutputStream(uri)
+                ?: throw java.io.IOException("No output stream for $uri")
+            stream.use { it.write(settingsJson(context, sections).toByteArray()) }
+            true
         } catch (e: Exception) {
             exportFailed(context, e)
+            false
         }
     }
 
@@ -175,6 +178,51 @@ object SettingsUtils {
         else -> null
     }
 
+    /** Settings the app reads with getBoolean, so a backup can't store them as text or numbers. */
+    private val booleanKeys = setOf(
+        "auto_connect", "autostart", "byedpi_desync_http", "byedpi_desync_https", "byedpi_desync_udp",
+        "byedpi_domain_mixed_case", "byedpi_drop_sack", "byedpi_enable_cmd_settings", "byedpi_host_mixed_case",
+        "byedpi_host_remove_spaces", "byedpi_no_domain", "byedpi_proxytest_usercommands", "byedpi_split_at_host",
+        "byedpi_tcp_fast_open", "byedpi_tlsrec_at_sni", "byedpi_tlsrec_enabled", "is_test_running",
+        "battery_optimization_requested", "pg_show_advanced", "updates_auto_check"
+    )
+
+    /** Settings the app reads as string sets. */
+    private val setKeys = setOf("selected_apps", "bb_selected_profiles")
+
+    /** Settings with a fixed set of values; anything else in a backup is dropped. */
+    private val choiceKeys = mapOf(
+        "byedpi_mode" to setOf("vpn", "proxy"),
+        "byedpi_desync_method" to setOf("none", "split", "disorder", "fake", "oob", "disoob"),
+        "byedpi_hosts_mode" to setOf("disable", "blacklist", "whitelist")
+    )
+
+    /**
+     * What to store for one imported setting, in the type the app reads it as: true/false for
+     * switches, text for everything else (the app keeps numbers as text), string sets for the
+     * two list settings. [current] is the value stored before the import, if any. Null means
+     * skip it, so a hand-edited or foreign backup can't leave a value that crashes on read.
+     */
+    internal fun importValue(key: String, raw: Any?, current: Any?): Any? {
+        val value = preferenceValue(raw) ?: return null
+        val wantsBoolean = key in booleanKeys || current is Boolean
+        return when {
+            key in setKeys || current is Set<*> -> value as? Set<*>
+            wantsBoolean -> when (value) {
+                is Boolean -> value
+                "true" -> true
+                "false" -> false
+                else -> null
+            }
+            value is Set<*> -> null
+            else -> {
+                val text = value.toString()
+                val allowed = choiceKeys[key]
+                if (allowed != null && text !in allowed) null else text
+            }
+        }
+    }
+
     /** The backup file contents: the inverse of [parseJson]. */
     internal fun toJson(settings: AppSettings): String = Gson().toJson(settings)
 
@@ -197,20 +245,18 @@ object SettingsUtils {
             val prefs = context.getPreferences()
 
             if (Section.SETTINGS in sections && import.settings != null) {
+                val before = prefs.all
                 prefs.edit(commit = true) {
-                    prefs.all.keys
+                    before.keys
                         .filter { it !in separatePreferenceKeys }
                         .forEach { remove(it) }
 
                     import.settings
                         .filterKeys { it !in separatePreferenceKeys }
                         .forEach { (key, raw) ->
-                            when (val value = preferenceValue(raw)) {
-                                is Int -> putInt(key, value)
+                            when (val value = importValue(key, raw, before[key])) {
                                 is Boolean -> putBoolean(key, value)
                                 is String -> putString(key, value)
-                                is Float -> putFloat(key, value)
-                                is Long -> putLong(key, value)
                                 is Set<*> -> {
                                     @Suppress("UNCHECKED_CAST")
                                     putStringSet(key, value as Set<String>)
@@ -284,7 +330,7 @@ object SettingsUtils {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to reset settings", e)
             Handler(Looper.getMainLooper()).post {
-                Toast.makeText(context, "Failed to reset settings", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.pg_err_reset), Toast.LENGTH_SHORT).show()
             }
         }
     }

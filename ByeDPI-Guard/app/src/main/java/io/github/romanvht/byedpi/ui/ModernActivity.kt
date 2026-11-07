@@ -1,5 +1,6 @@
 package io.github.romanvht.byedpi.ui
 
+import io.github.romanvht.byedpi.update.AppUpdates
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
@@ -34,6 +35,16 @@ class ModernActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        AppUpdates.onAppResumed(this)
+    }
+
+    override fun onPause() {
+        AppUpdates.inForeground = false
+        super.onPause()
     }
 
     override fun onNewIntent(intent: Intent) {
