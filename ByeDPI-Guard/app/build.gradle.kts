@@ -4,6 +4,9 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
+    // Screenshot tests of the main screens (app/src/test/.../ScreenshotTest.kt). Record with
+    // ./gradlew recordPaparazziDebug; CI runs verifyPaparazziDebug and fails on a changed screen.
+    id("app.cash.paparazzi") version "2.0.0-alpha05"
 }
 
 val abis = setOf("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
@@ -23,8 +26,8 @@ android {
         minSdk = 21
         //noinspection OldTargetApi
         targetSdk = 35
-        versionCode = 3500
-        versionName = "3.5.0"
+        versionCode = 3600
+        versionName = "3.6.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -117,7 +120,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.4")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
+    androidTestImplementation("androidx.test:runner:1.7.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
+    androidTestImplementation("androidx.test.uiautomator:uiautomator:2.3.0")
 }
 
 tasks.register<Exec>("runNdkBuild") {

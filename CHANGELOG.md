@@ -6,6 +6,17 @@ from 2.5.0 on (**Settings → About → Updates**); earlier versions are install
 
 The first lines under each version are what the app shows as "What's new", so keep them short.
 
+## 3.6.0 (November 2026)
+
+- Connect fits large text: labels keep their room and the two numbers stack
+- Every release is now checked automatically before it ships
+
+The rest, in more detail:
+
+- **Screenshot tests.** The Connect, Benchmark and first-run screens are rendered in English and Russian, at normal and 200% text size, and compared with saved images on every build; a change that wasn't meant fails the build. They already caught the Connect screen squeezing "Profile" and cutting off "Success rate" at large text in Russian.
+- **Phone test.** Every build also starts an Android emulator, opens Packet Guard, taps the shield, waits for "Protected" with the real engine and VPN, and disconnects.
+- **Translations.** [docs/translations.md](docs/translations.md) marks which languages still need a native speaker's review, and how to do one.
+
 ## 3.5.0 (November 2026)
 
 - Works better with TalkBack: switches, checkboxes, tabs and the shield say what they are and whether they're on
