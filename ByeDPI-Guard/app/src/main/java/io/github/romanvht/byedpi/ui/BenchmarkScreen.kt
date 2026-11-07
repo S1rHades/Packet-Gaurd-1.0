@@ -1,5 +1,14 @@
 package io.github.romanvht.byedpi.ui
 
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -434,12 +443,14 @@ private fun TestLines(
     onClear: () -> Unit,
     onToggleProfile: (String) -> Unit
 ) {
+    val expandedText = stringResource(if (open) R.string.pg_a11y_expanded else R.string.pg_a11y_collapsed)
     val byPack = ProfilePack.entries.mapNotNull { pack ->
         val n = ui.profiles.count { it.pack == pack && it.command in ui.selected }
         if (n == 0) null else "${stringResource(pack.label)} $n"
     }
     Row(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable(onClick = onToggleOpen).heightIn(min = 48.dp),
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable(role = Role.Button, onClick = onToggleOpen)
+            .semantics { stateDescription = expandedText }.heightIn(min = 48.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(Modifier.weight(1f)) {
@@ -449,7 +460,10 @@ private fun TestLines(
                 color = if (ui.selected.isEmpty()) Palette.Warning else Palette.TextSecondary, fontSize = 13.sp
             )
         }
-        Text(stringResource(if (open) R.string.pg_test_lines_hide else R.string.pg_test_lines_choose), color = Palette.Sky, fontSize = 14.sp)
+        // With large text the word would squeeze the title; the arrow (and TalkBack's state) still say it.
+        if (LocalDensity.current.fontScale < 1.3f) {
+            Text(stringResource(if (open) R.string.pg_test_lines_hide else R.string.pg_test_lines_choose), color = Palette.Sky, fontSize = 14.sp)
+        }
         Icon(if (open) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore, null, tint = Palette.Sky)
     }
     AnimatedVisibility(open, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
@@ -519,12 +533,13 @@ private fun ListTile(list: ListItemUi, enabled: Boolean, onClick: () -> Unit, mo
             .background(Glass.Inset)
             .background(Palette.Glow.copy(alpha = 0.18f * accent))
             .border(if (on) 2.dp else 1.dp, border, shape)
-            .clickable(enabled = enabled, role = Role.Checkbox, onClick = onClick)
+            .toggleable(value = list.active, enabled = enabled, role = Role.Checkbox, onValueChange = { onClick() })
             .padding(14.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
-                Modifier.size(36.dp).clip(CircleShape).background(Palette.Sky.copy(alpha = 0.18f)),
+                // Decorative initial: the tile is read as its name, site count and checked state.
+                Modifier.size(36.dp).clip(CircleShape).background(Palette.Sky.copy(alpha = 0.18f)).clearAndSetSemantics {},
                 contentAlignment = Alignment.Center
             ) {
                 Text(list.name.take(1).uppercase(), fontSize = 17.sp, fontWeight = FontWeight.Bold, color = Palette.Sky)
@@ -559,7 +574,7 @@ private fun BigProgress(test: TestState, ui: BenchUi, sni: String, customName: S
 
     Column(Modifier.fillMaxWidth().padding(top = 18.dp)) {
         Row(verticalAlignment = Alignment.Bottom) {
-            RollingText(stringResource(R.string.pg_percent, (animated * 100).toInt()), fontSize = 34.sp)
+            Box(Modifier.clearAndSetSemantics {}) { RollingText(stringResource(R.string.pg_percent, (animated * 100).toInt()), fontSize = 34.sp) }
             Spacer(Modifier.width(10.dp))
             if (running) {
                 Icon(Icons.Filled.HourglassTop, null, tint = Palette.Sky, modifier = Modifier.padding(bottom = 8.dp).size(20.dp))
@@ -579,7 +594,9 @@ private fun BigProgress(test: TestState, ui: BenchUi, sni: String, customName: S
         AnimatedContent(
             targetState = label,
             transitionSpec = { fadeIn(tween(Motion.MEDIUM)) togetherWith fadeOut(tween(Motion.FAST)) },
-            label = "benchStatus"
+            label = "benchStatus",
+            // Read out when it changes ("Trying profile 4 of 8"), without the ticking percentage.
+            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
         ) { BigHint(it, color = Color.White) }
         if (running && !test.isStopping) TimeLeft(ui.startedAt, fraction)
     }
@@ -635,8 +652,11 @@ private fun TimeLeft(startedAt: Long, fraction: Float) {
 /** A thick, rounded progress bar in the accent gradient. */
 @Composable
 private fun ProgressBar(fraction: Float, modifier: Modifier = Modifier) {
+    // For TalkBack, in steps of 5% so it doesn't change on every frame of the animation.
+    val stepped = (fraction * 20).toInt() / 20f
     Box(
         modifier
+            .semantics { progressBarRangeInfo = ProgressBarRangeInfo(stepped, 0f..1f) }
             .fillMaxWidth()
             .height(14.dp)
             .clip(RoundedCornerShape(7.dp))
@@ -780,11 +800,13 @@ private fun Fact(icon: ImageVector, tint: Color, text: String, modifier: Modifie
 @Composable
 private fun AdvancedToggle(open: Boolean, onToggle: () -> Unit, modifier: Modifier = Modifier) {
     val arrow by animateFloatAsState(if (open) 180f else 0f, tween(Motion.MEDIUM), label = "advArrow")
+    val expandedText = stringResource(if (open) R.string.pg_a11y_expanded else R.string.pg_a11y_collapsed)
     Row(
         modifier
             .fillMaxWidth()
             .glass()
             .clickable(role = Role.Button, onClick = onToggle)
+            .semantics { stateDescription = expandedText }
             .padding(horizontal = 18.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -811,11 +833,11 @@ private fun ProfileRow(p: ProfileItem, selected: Boolean, enabled: Boolean, onTo
             .fillMaxWidth()
             .glassInset()
             .background(bg)
-            .clickable(enabled = enabled, onClick = onToggle)
+            .toggleable(value = selected, enabled = enabled, role = Role.Checkbox, onValueChange = { onToggle() })
             .padding(horizontal = 6.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Checkbox(checked = selected, onCheckedChange = { onToggle() }, enabled = enabled, colors = checkboxColors())
+        Checkbox(checked = selected, onCheckedChange = null, enabled = enabled, colors = checkboxColors())
         Column(Modifier.weight(1f).padding(end = 8.dp)) {
             Text(p.name, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
             Text(
@@ -981,7 +1003,7 @@ private fun GenProgress(gen: GenState, plan: SearchPlan) {
     val tried = (gen.done - 1).coerceAtLeast(0)
     Column(Modifier.fillMaxWidth().padding(top = 18.dp)) {
         Row(verticalAlignment = Alignment.Bottom) {
-            RollingText(stringResource(R.string.pg_percent, (animated * 100).toInt()), fontSize = 34.sp)
+            Box(Modifier.clearAndSetSemantics {}) { RollingText(stringResource(R.string.pg_percent, (animated * 100).toInt()), fontSize = 34.sp) }
             Spacer(Modifier.width(10.dp))
             if (gen.running) {
                 Icon(Icons.Filled.HourglassTop, null, tint = Palette.Sky, modifier = Modifier.padding(bottom = 8.dp).size(20.dp))
@@ -1004,7 +1026,9 @@ private fun GenProgress(gen: GenState, plan: SearchPlan) {
         AnimatedContent(
             targetState = label,
             transitionSpec = { fadeIn(tween(Motion.MEDIUM)) togetherWith fadeOut(tween(Motion.FAST)) },
-            label = "genStatus"
+            label = "genStatus",
+            // Read out when it changes ("Trying profile 4 of 8"), without the ticking percentage.
+            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
         ) { BigHint(it, color = if (gen.failed && !gen.running) Palette.Warning else Color.White) }
         if (gen.running && !gen.stopping) TimeLeft(gen.startedAt, fraction)
         val leader = gen.leader

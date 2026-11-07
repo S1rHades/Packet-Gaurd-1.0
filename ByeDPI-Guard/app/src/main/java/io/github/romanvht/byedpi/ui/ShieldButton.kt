@@ -1,5 +1,6 @@
 package io.github.romanvht.byedpi.ui
 
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -190,6 +191,15 @@ fun ShieldButton(
             is ConnectionState.Failed -> stringResource(R.string.pg_shield_retry)
             ConnectionState.Disconnected -> stringResource(R.string.pg_shield_connect)
         }
+        // TalkBack: the action ("Connect") plus whether it is on now ("Protected").
+        val stateLabel = stringResource(
+            when {
+                connected -> R.string.pg_notif_protected
+                connecting -> R.string.pg_status_connecting
+                failed -> R.string.pg_status_error
+                else -> R.string.pg_status_disconnected
+            }
+        )
         Box(
             Modifier
                 .size(shieldW, height)
@@ -202,7 +212,7 @@ fun ShieldButton(
                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                     onClick()
                 }
-                .semantics { contentDescription = label },
+                .semantics { contentDescription = label; stateDescription = stateLabel },
             contentAlignment = Alignment.Center
         ) {
             AnimatedContent(

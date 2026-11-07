@@ -443,6 +443,8 @@
     <string name="pg_fr3_find">Найти для меня</string>
     <string name="pg_fr3_later">Я сам</string>
     <string name="pg_fr_nothing">Быстрая проверка не нашла настройку, которая открывает ваши сайты. Попробуйте «Создать для меня» на вкладке «Тест».</string>
+    <string name="pg_a11y_expanded">Развёрнуто</string>
+    <string name="pg_a11y_collapsed">Свёрнуто</string>
     <string name="pg_err_storage">Не удалось прочитать или сохранить данные. Попробуйте ещё раз.</string>
     <string name="pg_err_reset">Не удалось сбросить настройки</string>
     <plurals name="pg_sites">

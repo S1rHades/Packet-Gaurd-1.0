@@ -230,7 +230,7 @@ fun AppRoot(requestedTab: Tab? = null, onTabRequestHandled: () -> Unit = {}) {
                     NavigationBarItem(
                         selected = tab == t,
                         onClick = { tab = t },
-                        icon = { Icon(t.icon, contentDescription = stringResource(t.label)) },
+                        icon = { Icon(t.icon, contentDescription = null) }, // the label below names it
                         label = { Text(stringResource(t.label)) },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = Color.White,

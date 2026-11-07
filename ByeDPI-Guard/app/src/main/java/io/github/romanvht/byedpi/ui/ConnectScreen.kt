@@ -1,5 +1,9 @@
 package io.github.romanvht.byedpi.ui
 
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -114,13 +118,19 @@ private fun StatusHeadline(state: ConnectionState, modifier: Modifier = Modifier
     val color by animateColorAsState(
         when (headline.kind) {
             2 -> Palette.Success
-            1 -> Palette.Glow
+            1 -> Palette.Sky
             3 -> Palette.Error
             else -> Palette.TextSecondary
         },
         tween(Motion.SLOW), label = "headlineColor"
     )
-    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+    // One spoken item that's announced when it changes (Connecting → Protected), instead of
+    // the animated texts, which briefly hold both the old and new words.
+    val spoken = "${headline.label.lowercase().replaceFirstChar { it.uppercase() }}. ${headline.sub}"
+    Column(
+        modifier.clearAndSetSemantics { contentDescription = spoken; liveRegion = LiveRegionMode.Polite },
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(8.dp).background(color, CircleShape))
             Spacer(Modifier.size(8.dp))

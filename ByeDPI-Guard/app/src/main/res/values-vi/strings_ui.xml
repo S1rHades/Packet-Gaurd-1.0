@@ -443,6 +443,8 @@
     <string name="pg_fr3_find">Tìm giúp tôi</string>
     <string name="pg_fr3_later">Tôi tự làm</string>
     <string name="pg_fr_nothing">Bài thử nhanh không tìm được thiết lập mở được các trang của bạn. Hãy thử Tạo riêng cho tôi trong thẻ Kiểm tra.</string>
+    <string name="pg_a11y_expanded">Đã mở rộng</string>
+    <string name="pg_a11y_collapsed">Đã thu gọn</string>
     <string name="pg_err_storage">Không thể đọc hoặc lưu dữ liệu. Hãy thử lại.</string>
     <string name="pg_err_reset">Không thể đặt lại cài đặt</string>
     <plurals name="pg_sites">

@@ -28,7 +28,7 @@ fun MetricPill(text: String, color: Color, modifier: Modifier = Modifier, large:
     Text(
         text,
         color = color,
-        fontSize = if (large) 13.sp else 10.sp,
+        fontSize = if (large) 13.sp else 12.sp,
         fontWeight = FontWeight.SemiBold,
         maxLines = if (large) 2 else 1,
         overflow = TextOverflow.Ellipsis,

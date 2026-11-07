@@ -1,0 +1,3 @@
+- Works better with TalkBack and announces progress
+- Large text no longer gets cut off
+- Easier-to-read colours that meet the WCAG contrast level

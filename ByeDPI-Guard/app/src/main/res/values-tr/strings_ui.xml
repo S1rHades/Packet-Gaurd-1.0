@@ -443,6 +443,8 @@
     <string name="pg_fr3_find">Benim için bul</string>
     <string name="pg_fr3_later">Kendim yaparım</string>
     <string name="pg_fr_nothing">Hızlı test sitelerinizi açan bir ayar bulamadı. Test sekmesinde Bana özel oluştur’u deneyin.</string>
+    <string name="pg_a11y_expanded">Genişletildi</string>
+    <string name="pg_a11y_collapsed">Daraltıldı</string>
     <string name="pg_err_storage">Verileriniz okunamadı veya kaydedilemedi. Tekrar deneyin.</string>
     <string name="pg_err_reset">Ayarlar sıfırlanamadı</string>
     <plurals name="pg_sites">

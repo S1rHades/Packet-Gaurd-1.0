@@ -27,8 +27,11 @@ object Glass {
     val CardShape = RoundedCornerShape(22.dp)
     val ControlShape = RoundedCornerShape(16.dp)
 
-    /** Selected pills, primary buttons and highlighted bars. */
-    val Accent: Brush get() = Brush.verticalGradient(listOf(Palette.Sky, Palette.Glow, Palette.AccentBlue))
+    /**
+     * Selected pills, primary buttons and highlighted bars. Deep enough at every stop for white
+     * text to meet 4.5:1 (the lighter Sky top it used to have did not).
+     */
+    val Accent: Brush get() = Brush.verticalGradient(listOf(Color(0xFF2F6FEB), Color(0xFF2563EB), Palette.AccentBlue))
 
     /** Background of small inset elements (fields, chips, tracks). */
     val Inset = Color.White.copy(alpha = 0.06f)
