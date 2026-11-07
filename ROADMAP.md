@@ -18,15 +18,16 @@ permissions), then 4 (so later work can't quietly break screens), then 2, then 5
 - Done when: in the usability test (`docs/usability-test.md`), task 1 is done without a hint
   by at least 4 of 5 people.
 
-## 2. Remember what works on each network, and recover when it stops
+## 2. Remember what works on each network, and recover when it stops (done in 3.7.0)
 
 - Keep the best strategy per network (each Wi-Fi network, each mobile operator), stored on the
   phone only, with Wi-Fi names kept as an anonymous hash.
 - On a network change, switch to that network's strategy and show a message with **Undo**.
 - Use the live success rate the Connect screen already measures: if it stays low, offer
   "Sites stopped opening. Find a new setting?", which runs a Quick test in one tap.
-- Limit: reading the Wi-Fi name needs location permission on Android 10+, so this is off by
-  default and explains why it asks.
+- Built without location permission: networks are recognised by router/DNS addresses (Wi-Fi)
+  or operator code (mobile). Switching happens while the app is open; switching from the
+  background service is a possible follow-up.
 
 ## 3. Accessibility pass (done in 3.5.0, except the light theme)
 

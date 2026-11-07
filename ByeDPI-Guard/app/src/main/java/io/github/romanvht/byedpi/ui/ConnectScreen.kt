@@ -1,5 +1,7 @@
 package io.github.romanvht.byedpi.ui
 
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -60,7 +62,10 @@ fun ConnectScreen(
     onToggle: () -> Unit,
     modifier: Modifier = Modifier,
     refreshing: Boolean = false,
-    onRefresh: () -> Unit = {}
+    onRefresh: () -> Unit = {},
+    struggling: Boolean = false,
+    onFindNew: () -> Unit = {},
+    onDismissStruggle: () -> Unit = {}
 ) {
     // Pull down to check the connection now, as on most status screens (Jakob's law).
     PullToRefreshBox(isRefreshing = refreshing, onRefresh = onRefresh, modifier = modifier.fillMaxSize()) {
@@ -74,6 +79,7 @@ fun ConnectScreen(
         BrandHeader(Modifier.align(Alignment.Start).staggeredEnter(0))
         UpdateBanner(Modifier.padding(top = 16.dp))
         WhatsNewCard(Modifier.padding(top = 16.dp))
+        StruggleCard(struggling, onFindNew, onDismissStruggle, Modifier.padding(top = 16.dp))
         Spacer(Modifier.height(20.dp))
         StatusHeadline(state, Modifier.staggeredEnter(1))
         Spacer(Modifier.height(8.dp))
@@ -234,5 +240,42 @@ private fun MetricTile(label: String, value: String, modifier: Modifier = Modifi
         Text(label, color = Palette.TextSecondary, fontSize = 12.sp)
         Spacer(Modifier.height(4.dp))
         RollingText(value, fontSize = 22.sp)
+    }
+}
+
+/** "Sites stopped opening?": most live checks failed, so offer a quick test for a new setting. */
+@Composable
+private fun StruggleCard(show: Boolean, onFind: () -> Unit, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
+    androidx.compose.animation.AnimatedVisibility(
+        show, modifier,
+        enter = androidx.compose.animation.expandVertically() + androidx.compose.animation.fadeIn(),
+        exit = androidx.compose.animation.shrinkVertically() + androidx.compose.animation.fadeOut()
+    ) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .glass(borderColor = Palette.Warning.copy(alpha = 0.6f))
+                .padding(16.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                androidx.compose.material3.Icon(
+                    androidx.compose.material.icons.Icons.Filled.Warning, null,
+                    tint = Palette.Warning, modifier = Modifier.size(22.dp)
+                )
+                Spacer(Modifier.width(10.dp))
+                Text(stringResource(R.string.pg_struggle_title), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            }
+            Text(
+                stringResource(R.string.pg_struggle_body), color = Palette.TextSecondary, fontSize = 14.sp, lineHeight = 19.sp,
+                modifier = Modifier.padding(top = 6.dp)
+            )
+            PrimaryButton(
+                stringResource(R.string.pg_struggle_find), onClick = onFind,
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
+            )
+            androidx.compose.material3.TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                Text(stringResource(R.string.pg_struggle_dismiss))
+            }
+        }
     }
 }

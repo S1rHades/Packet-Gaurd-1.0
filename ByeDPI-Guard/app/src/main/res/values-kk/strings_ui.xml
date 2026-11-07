@@ -445,6 +445,11 @@
     <string name="pg_fr_nothing">Жылдам тексеру сайттарыңызды ашатын баптау таппады. «Тест» қойындысындағы «Маған арнап жасау» мүмкіндігін көріңіз.</string>
     <string name="pg_a11y_expanded">Ашық</string>
     <string name="pg_a11y_collapsed">Жабық</string>
+    <string name="pg_net_switched">Осы желіде жұмыс істеген баптауға ауысты.</string>
+    <string name="pg_struggle_title">Сайттар ашылмай қалды ма?</string>
+    <string name="pg_struggle_body">Соңғы тексерулердің көбі сәтсіз болды. Жылдам тексеру осы желіде жұмыс істейтін баптауды таба алады.</string>
+    <string name="pg_struggle_find">Жаңа баптау табу</string>
+    <string name="pg_struggle_dismiss">Қазір емес</string>
     <string name="pg_err_storage">Деректерді оқу не сақтау мүмкін болмады. Қайталап көріңіз.</string>
     <string name="pg_err_reset">Баптауларды қалпына келтіру мүмкін болмады</string>
     <plurals name="pg_sites">

@@ -1,5 +1,6 @@
 package io.github.romanvht.byedpi.ui
 
+import io.github.romanvht.byedpi.utility.NetworkMemory
 import android.content.Context
 import android.net.VpnService
 import androidx.core.content.edit
@@ -49,7 +50,7 @@ object StrategyApplier {
      * the strategy picker. Restarts the tunnel when it is running, then posts a [Notice].
      * Returns the command as saved.
      */
-    fun apply(ctx: Context, command: String, label: String?): String {
+    fun apply(ctx: Context, command: String, label: String?, why: String? = null): String {
         val clean = normalizeCommand(command).ifEmpty { command.trim() }
         val prefs = ctx.getPreferences()
         val before = Previous(prefs.getCmdEnable(), prefs.getCmdArgs())
@@ -65,8 +66,11 @@ object StrategyApplier {
             history.renameCommand(clean, label)
         }
         previous = if (changed) before else null
+        // What you choose on this network is what it switches back to when you return to it.
+        runCatching { NetworkMemory.remember(ctx, clean) }
         _changes.update { it + 1 }
-        _notices.tryEmit(Notice(restartIfRunning(ctx), canUndo = changed))
+        val restart = restartIfRunning(ctx)
+        _notices.tryEmit(Notice(if (why != null) "$why $restart" else restart, canUndo = changed))
         return clean
     }
 
@@ -78,6 +82,7 @@ object StrategyApplier {
             putBoolean("byedpi_enable_cmd_settings", p.cmdEnabled)
             putString("byedpi_cmd_args", p.args)
         }
+        if (p.cmdEnabled) runCatching { NetworkMemory.remember(ctx, p.args) }
         _changes.update { it + 1 }
         restartIfRunning(ctx)
         return ctx.getString(R.string.pg_undo_done)

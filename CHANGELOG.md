@@ -6,6 +6,18 @@ from 2.5.0 on (**Settings → About → Updates**); earlier versions are install
 
 The first lines under each version are what the app shows as "What's new", so keep them short.
 
+## 3.7.0 (November 2026)
+
+- Packet Guard remembers which setting works on each network
+- Back on a network it knows, it switches to that setting by itself, with Undo
+- If sites stop opening while you're connected, it offers to find a new setting
+
+The rest, in more detail:
+
+- **Per network.** Whenever you switch on a setting (from the Benchmark, a search, Saved strategies or Undo), it's remembered for the network you're on. When you move to another Wi-Fi network or to mobile data while the app is open, or open it on a network it knows, it switches to that network's setting and says so, with Undo.
+- **No location permission.** Android needs location permission to read Wi-Fi names, so networks are recognised another way: Wi-Fi by its router and DNS addresses, mobile data by the operator's code. Only a short anonymous code is stored, on the phone. It isn't part of exported settings, and Reset settings clears it.
+- **Sites stopped opening?** When most of the Connect screen's checks fail over a minute or so, a card offers **Find a new setting**: the same quick test as the first-run guide, which switches on the best setting. **Not now** hides it until you next connect.
+
 ## 3.6.0 (November 2026)
 
 - Connect fits large text: labels keep their room and the two numbers stack

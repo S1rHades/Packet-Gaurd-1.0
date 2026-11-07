@@ -445,6 +445,11 @@
     <string name="pg_fr_nothing">Bài thử nhanh không tìm được thiết lập mở được các trang của bạn. Hãy thử Tạo riêng cho tôi trong thẻ Kiểm tra.</string>
     <string name="pg_a11y_expanded">Đã mở rộng</string>
     <string name="pg_a11y_collapsed">Đã thu gọn</string>
+    <string name="pg_net_switched">Đã chuyển sang thiết lập từng hoạt động trên mạng này.</string>
+    <string name="pg_struggle_title">Các trang không mở được nữa?</string>
+    <string name="pg_struggle_body">Phần lớn các lần kiểm tra gần đây đã thất bại. Một bài thử nhanh có thể tìm thiết lập hoạt động trên mạng này.</string>
+    <string name="pg_struggle_find">Tìm thiết lập mới</string>
+    <string name="pg_struggle_dismiss">Để sau</string>
     <string name="pg_err_storage">Không thể đọc hoặc lưu dữ liệu. Hãy thử lại.</string>
     <string name="pg_err_reset">Không thể đặt lại cài đặt</string>
     <plurals name="pg_sites">

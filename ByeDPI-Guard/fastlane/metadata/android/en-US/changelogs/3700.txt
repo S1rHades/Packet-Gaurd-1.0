@@ -1,0 +1,2 @@
+- Remembers which setting works on each network and switches back to it
+- Offers to find a new setting when sites stop opening
