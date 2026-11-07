@@ -414,6 +414,8 @@
     <string name="pg_tr_less_dep">Чаще сбоит</string>
     <string name="pg_tr_more_dep">Работает надёжнее</string>
     <string name="pg_tr_slower">на %1$d мс медленнее</string>
+    <string name="pg_gen_known_won">Эта строка уже проверялась на вашем телефоне, и ни одна из %1$d новых строк не превзошла её на заблокированных сайтах.</string>
+    <string name="pg_gen_beats_known">Оценка %1$d. Лучшая из ранее проверенных строк набрала на этих сайтах %2$d.</string>
     <string name="pg_err_storage">Не удалось прочитать или сохранить данные. Попробуйте ещё раз.</string>
     <string name="pg_err_reset">Не удалось сбросить настройки</string>
     <plurals name="pg_sites">
@@ -487,5 +489,11 @@
         <item quantity="few">на %d сайта меньше</item>
         <item quantity="many">на %d сайтов меньше</item>
         <item quantity="other">на %d сайта меньше</item>
+    </plurals>
+    <plurals name="pg_gen_learned_from">
+        <item quantity="one">Учтена %d строка, проверенная раньше на этом телефоне</item>
+        <item quantity="few">Учтены %d строки, проверенные раньше на этом телефоне</item>
+        <item quantity="many">Учтено %d строк, проверенных раньше на этом телефоне</item>
+        <item quantity="other">Учтено %d строки, проверенной раньше на этом телефоне</item>
     </plurals>
 </resources>

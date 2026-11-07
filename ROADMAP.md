@@ -1,6 +1,7 @@
 # Roadmap
 
-Packet Guard 3.x is feature-complete. Releases from here on fix bugs and polish what exists.
+Packet Guard 3.x is feature-complete apart from changes asked for directly (3.1.0: the generator
+learns from lines tested before). Releases otherwise fix bugs and polish what exists.
 The ideas below are planned but **not started**. Each is a separate release, and none should
 be added to a bug-fix release.
 

@@ -414,6 +414,8 @@
     <string name="pg_tr_less_dep">Fails more often</string>
     <string name="pg_tr_more_dep">Works more often</string>
     <string name="pg_tr_slower">%1$d ms slower</string>
+    <string name="pg_gen_known_won">This line was tested before on your phone, and none of the %1$d new lines built beat it on your blocked sites.</string>
+    <string name="pg_gen_beats_known">Scores %1$d. The best line tested before on your phone scored %2$d on these sites.</string>
     <string name="pg_err_storage">Couldn\'t read or save your data. Try again.</string>
     <string name="pg_err_reset">Couldn\'t reset settings</string>
     <plurals name="pg_sites">
@@ -463,5 +465,9 @@
     <plurals name="pg_tr_fewer_sites">
         <item quantity="one">%d fewer site</item>
         <item quantity="other">%d fewer sites</item>
+    </plurals>
+    <plurals name="pg_gen_learned_from">
+        <item quantity="one">Learned from %d line tested before on this phone</item>
+        <item quantity="other">Learned from %d lines tested before on this phone</item>
     </plurals>
 </resources>

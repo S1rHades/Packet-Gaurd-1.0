@@ -245,6 +245,8 @@ class TestService : Service() {
                     }
                     stopEngine()
                     if (prepared) {
+                        // Remembered for the command line generator, which learns from every line tested.
+                        withContext(Dispatchers.IO) { runCatching { LineMemoryStore.record(this@TestService, strategies) } }
                         try {
                             saveResults(strategies)
                         } catch (e: Exception) {

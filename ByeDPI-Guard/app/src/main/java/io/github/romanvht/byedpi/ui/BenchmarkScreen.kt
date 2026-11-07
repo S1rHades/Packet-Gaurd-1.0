@@ -1155,28 +1155,46 @@ private fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) ->
     }
 }
 
-/** Whether the winner is new, and what it was built from, in one or two plain lines. */
+/** Whether the winner is new, what it was built from, and how it compares with lines tested before. */
 @Composable
 private fun HowItWasMade(r: GenResult, modifier: Modifier = Modifier) {
+    val note = Modifier.padding(top = 6.dp)
     Column(modifier.fillMaxWidth()) {
-        if (r.generated) {
-            MetricPill(stringResource(R.string.pg_gen_new_badge), Palette.Glow)
-            val how = when (r.how) {
-                Origin.Combined.name -> stringResource(R.string.pg_gen_how_combined)
-                Origin.Fallback.name -> stringResource(R.string.pg_gen_how_fallback)
-                Origin.Explored.name -> stringResource(R.string.pg_gen_how_explored)
-                else -> stringResource(R.string.pg_gen_how_tuned)
+        when {
+            r.generated -> {
+                MetricPill(stringResource(R.string.pg_gen_new_badge), Palette.Glow)
+                val how = when (r.how) {
+                    Origin.Combined.name -> stringResource(R.string.pg_gen_how_combined)
+                    Origin.Fallback.name -> stringResource(R.string.pg_gen_how_fallback)
+                    Origin.Explored.name -> stringResource(R.string.pg_gen_how_explored)
+                    else -> stringResource(R.string.pg_gen_how_tuned)
+                }
+                val from = r.madeFrom.orEmpty()
+                Text(
+                    if (from.isEmpty()) how else stringResource(R.string.pg_gen_how_from, how, from.joinToString("  +  ")),
+                    color = Palette.TextSecondary, fontSize = 13.sp, lineHeight = 18.sp, maxLines = 4, overflow = TextOverflow.Ellipsis,
+                    modifier = note
+                )
+                r.knownBest?.takeIf { it.score.overall <= r.score.overall }?.let { known ->
+                    Text(
+                        stringResource(R.string.pg_gen_beats_known, r.score.overall, known.score.overall),
+                        color = Palette.TextSecondary, fontSize = 13.sp, lineHeight = 18.sp, modifier = note
+                    )
+                }
             }
-            val from = r.madeFrom.orEmpty()
-            Text(
-                if (from.isEmpty()) how else stringResource(R.string.pg_gen_how_from, how, from.joinToString("  +  ")),
-                color = Palette.TextSecondary, fontSize = 13.sp, lineHeight = 18.sp,
-                modifier = Modifier.padding(top = 6.dp)
+            r.knownWon -> Text(
+                stringResource(R.string.pg_gen_known_won, r.built),
+                color = Palette.TextSecondary, fontSize = 13.sp, lineHeight = 18.sp
             )
-        } else {
-            Text(
+            else -> Text(
                 pluralStringResource(R.plurals.pg_gen_probe_won, r.built, r.built),
                 color = Palette.TextSecondary, fontSize = 13.sp, lineHeight = 18.sp
+            )
+        }
+        if (r.learnedFrom > 0) {
+            Text(
+                pluralStringResource(R.plurals.pg_gen_learned_from, r.learnedFrom, r.learnedFrom),
+                color = Palette.TextSecondary, fontSize = 12.sp, lineHeight = 16.sp, modifier = note
             )
         }
     }

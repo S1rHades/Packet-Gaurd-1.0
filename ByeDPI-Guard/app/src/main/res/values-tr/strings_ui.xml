@@ -414,6 +414,8 @@
     <string name="pg_tr_less_dep">Daha sık başarısız olur</string>
     <string name="pg_tr_more_dep">Daha sık çalışır</string>
     <string name="pg_tr_slower">%1$d ms daha yavaş</string>
+    <string name="pg_gen_known_won">Bu satır telefonunuzda daha önce test edildi ve oluşturulan %1$d yeni satırdan hiçbiri engellenen sitelerinizde onu geçemedi.</string>
+    <string name="pg_gen_beats_known">Puan %1$d. Telefonunuzda daha önce test edilen en iyi satır bu sitelerde %2$d aldı.</string>
     <string name="pg_err_storage">Verileriniz okunamadı veya kaydedilemedi. Tekrar deneyin.</string>
     <string name="pg_err_reset">Ayarlar sıfırlanamadı</string>
     <plurals name="pg_sites">
@@ -463,5 +465,9 @@
     <plurals name="pg_tr_fewer_sites">
         <item quantity="one">%d site daha az</item>
         <item quantity="other">%d site daha az</item>
+    </plurals>
+    <plurals name="pg_gen_learned_from">
+        <item quantity="one">Bu telefonda daha önce test edilen %d satırdan öğrenildi</item>
+        <item quantity="other">Bu telefonda daha önce test edilen %d satırdan öğrenildi</item>
     </plurals>
 </resources>

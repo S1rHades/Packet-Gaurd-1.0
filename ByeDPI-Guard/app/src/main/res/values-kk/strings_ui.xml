@@ -414,6 +414,8 @@
     <string name="pg_tr_less_dep">Жиірек істемейді</string>
     <string name="pg_tr_more_dep">Жиірек жұмыс істейді</string>
     <string name="pg_tr_slower">%1$d мс баяуырақ</string>
+    <string name="pg_gen_known_won">Бұл жол телефоныңызда бұрын тексерілген, және құрылған %1$d жаңа жолдың ешқайсысы бұғатталған сайттарда одан асып түспеді.</string>
+    <string name="pg_gen_beats_known">Ұпай %1$d. Телефоныңызда бұрын тексерілген ең жақсы жол бұл сайттарда %2$d алды.</string>
     <string name="pg_err_storage">Деректерді оқу не сақтау мүмкін болмады. Қайталап көріңіз.</string>
     <string name="pg_err_reset">Баптауларды қалпына келтіру мүмкін болмады</string>
     <plurals name="pg_sites">
@@ -463,5 +465,9 @@
     <plurals name="pg_tr_fewer_sites">
         <item quantity="one">%d сайт азырақ</item>
         <item quantity="other">%d сайт азырақ</item>
+    </plurals>
+    <plurals name="pg_gen_learned_from">
+        <item quantity="one">Осы телефонда бұрын тексерілген %d жолдан үйренді</item>
+        <item quantity="other">Осы телефонда бұрын тексерілген %d жолдан үйренді</item>
     </plurals>
 </resources>
