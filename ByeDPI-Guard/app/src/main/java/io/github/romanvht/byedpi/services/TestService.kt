@@ -50,6 +50,18 @@ class TestService : Service() {
         val isRunning: Boolean
             get() = state.value.isRunning
 
+        /**
+         * Set by the command line generator for a whole search: between its runs the service stays
+         * in the foreground ([held]) and the next run starts inside it, instead of stopping and
+         * being started again. Android 12+ refuses to start a foreground service while the app is
+         * in the background, so a restart between rounds could end a long search early.
+         */
+        @Volatile var holdBetweenRuns = false
+
+        /** The service kept in the foreground between runs; only touched on the main thread. */
+        private var held: TestService? = null
+
+        /** Starts a run. Call on the main thread. */
         fun start(context: Context) {
             if (isRunning) return
             ServiceManager.refresh(context)
@@ -62,6 +74,10 @@ class TestService : Service() {
                 failed = false,
                 wasInterrupted = false,
             )
+            held?.takeIf { !it.destroyed && it.testJob == null }?.let { service ->
+                service.runHeld()
+                return
+            }
             try {
                 ContextCompat.startForegroundService(context, Intent(context, TestService::class.java).setAction(START_ACTION))
             } catch (e: Exception) {
@@ -73,6 +89,15 @@ class TestService : Service() {
         fun stop() {
             if (!isRunning) return
             mutableState.value = state.value.copy(isStopping = true)
+        }
+
+        /** Ends [holdBetweenRuns]: a service kept between runs leaves the foreground and stops. */
+        fun release() {
+            holdBetweenRuns = false
+            held?.let { service ->
+                held = null
+                if (service.testJob == null && !service.destroyed) service.finish()
+            }
         }
 
         suspend fun awaitStopped() {
@@ -129,6 +154,8 @@ class TestService : Service() {
     // service stops within seconds of this call. A test never runs that long, but stop anyway.
     override fun onTimeout(startId: Int, fgsType: Int) {
         Log.w(TAG, "Foreground service time limit reached; stopping the test")
+        if (CommandGenerator.isRunning) CommandGenerator.stop()
+        if (held === this) held = null
         stop()
         @Suppress("DEPRECATION")
         stopForeground(true)
@@ -159,8 +186,13 @@ class TestService : Service() {
                 }
             }
             STOP_ACTION -> {
+                // From the notification: a search is stopped as a whole, not just its current run.
+                if (CommandGenerator.isRunning) CommandGenerator.stop()
                 stop()
-                if (testJob == null) stopSelfResult(startId)
+                if (testJob == null) {
+                    if (held === this) held = null
+                    stopSelfResult(startId)
+                }
             }
             else -> if (testJob == null) stopSelfResult(startId)
         }
@@ -169,9 +201,25 @@ class TestService : Service() {
 
     override fun onDestroy() {
         destroyed = true
+        if (held === this) held = null
         if (testJob != null) stop()
         scope.cancel()
         super.onDestroy()
+    }
+
+    /** The next run of a search, in this service that stayed in the foreground. */
+    private fun runHeld() {
+        notifiedStrategy = -1
+        notifiedCompleted = -1
+        runCatching { (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).notify(NOTIFICATION_ID, notification()) }
+        startTesting()
+    }
+
+    /** Leaves the foreground and stops. */
+    private fun finish() {
+        @Suppress("DEPRECATION")
+        stopForeground(true)
+        stopSelf()
     }
 
     private fun startTesting() {
@@ -257,9 +305,15 @@ class TestService : Service() {
                         getPreferences().edit(commit = true) { putBoolean("is_test_running", false) }
                     }
                     testJob = null
-                    @Suppress("DEPRECATION")
-                    stopForeground(true)
-                    stopSelfResult(lastStartId)
+                    if (holdBetweenRuns && !destroyed) {
+                        // A search's next run follows: stay in the foreground for it.
+                        held = this@TestService
+                    } else {
+                        if (held === this@TestService) held = null
+                        @Suppress("DEPRECATION")
+                        stopForeground(true)
+                        stopSelfResult(lastStartId)
+                    }
                     mutableState.value = if (prepared) TestState(
                         runId = previous.runId,
                         isLoaded = true,

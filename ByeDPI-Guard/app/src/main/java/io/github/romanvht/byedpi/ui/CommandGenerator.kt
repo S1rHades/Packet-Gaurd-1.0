@@ -141,6 +141,7 @@ object CommandGenerator {
         )
         job = scope.launch {
             try {
+                TestService.holdBetweenRuns = true
                 search(app, plan)
             } catch (e: CancellationException) {
                 mutable.update { it.copy(phase = GenPhase.Idle, leader = null) }
@@ -149,6 +150,7 @@ object CommandGenerator {
                 mutable.update { it.copy(phase = GenPhase.Idle, failed = true) }
             } finally {
                 withContext(NonCancellable) {
+                    TestService.release()
                     app.getPreferences().edit(commit = true) { remove(TestService.SITES_OVERRIDE_PREF) }
                     mutable.update { it.copy(running = false, stopping = false) }
                 }

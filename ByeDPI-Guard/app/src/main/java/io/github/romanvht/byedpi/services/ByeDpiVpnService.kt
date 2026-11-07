@@ -57,7 +57,7 @@ class ByeDpiVpnService : VpnService() {
             }
             null, SERVICE_INTERFACE, RESUME_ACTION -> {
                 startForeground()
-                session.onStarted()
+                session.onStarted(bySystem = intent?.action != RESUME_ACTION)
                 sendControl(START_ACTION)
             }
             STOP_ACTION -> {

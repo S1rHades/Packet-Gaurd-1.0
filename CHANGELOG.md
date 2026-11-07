@@ -6,6 +6,17 @@ from 2.5.0 on (**Settings → About → Updates**); earlier versions are install
 
 The first lines under each version are what the app shows as "What's new", so keep them short.
 
+## 3.3.2 (November 2026)
+
+- Make one just for me keeps going when you leave the app during a long search
+- Always-on VPN no longer gives up when the phone is slow to start
+- Stop in the search's notification now stops the whole search
+
+The rest, in more detail:
+
+- **Searches in the background.** Each round used to stop the test service and start it again. Android 12 and later can refuse that start while the app is in the background, which ended the search with "The test could not start". The service now stays in the foreground for the whole search and runs each round itself.
+- **Always-on VPN at boot.** When Android starts the VPN by itself, the engine now waits up to 45 seconds (was 10) for the app to send its settings, since at boot that message can queue behind every other app's.
+
 ## 3.3.1 (November 2026)
 
 - Settings → About now starts by saying where Packet Guard comes from
