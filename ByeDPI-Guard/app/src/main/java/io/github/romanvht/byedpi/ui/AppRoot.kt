@@ -89,6 +89,8 @@ fun AppRoot(requestedTab: Tab? = null, onTabRequestHandled: () -> Unit = {}) {
     val benchUi by benchVm.ui.collectAsStateWithLifecycle()
 
     var tab by rememberSaveable { mutableStateOf(Tab.Connect) }
+    // Read before anything else marks the app as used (e.g. the update check's version note).
+    var firstRunDone by remember { mutableStateOf(FirstRun.isDone(ctx)) }
     LaunchedEffect(requestedTab) {
         if (requestedTab != null) {
             tab = requestedTab
@@ -169,10 +171,22 @@ fun AppRoot(requestedTab: Tab? = null, onTabRequestHandled: () -> Unit = {}) {
         }
     }
 
-    // One-time startup work: permissions, then optional auto-connect.
-    var startupDone by rememberSaveable { mutableStateOf(false) }
+    // The first-run guide's quick test: connect with what it found, or say nothing worked.
     LaunchedEffect(Unit) {
-        if (startupDone) return@LaunchedEffect
+        benchVm.firstSetupDone.collect { applied ->
+            if (applied) {
+                tab = Tab.Connect
+                if (state !is ConnectionState.Connected && state !is ConnectionState.Connecting) toggle()
+            } else {
+                say(ctx.getString(R.string.pg_fr_nothing))
+            }
+        }
+    }
+
+    // One-time startup work, after the first-run guide: permissions, then optional auto-connect.
+    var startupDone by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(firstRunDone) {
+        if (!firstRunDone || startupDone) return@LaunchedEffect
         startupDone = true
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !PermissionUtils.hasNotificationPermission(ctx)) {
             notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -182,6 +196,22 @@ fun AppRoot(requestedTab: Tab? = null, onTabRequestHandled: () -> Unit = {}) {
         if (ctx.getPreferences().getBoolean("auto_connect", false) &&
             state is ConnectionState.Disconnected && !TestService.isRunning && !CommandGenerator.isRunning
         ) toggle()
+    }
+
+    if (!firstRunDone) {
+        FirstRunGuide(
+            onDone = {
+                FirstRun.markDone(ctx)
+                firstRunDone = true
+            },
+            onFind = {
+                FirstRun.markDone(ctx)
+                firstRunDone = true
+                tab = Tab.Benchmark
+                benchVm.runFirstSetup()
+            }
+        )
+        return
     }
 
     GlassBackground {

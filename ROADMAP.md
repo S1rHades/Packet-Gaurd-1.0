@@ -8,7 +8,7 @@ be added to a bug-fix release.
 Suggested order: 1 and 3 first (they help new and older users most, and need no new
 permissions), then 4 (so later work can't quietly break screens), then 2, then 5.
 
-## 1. First-run guide that picks a setting for you
+## 1. First-run guide that picks a setting for you (done in 3.4.0)
 
 - Three short screens on first launch: what the app does, the VPN permission, then
   "Let's find what works on your network".
