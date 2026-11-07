@@ -185,6 +185,7 @@
     <string name="pg_section_lists">Списки сайтов для теста</string>
     <string name="pg_settings_exported">Настройки экспортированы</string>
     <string name="pg_about_version">Версия %1$s · %2$s</string>
+    <string name="pg_about_origin">Packet Guard — не оригинальная разработка. Это изменённая версия ByeByeDPI от romanvht, которая использует движок ByeDPI от hufrea. Вся технология обхода блокировок взята из этих проектов. Цель Packet Guard — сделать её понятнее и удобнее.</string>
     <string name="pg_about_blurb">Packet Guard запускает движок обхода DPI на вашем телефоне и направляет через него трафик. Удалённого сервера нет: соединения идут напрямую к сайтам, которые вы открываете.</string>
     <string name="pg_backup">Резервная копия</string>
     <string name="pg_export_settings">Экспорт настроек</string>
@@ -198,7 +199,7 @@
     <string name="pg_copy_diagnostics_help">Данные об устройстве, сети и движке для отчёта об ошибке</string>
     <string name="pg_open_source">Открытый исходный код</string>
     <string name="pg_credit_byedpi">Движок обхода, автор hufrea · GPL-3.0</string>
-    <string name="pg_credit_byebyedpi">Android-приложение, на котором основан Packet Guard, автор romanvht · GPL-3.0</string>
+    <string name="pg_credit_byebyedpi">Оригинальное приложение от romanvht. Packet Guard — его изменённая версия · GPL-3.0</string>
     <string name="pg_credit_hev">Туннель VPN → прокси, автор heiher · MIT</string>
     <string name="pg_export">Экспорт</string>
     <string name="pg_import">Импорт</string>

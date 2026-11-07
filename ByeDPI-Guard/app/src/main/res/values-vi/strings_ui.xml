@@ -185,6 +185,7 @@
     <string name="pg_section_lists">Danh sách trang kiểm tra</string>
     <string name="pg_settings_exported">Đã xuất cài đặt</string>
     <string name="pg_about_version">Phiên bản %1$s · %2$s</string>
+    <string name="pg_about_origin">Packet Guard không phải là sản phẩm gốc. Đây là phiên bản sửa đổi của ByeByeDPI của romanvht, chạy bộ máy ByeDPI của hufrea. Toàn bộ công nghệ vượt chặn đến từ các dự án đó. Mục tiêu của Packet Guard là giúp nó dễ hiểu và dễ dùng hơn.</string>
     <string name="pg_about_blurb">Packet Guard chạy một bộ máy vượt DPI trên điện thoại và định tuyến lưu lượng của bạn qua nó. Không có máy chủ từ xa: kết nối của bạn đi thẳng tới các trang bạn truy cập.</string>
     <string name="pg_backup">Sao lưu và khôi phục</string>
     <string name="pg_export_settings">Xuất cài đặt</string>
@@ -198,7 +199,7 @@
     <string name="pg_copy_diagnostics_help">Thông tin thiết bị, mạng và bộ máy để dán vào báo cáo lỗi</string>
     <string name="pg_open_source">Mã nguồn mở</string>
     <string name="pg_credit_byedpi">Bộ máy vượt chặn, của hufrea · GPL-3.0</string>
-    <string name="pg_credit_byebyedpi">Ứng dụng Android mà Packet Guard dựa trên, của romanvht · GPL-3.0</string>
+    <string name="pg_credit_byebyedpi">Ứng dụng gốc, của romanvht. Packet Guard là phiên bản sửa đổi của nó · GPL-3.0</string>
     <string name="pg_credit_hev">Đường hầm VPN sang proxy, của heiher · MIT</string>
     <string name="pg_export">Xuất</string>
     <string name="pg_import">Nhập</string>
