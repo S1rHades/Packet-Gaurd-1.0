@@ -414,6 +414,7 @@
     <string name="pg_tr_less_dep">Daha sık başarısız olur</string>
     <string name="pg_tr_more_dep">Daha sık çalışır</string>
     <string name="pg_tr_slower">%1$d ms daha yavaş</string>
+    <string name="pg_err_reset">Ayarlar sıfırlanamadı</string>
     <plurals name="pg_sites">
         <item quantity="one">%d site</item>
         <item quantity="other">%d site</item>

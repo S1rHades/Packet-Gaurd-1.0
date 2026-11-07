@@ -1,12 +1,18 @@
-<p><i>ByeByeDPI</i> launches a local SOCKS5 proxy <a href='https://github.com/hufrea/byedpi' target='_blank' rel='nofollow noopener'>ByeDPI</a> to bypass DPI and redirects all traffic through it.</p>
-<p>For stable operation, configuration adjustments may be required. You can read more about various settings in the <a href='https://github.com/hufrea/byedpi/blob/main/README.md' target='_blank' rel='nofollow noopener'>ByeDPI documentation</a>.</p>
-<p>The application uses VPN mode on Android to redirect traffic but does not transmit anything to a remote server. It does not encrypt traffic or hide your IP address.</p>
+<p><b>Packet Guard</b> helps you open sites that your network blocks by inspecting traffic (DPI). It runs the <a href='https://github.com/hufrea/byedpi' target='_blank' rel='nofollow noopener'>ByeDPI</a> engine on your phone, finds the setting that works on your connection, and keeps it on.</p>
+<p>There is no VPN server and no account. Your traffic goes straight to the sites you visit. The app does not send it to any remote server, does not encrypt it and does not hide your IP address. It also cannot help when a site is blocked by its address rather than by inspecting traffic.</p>
 <p>
-<b>Features</b><br>
-* Support for app filtering in VPN mode (split tunneling via whitelist/blacklist)<br>
-* Auto-launch of VPN/Proxy on device startup<br>
-* Saving command-line parameter lists with switching capability<br>
-* Improved compatibility with Android TV/BOX<br>
-* Import/export of settings<br>
-* Ability to test application performance using a set of pre-configured commands (Beta)<br>
+<b>What it does</b><br>
+* Connect screen: tap the shield to turn protection on or off, with live latency and success rate<br>
+* Benchmark: tests ready-made settings on the site lists you pick, scores each out of 100 for sites opened, success and speed, and recommends one<br>
+* Choose the fastest or most reliable setting instead, and see what you gain and give up<br>
+* Command line generator: builds and tests new command lines for your own connection, and learns from the results<br>
+* Saved strategies, with the last test result next to each<br>
+* Every command line explained in plain words<br>
+* VPN mode for the whole phone or only for apps you choose (split tunnelling), or local proxy mode<br>
+* Quick Settings tile and auto-start when the phone boots or the app opens<br>
+* In-app updates from GitHub releases (can be switched off)<br>
+* Export and import of settings<br>
+* English, Russian, Turkish, Kazakh and Vietnamese
 </p>
+<p>The Benchmark and the live check contact the sites in the lists you switch on. The app contacts GitHub only to check for updates. No ads, no analytics, no tracking.</p>
+<p>Packet Guard is free software under the GPL-3.0 licence. It is built on <a href='https://github.com/romanvht/ByeDPIAndroid' target='_blank' rel='nofollow noopener'>ByeByeDPI</a> by romanvht and the ByeDPI engine by hufrea.</p>

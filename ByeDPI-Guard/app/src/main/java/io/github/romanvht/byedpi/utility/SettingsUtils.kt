@@ -284,7 +284,7 @@ object SettingsUtils {
         } catch (e: Exception) {
             Log.e(TAG, "Failed to reset settings", e)
             Handler(Looper.getMainLooper()).post {
-                Toast.makeText(context, "Failed to reset settings", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.pg_err_reset), Toast.LENGTH_SHORT).show()
             }
         }
     }
