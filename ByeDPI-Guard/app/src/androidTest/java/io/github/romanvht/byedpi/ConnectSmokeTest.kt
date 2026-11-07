@@ -10,7 +10,6 @@ import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.Until
 import io.github.romanvht.byedpi.ui.ModernActivity
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -27,6 +26,24 @@ class ConnectSmokeTest {
     private val device = UiDevice.getInstance(inst)
 
     private fun shell(cmd: String) = inst.uiAutomation.executeShellCommand(cmd).close()
+
+    /**
+     * Taps the element matching [selector] once it's there. Compose can redraw it between finding
+     * and tapping (StaleObjectException), so it looks it up again and retries until [timeoutMs].
+     */
+    private fun tap(selector: androidx.test.uiautomator.BySelector, timeoutMs: Long): Boolean {
+        val end = System.currentTimeMillis() + timeoutMs
+        while (System.currentTimeMillis() < end) {
+            val target = device.wait(Until.findObject(selector), 1_000) ?: continue
+            try {
+                target.click()
+                return true
+            } catch (_: androidx.test.uiautomator.StaleObjectException) {
+                Thread.sleep(300)
+            }
+        }
+        return false
+    }
 
     /** What's on screen, for the failure message: text and descriptions of every node. */
     private fun screen(): String {
@@ -53,18 +70,20 @@ class ConnectSmokeTest {
         }
 
         ActivityScenario.launch(ModernActivity::class.java).use {
-            val connect = device.wait(Until.findObject(By.desc(ctx.getString(R.string.pg_shield_connect))), 60_000)
-            assertNotNull("The shield's Connect button should appear. ${screen()}", connect)
-            connect.click()
+            assertTrue(
+                "The shield's Connect button should appear. ${screen()}",
+                tap(By.desc(ctx.getString(R.string.pg_shield_connect)), 60_000)
+            )
 
             // The Connect status is one spoken item: "Protected. …"
             val protectedText = ctx.getString(R.string.pg_connect_protected).lowercase()
             val connected = device.wait(Until.hasObject(By.descContains(protectedText.replaceFirstChar { it.uppercase() })), 60_000)
             assertTrue("Should reach Protected within a minute. ${screen()}", connected)
 
-            val disconnect = device.wait(Until.findObject(By.desc(ctx.getString(R.string.pg_shield_disconnect))), 10_000)
-            assertNotNull("The shield should offer Disconnect. ${screen()}", disconnect)
-            disconnect.click()
+            assertTrue(
+                "The shield should offer Disconnect. ${screen()}",
+                tap(By.desc(ctx.getString(R.string.pg_shield_disconnect)), 15_000)
+            )
             assertTrue(
                 "Should disconnect. ${screen()}",
                 device.wait(Until.hasObject(By.desc(ctx.getString(R.string.pg_shield_connect))), 30_000)
