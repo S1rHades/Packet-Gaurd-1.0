@@ -37,7 +37,7 @@ permissions), then 4 (so later work can't quietly break screens), then 2, then 5
   likely failures).
 - Optional light theme.
 
-## 4. Automated quality checks
+## 4. Automated quality checks (done in 3.6.0)
 
 - Committed screenshot tests (Paparazzi) for each main screen, in English and Russian, at
   normal and large font sizes; CI fails on unexpected changes.

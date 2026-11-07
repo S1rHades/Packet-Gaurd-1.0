@@ -1,5 +1,7 @@
 package io.github.romanvht.byedpi.ui
 
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.contentDescription
@@ -177,9 +179,19 @@ private fun StatusCard(state: ConnectionState, metrics: LiveMetrics, profile: Ac
             modifier = Modifier.padding(top = 4.dp)
         )
         HorizontalDivider(Modifier.padding(vertical = 14.dp), color = Palette.Border)
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            MetricTile(stringResource(R.string.pg_latency), metrics.latencyMs?.let { stringResource(R.string.pg_ms, it) } ?: "—", Modifier.weight(1f))
-            MetricTile(stringResource(R.string.pg_success_rate), metrics.successRate?.let { stringResource(R.string.pg_percent, it) } ?: "—", Modifier.weight(1f))
+        val latency = stringResource(R.string.pg_latency) to (metrics.latencyMs?.let { stringResource(R.string.pg_ms, it) } ?: "—")
+        val success = stringResource(R.string.pg_success_rate) to (metrics.successRate?.let { stringResource(R.string.pg_percent, it) } ?: "—")
+        // Side by side normally; stacked with large text, where two tiles would cut the labels off.
+        if (LocalDensity.current.fontScale < 1.5f) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                MetricTile(latency.first, latency.second, Modifier.weight(1f))
+                MetricTile(success.first, success.second, Modifier.weight(1f))
+            }
+        } else {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                MetricTile(latency.first, latency.second, Modifier.fillMaxWidth())
+                MetricTile(success.first, success.second, Modifier.fillMaxWidth())
+            }
         }
     }
 }
@@ -194,13 +206,20 @@ private fun statusText(s: ConnectionState) = when (s) {
 
 @Composable
 private fun InfoRow(label: String, value: String) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+    // Read as one item ("Status, Running"); the label keeps its room and the value wraps.
+    Row(
+        Modifier.fillMaxWidth().semantics(mergeDescendants = true) {},
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Text(label, color = Palette.TextSecondary)
+        Spacer(Modifier.width(12.dp))
         AnimatedContent(
             targetState = value,
             transitionSpec = { fadeIn(tween(Motion.MEDIUM)) togetherWith fadeOut(tween(Motion.FAST)) },
-            label = "infoValue"
-        ) { v -> Text(v, fontWeight = FontWeight.SemiBold) }
+            label = "infoValue",
+            modifier = Modifier.weight(1f, fill = false)
+        ) { v -> Text(v, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.End) }
     }
 }
 
@@ -209,6 +228,7 @@ private fun MetricTile(label: String, value: String, modifier: Modifier = Modifi
     Column(
         modifier
             .glassInset()
+            .semantics(mergeDescendants = true) {}
             .padding(14.dp)
     ) {
         Text(label, color = Palette.TextSecondary, fontSize = 12.sp)

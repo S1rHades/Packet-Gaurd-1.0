@@ -1,0 +1,2 @@
+- Connect fits large text
+- Every release is now checked automatically: screenshots in two languages and a phone test
