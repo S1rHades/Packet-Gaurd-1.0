@@ -1,5 +1,11 @@
 package io.github.romanvht.byedpi.ui
 
+import io.github.romanvht.byedpi.utility.NetworkMemory
+import android.net.NetworkRequest
+import android.net.NetworkCapabilities
+import android.net.Network
+import android.net.LinkProperties
+import android.net.ConnectivityManager
 import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -70,6 +76,52 @@ class ConnectViewModel(app: Application) : AndroidViewModel(app) {
     private val _messages = MutableSharedFlow<String>(extraBufferCapacity = 4)
     val messages: SharedFlow<String> = _messages.asSharedFlow()
 
+    /**
+     * True when sites keep failing while connected (under half of the last checks worked):
+     * Connect then offers to find a new setting. Cleared on reconnect or when dismissed.
+     */
+    private val _struggling = MutableStateFlow(false)
+    val struggling: StateFlow<Boolean> = _struggling.asStateFlow()
+    private var struggleDismissed = false
+
+    fun dismissStruggle() {
+        struggleDismissed = true
+        _struggling.value = false
+    }
+
+    // ---- per-network strategies ------------------------------------------------------------
+
+    // Null at first, so opening the app on a network with a saved strategy also switches to it.
+    private var lastNetwork: String? = null
+    private var networkJob: Job? = null
+    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
+        override fun onAvailable(network: Network) = onNetworkChanged()
+        override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) = onNetworkChanged()
+        override fun onLost(network: Network) = onNetworkChanged()
+    }
+
+    /**
+     * When the phone moves to a network it has a saved strategy for, switch to it (with Undo).
+     * Waits a few seconds for the network to settle, since a change comes in several steps.
+     */
+    private fun onNetworkChanged() {
+        networkJob?.cancel()
+        networkJob = viewModelScope.launch {
+            delay(4_000)
+            val key = withContext(Dispatchers.IO) { NetworkMemory.currentKey(appCtx) } ?: return@launch
+            if (key == lastNetwork) return@launch
+            lastNetwork = key
+            if (TestService.isRunning || CommandGenerator.isRunning) return@launch
+            val prefs = appCtx.getPreferences()
+            val saved = NetworkMemory.saved(appCtx, key) ?: return@launch
+            if (prefs.getCmdEnable() && prefs.getCmdArgs().trim() == saved.trim()) return@launch
+            withContext(Dispatchers.IO) {
+                StrategyApplier.apply(appCtx, saved, null, why = appCtx.getString(R.string.pg_net_switched))
+            }
+            refreshProfile()
+        }
+    }
+
     private val _refreshing = MutableStateFlow(false)
     val refreshing: StateFlow<Boolean> = _refreshing.asStateFlow()
 
@@ -109,6 +161,13 @@ class ConnectViewModel(app: Application) : AndroidViewModel(app) {
         }
         ServiceManager.refresh(appCtx)
         syncFromService()
+        runCatching {
+            val request = NetworkRequest.Builder()
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                .removeCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN)
+                .build()
+            (appCtx.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager)?.registerNetworkCallback(request, networkCallback)
+        }
     }
 
     /** VPN permission must already be granted (the UI handles that step). */
@@ -214,6 +273,8 @@ class ConnectViewModel(app: Application) : AndroidViewModel(app) {
     private fun stopHealth() {
         healthJob?.cancel()
         healthJob = null
+        _struggling.value = false
+        struggleDismissed = false
         samples.clear()
         _metrics.value = LiveMetrics()
     }
@@ -257,6 +318,8 @@ class ConnectViewModel(app: Application) : AndroidViewModel(app) {
                 latencyMs = if (ok.isEmpty()) null else ok.sum() / ok.size,
                 successRate = if (samples.isEmpty()) null else ok.size * 100 / samples.size
             )
+            // At least two rounds of checks, and most of them failing.
+            _struggling.value = !struggleDismissed && samples.size >= 6 && ok.size * 2 < samples.size
         }
     }
 
@@ -266,6 +329,7 @@ class ConnectViewModel(app: Application) : AndroidViewModel(app) {
 
     override fun onCleared() {
         runCatching { appCtx.unregisterReceiver(receiver) }
+        runCatching { (appCtx.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager)?.unregisterNetworkCallback(networkCallback) }
         super.onCleared()
     }
 }

@@ -445,6 +445,11 @@
     <string name="pg_fr_nothing">The quick test didn’t find a setting that opens your sites. Try Make one just for me on the Benchmark tab.</string>
     <string name="pg_a11y_expanded">Expanded</string>
     <string name="pg_a11y_collapsed">Collapsed</string>
+    <string name="pg_net_switched">Switched to the setting that worked on this network.</string>
+    <string name="pg_struggle_title">Sites stopped opening?</string>
+    <string name="pg_struggle_body">Most of the last checks failed. A quick test can find a setting that works on this network.</string>
+    <string name="pg_struggle_find">Find a new setting</string>
+    <string name="pg_struggle_dismiss">Not now</string>
     <string name="pg_err_storage">Couldn\'t read or save your data. Try again.</string>
     <string name="pg_err_reset">Couldn\'t reset settings</string>
     <plurals name="pg_sites">

@@ -445,6 +445,11 @@
     <string name="pg_fr_nothing">Быстрая проверка не нашла настройку, которая открывает ваши сайты. Попробуйте «Создать для меня» на вкладке «Тест».</string>
     <string name="pg_a11y_expanded">Развёрнуто</string>
     <string name="pg_a11y_collapsed">Свёрнуто</string>
+    <string name="pg_net_switched">Включена настройка, которая работала в этой сети.</string>
+    <string name="pg_struggle_title">Сайты перестали открываться?</string>
+    <string name="pg_struggle_body">Большинство последних проверок не прошли. Быстрая проверка может найти настройку, которая работает в этой сети.</string>
+    <string name="pg_struggle_find">Найти новую настройку</string>
+    <string name="pg_struggle_dismiss">Не сейчас</string>
     <string name="pg_err_storage">Не удалось прочитать или сохранить данные. Попробуйте ещё раз.</string>
     <string name="pg_err_reset">Не удалось сбросить настройки</string>
     <plurals name="pg_sites">

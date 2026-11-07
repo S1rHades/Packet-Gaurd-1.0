@@ -17,7 +17,7 @@ import java.io.File
 
 object SettingsUtils {
     private const val TAG = "SettingsUtils"
-    private val separatePreferenceKeys = setOf("byedpi_command_history", "selected_apps", "autostart_last_boot_count")
+    private val separatePreferenceKeys = setOf("byedpi_command_history", "selected_apps", "autostart_last_boot_count", "pg_network_strategies")
 
     enum class Section {
         SETTINGS,

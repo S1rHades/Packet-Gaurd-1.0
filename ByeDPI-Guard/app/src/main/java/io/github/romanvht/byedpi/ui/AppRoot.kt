@@ -86,6 +86,7 @@ fun AppRoot(requestedTab: Tab? = null, onTabRequestHandled: () -> Unit = {}) {
     val metrics by connectVm.metrics.collectAsStateWithLifecycle()
     val profile by connectVm.profile.collectAsStateWithLifecycle()
     val refreshing by connectVm.refreshing.collectAsStateWithLifecycle()
+    val struggling by connectVm.struggling.collectAsStateWithLifecycle()
     val benchUi by benchVm.ui.collectAsStateWithLifecycle()
 
     var tab by rememberSaveable { mutableStateOf(Tab.Connect) }
@@ -253,7 +254,15 @@ fun AppRoot(requestedTab: Tab? = null, onTabRequestHandled: () -> Unit = {}) {
             when (current) {
                 Tab.Connect -> ConnectScreen(
                     state, metrics, profile, onToggle = toggle,
-                    refreshing = refreshing, onRefresh = connectVm::refreshNow
+                    refreshing = refreshing, onRefresh = connectVm::refreshNow,
+                    struggling = struggling,
+                    onFindNew = {
+                        // The same quick test as the first-run guide: test, switch on the best, reconnect.
+                        connectVm.dismissStruggle()
+                        tab = Tab.Benchmark
+                        benchVm.runFirstSetup()
+                    },
+                    onDismissStruggle = connectVm::dismissStruggle
                 )
                 Tab.Benchmark -> BenchmarkScreen(benchVm, bypassActive = bypassActive)
                 Tab.Settings -> SettingsScreen(
