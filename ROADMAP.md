@@ -28,7 +28,7 @@ permissions), then 4 (so later work can't quietly break screens), then 2, then 5
 - Limit: reading the Wi-Fi name needs location permission on Android 10+, so this is off by
   default and explains why it asks.
 
-## 3. Accessibility pass
+## 3. Accessibility pass (done in 3.5.0, except the light theme)
 
 - TalkBack labels on every icon and on the shield; announce progress changes
   ("37 percent, testing 4 of 8").

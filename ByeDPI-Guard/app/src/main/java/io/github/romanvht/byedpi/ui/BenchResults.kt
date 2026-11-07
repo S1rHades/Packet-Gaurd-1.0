@@ -1,5 +1,10 @@
 package io.github.romanvht.byedpi.ui
 
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -100,12 +105,16 @@ fun ScoreParts(score: CmdScore, modifier: Modifier = Modifier) {
 @Composable
 private fun ScorePart(label: String, value: Int) {
     val shown by animateFloatAsState(value / 100f, tween(Motion.SLOW), label = "scorePart")
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(label, color = Palette.TextSecondary, fontSize = 12.sp, modifier = Modifier.width(72.dp))
+    // Read as one item: "Sites, 75 percent".
+    Row(
+        Modifier.semantics(mergeDescendants = true) { progressBarRangeInfo = ProgressBarRangeInfo(value / 100f, 0f..1f) },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(label, color = Palette.TextSecondary, fontSize = 12.sp, modifier = Modifier.widthIn(min = 72.dp).padding(end = 6.dp))
         Box(Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)).background(Glass.Inset)) {
             Box(Modifier.fillMaxHeight().fillMaxWidth(shown).clip(RoundedCornerShape(3.dp)).background(scoreTint(value)))
         }
-        Text("$value", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.width(34.dp).padding(start = 8.dp))
+        Text("$value", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.widthIn(min = 34.dp).padding(start = 8.dp))
     }
 }
 
@@ -339,7 +348,7 @@ private fun CombinedSection(c: Combined, applied: String?, onApply: (Combined) -
             c.parts.forEach { (group, setting) ->
                 Row {
                     Text(group ?: stringResource(R.string.pg_comb_else), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                    Text(setting, fontSize = 13.sp, color = Palette.Sky, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1.2f))
+                    Text(setting, fontSize = 13.sp, color = Palette.Sky, maxLines = 3, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1.2f))
                 }
             }
         }
@@ -365,7 +374,7 @@ private fun GroupsSection(groups: List<GroupRow>, modifier: Modifier = Modifier)
         groups.forEachIndexed { i, g ->
             if (i > 0) HorizontalDivider(color = Color.White.copy(alpha = 0.06f))
             Row(Modifier.fillMaxWidth().padding(vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(g.name, fontSize = 15.sp, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(g.name, fontSize = 15.sp, modifier = Modifier.weight(1f), maxLines = 2, overflow = TextOverflow.Ellipsis)
                 val all = g.opened >= g.sites
                 MetricPill(
                     if (all) stringResource(R.string.pg_group_all) else stringResource(R.string.pg_group_some, g.opened, g.sites),
@@ -381,9 +390,11 @@ private fun GroupsSection(groups: List<GroupRow>, modifier: Modifier = Modifier)
 @Composable
 fun AllResultsCard(d: Decision, applied: String?, canApply: Boolean, onApply: (Choice) -> Unit, modifier: Modifier = Modifier) {
     var open by rememberSaveable { mutableStateOf(false) }
+    val expandedText = stringResource(if (open) R.string.pg_a11y_expanded else R.string.pg_a11y_collapsed)
     AppCard(modifier) {
         Row(
-            Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable { open = !open }.heightIn(min = 48.dp),
+            Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable(role = Role.Button) { open = !open }
+                .semantics { stateDescription = expandedText }.heightIn(min = 48.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(Modifier.weight(1f)) {
@@ -400,7 +411,7 @@ fun AllResultsCard(d: Decision, applied: String?, canApply: Boolean, onApply: (C
                         ScoreRing(c.score.overall, size = 40.dp)
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
-                            Text(c.name, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(c.name, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
                             Text(
                                 c.command, fontSize = 11.sp, color = Palette.TextSecondary, fontFamily = FontFamily.Monospace,
                                 maxLines = 1, overflow = TextOverflow.Ellipsis

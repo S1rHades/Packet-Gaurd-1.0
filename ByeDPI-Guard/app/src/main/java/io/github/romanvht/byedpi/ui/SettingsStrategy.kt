@@ -297,7 +297,7 @@ private fun HistoryRow(
                     cmd.name?.takeIf { it.isNotBlank() } ?: stringResource(R.string.pg_unnamed_strategy),
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f, fill = false)
                 )
@@ -306,7 +306,7 @@ private fun HistoryRow(
                     Text(
                         stringResource(R.string.pg_active_badge),
                         color = Color.White,
-                        fontSize = 10.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))

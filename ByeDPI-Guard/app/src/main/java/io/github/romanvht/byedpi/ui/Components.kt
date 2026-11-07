@@ -1,5 +1,12 @@
 package io.github.romanvht.byedpi.ui
 
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -93,7 +100,7 @@ fun AppCard(
 @Composable
 fun SectionTitle(text: String, modifier: Modifier = Modifier, trailing: (@Composable () -> Unit)? = null) {
     Row(modifier.fillMaxWidth().padding(bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(text, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+        Text(text, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f).semantics { heading() })
         trailing?.invoke()
     }
 }
@@ -101,7 +108,7 @@ fun SectionTitle(text: String, modifier: Modifier = Modifier, trailing: (@Compos
 @Composable
 fun ScreenHeader(title: String, subtitle: String? = null, modifier: Modifier = Modifier) {
     Column(modifier) {
-        Text(title, style = MaterialTheme.typography.headlineSmall)
+        Text(title, style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
         if (subtitle != null) {
             Text(
                 subtitle,
@@ -171,7 +178,7 @@ fun PrimaryButton(
         enabled = enabled,
         modifier = modifier
             .pressScale(interaction)
-            .height(height.dp)
+            .heightIn(min = height.dp) // grows with large text instead of clipping it
             .clip(shape)
             .then(
                 when {
@@ -199,7 +206,10 @@ fun PrimaryButton(
                     Icon(ic, null, Modifier.size(20.dp))
                     Spacer(Modifier.width(8.dp))
                 }
-                Text(label, fontWeight = FontWeight.SemiBold, fontSize = if (height >= 56) 18.sp else 15.sp)
+                Text(
+                    label, fontWeight = FontWeight.SemiBold, fontSize = if (height >= 56) 18.sp else 15.sp,
+                    textAlign = TextAlign.Center, modifier = Modifier.weight(1f, fill = false)
+                )
             }
         }
     }
@@ -290,7 +300,7 @@ fun Pill(
             .background(Glass.Inset)
             .background(Glass.Accent, alpha = accent)
             .border(1.dp, border, RoundedCornerShape(50))
-            .clickable(interactionSource = interaction, indication = null, enabled = enabled, onClick = onClick)
+            .selectable(selected = selected, enabled = enabled, role = Role.Tab, interactionSource = interaction, indication = null, onClick = onClick)
             .heightIn(min = 48.dp) // Fitts: a full thumb-sized target
             .padding(horizontal = 16.dp, vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -317,6 +327,7 @@ fun <T> Segmented(
         modifier
             .fillMaxWidth()
             .glassInset()
+            .selectableGroup()
             .padding(4.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
@@ -336,12 +347,12 @@ fun <T> Segmented(
                     .weight(1f)
                     .clip(RoundedCornerShape(12.dp))
                     .background(Glass.Accent, alpha = accent)
-                    .clickable(enabled = enabled) { onSelect(item) }
+                    .selectable(selected = isSelected, enabled = enabled, role = Role.RadioButton) { onSelect(item) }
                     .heightIn(min = 48.dp)
                     .padding(vertical = 11.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text(label(item), color = fg, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                Text(label(item), color = fg, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
             }
         }
     }
@@ -361,7 +372,7 @@ fun SwitchRow(
         modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .clickable(enabled = enabled) { onCheckedChange(!checked) }
+            .toggleable(value = checked, enabled = enabled, role = Role.Switch, onValueChange = onCheckedChange)
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -371,7 +382,7 @@ fun SwitchRow(
         }
         Switch(
             checked = checked,
-            onCheckedChange = onCheckedChange,
+            onCheckedChange = null, // the whole row is the switch, so TalkBack reads one item
             enabled = enabled,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.White,
@@ -400,7 +411,7 @@ fun NavRow(
         modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .clickable(enabled = enabled, onClick = onClick)
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
             .padding(vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

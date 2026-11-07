@@ -6,6 +6,20 @@ from 2.5.0 on (**Settings → About → Updates**); earlier versions are install
 
 The first lines under each version are what the app shows as "What's new", so keep them short.
 
+## 3.5.0 (November 2026)
+
+- Works better with TalkBack: switches, checkboxes, tabs and the shield say what they are and whether they're on
+- Test progress and connection changes are read out as they happen
+- Larger text no longer gets cut off on buttons and results
+- Easier-to-read colours: grey text, red warnings and blue buttons all meet the WCAG contrast level
+
+The rest, in more detail:
+
+- **TalkBack.** Each switch, checkbox and radio row is one item with its state ("Autostart, switch, on"), not a row plus an unnamed control. Site tiles and command lines say whether they're selected; pills and Quick/Thorough say which is chosen; Advanced options, All results and Command lines to test say whether they're open; headings can be jumped between. The shield says the action and the state ("Connect, Disconnected"). The bottom tabs are no longer read twice.
+- **Announcements.** "Protected", "Connecting" and failures on Connect, and "Trying profile 4 of 8" or the search's round, are announced when they change; the ticking percentage isn't, but progress bars report their value.
+- **Large text (up to 200%).** Buttons grow instead of clipping their label, score labels widen, names in results wrap to two lines, and small badges are 12 sp.
+- **Contrast.** Secondary text is slightly lighter, red is lighter so it reads on cards, the blue button gradient is deeper so white text on it passes 4.5:1, and unchecked boxes have a visible border.
+
 ## 3.4.0 (November 2026)
 
 - New: a short guide the first time you open Packet Guard

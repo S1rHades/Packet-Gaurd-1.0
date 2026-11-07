@@ -32,11 +32,12 @@ object Palette {
     val Glow = Color(0xFF3B82F6)         // highlights and glows
     val Sky = Color(0xFF60A5FA)          // top of the shield gradient
     val TextPrimary = Color(0xFFFFFFFF)
-    val TextSecondary = Color(0xFF94A3B8)
-    val Gray = Color(0xFF475569)         // idle state
+    // Text colours meet WCAG AA (4.5:1) on the glass cards, selected tiles included.
+    val TextSecondary = Color(0xFFA3B1C6)
+    val Gray = Color(0xFF64748B)         // idle state; 3:1 for borders such as an unchecked box
     val Success = Color(0xFF22C55E)
     val Warning = Color(0xFFF59E0B)
-    val Error = Color(0xFFEF4444)
+    val Error = Color(0xFFFF7B7B)        // light enough to read as text on cards and in pills
 }
 
 private val DarkScheme = darkColorScheme(

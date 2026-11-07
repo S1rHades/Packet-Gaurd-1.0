@@ -1,5 +1,8 @@
 package io.github.romanvht.byedpi.ui
 
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.selectable
 import android.content.Intent
 import android.provider.Settings
 import androidx.compose.animation.AnimatedVisibility
@@ -268,18 +271,18 @@ private fun DnsDialog(current: String, onPick: (String) -> Unit, onDismiss: () -
         containerColor = Palette.Surface,
         title = { Text(stringResource(R.string.pg_dns_server)) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Column(Modifier.selectableGroup(), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 (DNS_PRESETS.map { it.first to dnsSummary(it.first) } + ("custom" to stringResource(R.string.pg_custom))).forEach { (value, label) ->
                     Row(
                         Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(10.dp))
-                            .clickable { choice = value },
+                            .selectable(selected = choice == value, role = Role.RadioButton) { choice = value },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(
                             selected = choice == value,
-                            onClick = { choice = value },
+                            onClick = null,
                             colors = RadioButtonDefaults.colors(selectedColor = Palette.Glow)
                         )
                         Text(label)

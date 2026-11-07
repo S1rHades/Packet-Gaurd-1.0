@@ -1,5 +1,7 @@
 package io.github.romanvht.byedpi.ui
 
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -168,7 +170,7 @@ private fun AppRow(app: InstalledApp, checked: Boolean, onToggle: () -> Unit, mo
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
             .background(bg)
-            .clickable(onClick = onToggle)
+            .toggleable(value = checked, role = Role.Checkbox, onValueChange = { onToggle() })
             .padding(horizontal = 10.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -177,12 +179,12 @@ private fun AppRow(app: InstalledApp, checked: Boolean, onToggle: () -> Unit, mo
         }
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
-            Text(app.label, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(app.label, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Text(app.packageName, color = Palette.TextSecondary, fontSize = 11.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         Checkbox(
             checked = checked,
-            onCheckedChange = { onToggle() },
+            onCheckedChange = null,
             colors = CheckboxDefaults.colors(checkedColor = Palette.AccentBlue, uncheckedColor = Palette.Gray)
         )
     }
