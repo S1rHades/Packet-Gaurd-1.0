@@ -48,6 +48,8 @@ The first time you open it, three short screens explain what Packet Guard does, 
 
 Tap the shield to turn protection on or off. The card below says whether it's running, the mode (the whole phone through Android's VPN, or a local proxy for chosen apps), which profile is in use, and a live latency and success rate, checked every 20 seconds while you're connected. Pull down to check again straight away.
 
+**Share a setting.** In **Settings → Strategy**, a saved strategy's menu has **Share**: a QR code to scan with another phone's camera, or a link to send. Opening it shows what the setting does before you add it. The command line is in the link itself, with no server, and a shared line can only carry bypass options.
+
 **Each network keeps its own setting.** The setting you switch on is remembered for the network you're on (recognised by its addresses, so no location permission is needed), and Packet Guard switches back to it when you return there, with Undo. If sites stop opening while you're connected, a card offers **Find a new setting**.
 
 It can also connect by itself when the app opens or when the phone starts (**Settings → General → Behavior**), and from the quick-settings tile or a home-screen shortcut.

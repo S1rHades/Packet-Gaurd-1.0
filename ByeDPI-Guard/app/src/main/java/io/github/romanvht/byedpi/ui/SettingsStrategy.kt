@@ -77,12 +77,20 @@ fun StrategySettings(onChanged: () -> Unit, onMessage: (String) -> Unit) {
     var renaming by remember { mutableStateOf<Command?>(null) }
     var editing by remember { mutableStateOf<Command?>(null) }
     var clearMenu by remember { mutableStateOf(false) }
+    var sharing by remember { mutableStateOf<Command?>(null) }
+    var pasting by remember { mutableStateOf(false) }
+    val unnamed = stringResource(R.string.pg_unnamed_strategy)
+    val invalidShare = stringResource(R.string.pg_import_invalid)
 
     fun refresh() {
         items = history.getHistory()
         active = prefs.getCmdArgs()
         onChanged()
     }
+
+    // A setting added from a shared link shows up here straight away.
+    val inbox by StrategyInbox.pending.collectAsStateWithLifecycle()
+    LaunchedEffect(inbox) { if (inbox == null) refresh() }
 
     fun applyNow(command: String) {
         args = StrategyApplier.apply(ctx, command, null)
@@ -172,6 +180,9 @@ fun StrategySettings(onChanged: () -> Unit, onMessage: (String) -> Unit) {
                 stringResource(R.string.pg_strategy_help),
                 Modifier.padding(top = 8.dp)
             )
+            TextButton(onClick = { pasting = true }, modifier = Modifier.padding(top = 4.dp).heightIn(min = 48.dp)) {
+                Text(stringResource(R.string.pg_import_paste))
+            }
         }
     }
 
@@ -217,6 +228,7 @@ fun StrategySettings(onChanged: () -> Unit, onMessage: (String) -> Unit) {
                             onRename = { renaming = cmd },
                             onEdit = { editing = cmd },
                             onCopy = { ClipboardUtils.copy(ctx, cmd.text, "command") },
+                            onShare = { sharing = cmd },
                             onDelete = {
                                 history.deleteCommand(cmd.text)
                                 refresh()
@@ -228,6 +240,21 @@ fun StrategySettings(onChanged: () -> Unit, onMessage: (String) -> Unit) {
         }
     }
 
+    sharing?.let { cmd ->
+        ShareStrategyDialog(cmd.name?.takeIf { it.isNotBlank() } ?: unnamed, cmd.text, onDismiss = { sharing = null })
+    }
+    if (pasting) {
+        TextInputDialog(
+            title = stringResource(R.string.pg_import_paste),
+            label = stringResource(R.string.pg_import_paste_label),
+            initial = ClipboardUtils.paste(ctx)?.takeIf { it.contains("packetguard://") }.orEmpty(),
+            onDismiss = { pasting = false },
+            onConfirm = { text ->
+                pasting = false
+                if (!StrategyInbox.offer(text)) onMessage(invalidShare)
+            }
+        )
+    }
     renaming?.let { cmd ->
         TextInputDialog(
             title = stringResource(R.string.pg_rename_strategy),
@@ -271,6 +298,7 @@ private fun HistoryRow(
     onRename: () -> Unit,
     onEdit: () -> Unit,
     onCopy: () -> Unit,
+    onShare: () -> Unit,
     onDelete: () -> Unit
 ) {
     var menu by remember { mutableStateOf(false) }
@@ -338,6 +366,7 @@ private fun HistoryRow(
                     stringResource(R.string.pg_rename) to onRename,
                     stringResource(R.string.pg_edit) to onEdit,
                     stringResource(R.string.pg_copy) to onCopy,
+                    stringResource(R.string.pg_share) to onShare,
                     deleteLabel to onDelete
                 ).forEach { (label, action) ->
                     DropdownMenuItem(

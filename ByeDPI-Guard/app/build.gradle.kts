@@ -26,8 +26,8 @@ android {
         minSdk = 21
         //noinspection OldTargetApi
         targetSdk = 35
-        versionCode = 3700
-        versionName = "3.7.0"
+        versionCode = 3800
+        versionName = "3.8.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -108,6 +108,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.4")
     implementation("androidx.preference:preference-ktx:1.2.1")
     implementation("com.google.code.gson:gson:2.14.0")
+    // QR codes for sharing a setting (encoding only; scanning is the phone's own camera).
+    implementation("com.google.zxing:core:3.5.3")
 
     // Jetpack Compose UI (Packet Guard front-end)
     implementation(platform("androidx.compose:compose-bom:2025.09.01"))

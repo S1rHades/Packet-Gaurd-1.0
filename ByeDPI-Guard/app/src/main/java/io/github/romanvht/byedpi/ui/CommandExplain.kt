@@ -110,3 +110,41 @@ fun explainCommand(command: String): List<CmdPart> {
     }
     return out
 }
+
+/** Plumbing options a shared command line may still carry: they only change how a bypass behaves. */
+private val SHAREABLE_PLUMBING = setOf(
+    "-Y", "--drop-sack", "-N", "--no-domain", "-U", "--no-udp", "-F", "--tfo", "-g", "--def-ttl",
+    "-R", "--round", "-e", "--oob-data", "-l", "--fake-data", "-u", "--cache-ttl", "-L", "--auto-mode"
+)
+
+/** Options whose value may be a file path on the phone; shared lines may only give them inline (`:…`). */
+private val INLINE_ONLY = setOf("-H", "--hosts", "-l", "--fake-data")
+
+/**
+ * Whether a command line received from someone else is safe to add: every token is a ciadpi
+ * bypass option (or its value) and at least one desync technique is there. Anything that changes
+ * the proxy's address or port, runs it as a daemon, writes files or reads a file from the phone
+ * is refused, as are unknown options. The `{sni}` placeholder is allowed.
+ */
+fun shareableCommand(command: String): Boolean {
+    if (command.isBlank() || command.length > 2000) return false
+    val tokens = runCatching { shellSplit(normalizeCommand(command)) }.getOrNull() ?: return false
+    var i = 0
+    var techniques = 0
+    while (i < tokens.size) {
+        val tok = tokens[i++]
+        if (!tok.startsWith("-") || tok == "-") return false // a stray value
+        val (name, attached) = when {
+            tok.startsWith("--") -> tok.substringBefore('=') to tok.substringAfter('=', "").ifEmpty { null }
+            else -> tok.take(2) to tok.drop(2).ifEmpty { null }
+        }
+        val opt = OPTIONS[name] ?: return false
+        if (opt.technique == null && name !in SHAREABLE_PLUMBING) return false
+        if (opt.technique in POSITIONED) techniques++
+        if (opt.takesValue) {
+            val value = attached ?: tokens.getOrNull(i)?.also { i++ } ?: return false
+            if (name in INLINE_ONLY && !value.startsWith(":")) return false
+        }
+    }
+    return techniques > 0
+}

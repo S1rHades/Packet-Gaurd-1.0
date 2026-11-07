@@ -1,5 +1,6 @@
 package io.github.romanvht.byedpi.ui
 
+import io.github.romanvht.byedpi.utility.HistoryUtils
 import android.Manifest
 import android.app.Activity
 import android.content.Context
@@ -197,6 +198,29 @@ fun AppRoot(requestedTab: Tab? = null, onTabRequestHandled: () -> Unit = {}) {
         if (ctx.getPreferences().getBoolean("auto_connect", false) &&
             state is ConnectionState.Disconnected && !TestService.isRunning && !CommandGenerator.isRunning
         ) toggle()
+    }
+
+    // A shared setting from a QR code, link or paste: show what it does, then add (or use) it.
+    val incoming by StrategyInbox.pending.collectAsStateWithLifecycle()
+    incoming?.let { shared ->
+        val name = shared.name.ifBlank { stringResource(R.string.pg_shared_default) }
+        ImportStrategyDialog(
+            shared,
+            onAdd = {
+                HistoryUtils(ctx).apply {
+                    addCommand(shared.command)
+                    pinCommand(shared.command)
+                    renameCommand(shared.command, name)
+                }
+                StrategyInbox.clear()
+                say(ctx.getString(R.string.pg_import_added))
+            },
+            onUse = {
+                StrategyInbox.clear()
+                scope.launch(kotlinx.coroutines.Dispatchers.IO) { StrategyApplier.apply(ctx, shared.command, name) }
+            },
+            onDismiss = { StrategyInbox.clear() }
+        )
     }
 
     if (!firstRunDone) {

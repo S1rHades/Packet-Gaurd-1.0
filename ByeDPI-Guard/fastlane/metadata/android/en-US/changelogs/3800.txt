@@ -1,0 +1,2 @@
+- Share a working setting with a QR code or a link
+- Opening it shows what it does, then add it in one tap

@@ -47,7 +47,7 @@ permissions), then 4 (so later work can't quietly break screens), then 2, then 5
 - Native-speaker review of the ru, tr, kk and vi translations (several were written without
   one).
 
-## 5. Share a working setting with a QR code
+## 5. Share a working setting with a QR code (done in 3.8.0)
 
 - **Share** in Saved strategies shows a QR code and a link containing the command line itself;
   no server.
