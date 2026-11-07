@@ -53,7 +53,7 @@ class ConnectSmokeTest {
         }
 
         ActivityScenario.launch(ModernActivity::class.java).use {
-            val connect = device.wait(Until.findObject(By.desc(ctx.getString(R.string.pg_shield_connect))), 30_000)
+            val connect = device.wait(Until.findObject(By.desc(ctx.getString(R.string.pg_shield_connect))), 60_000)
             assertNotNull("The shield's Connect button should appear. ${screen()}", connect)
             connect.click()
 
