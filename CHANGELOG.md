@@ -6,6 +6,19 @@ from 2.5.0 on (**Settings → About → Updates**); earlier versions are install
 
 The first lines under each version are what the app shows as "What's new", so keep them short.
 
+## 3.8.0 (November 2026)
+
+- Share a working setting with a QR code or a link
+- Scan it with another phone's camera, or open the link, and Packet Guard shows what it does
+- Add it to Saved strategies, or add it and switch it on, in one tap
+
+The rest, in more detail:
+
+- **Share** is in each saved strategy's menu (Settings → Strategy). It shows a QR code and **Share as text**, which sends the setting and its link through any app.
+- The link (`packetguard://add?…`) holds the command line itself: there's no server, and nothing is uploaded.
+- **Opening a shared setting** shows its name, the command line and what each part does, with **Add to saved** and **Add and use**. A link pasted into **Add a shared setting** (under the command line field) works the same way.
+- **Only bypass options are accepted.** A shared line can't change the proxy's address or port, run it differently, or read or write files on the phone; anything else, or an option the engine doesn't know, is refused.
+
 ## 3.7.0 (November 2026)
 
 - Packet Guard remembers which setting works on each network

@@ -1,5 +1,6 @@
 package io.github.romanvht.byedpi.ui
 
+import io.github.romanvht.byedpi.R
 import io.github.romanvht.byedpi.update.AppUpdates
 import android.content.Intent
 import android.graphics.Color
@@ -54,6 +55,13 @@ class ModernActivity : ComponentActivity() {
     }
 
     private fun handleIntent(intent: Intent?) {
+        // A shared setting (packetguard://add?…) from a QR code or a link: ask before adding it.
+        intent?.data?.takeIf { it.scheme == StrategyShare.SCHEME }?.let { uri ->
+            if (!StrategyInbox.offer(uri.toString())) {
+                android.widget.Toast.makeText(this, R.string.pg_import_invalid, android.widget.Toast.LENGTH_LONG).show()
+            }
+            intent.data = null
+        }
         requestedTab.value = when (intent?.getStringExtra(EXTRA_OPEN_TAB)) {
             "connect" -> Tab.Connect
             "benchmark" -> Tab.Benchmark
