@@ -26,6 +26,8 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -38,6 +40,8 @@ private const val PREF_USER_COMMANDS = "byedpi_proxytest_usercommands"
 private const val PREF_TEST_COMMANDS = "byedpi_proxytest_commands"
 private const val PREF_MODE = "bb_bench_mode"
 private const val PREF_PLAN = "bb_gen_plan"
+/** The generator's line last switched on for testing, so it is switched on only once. */
+private const val PREF_MADE_SELECTED = "bb_made_selected"
 
 /** Step 2's choice: test the ready-made profiles, or let the generator build a command line. */
 enum class BenchMode { ReadyMade, Generate }
@@ -116,6 +120,10 @@ class BenchmarkViewModel(app: Application) : AndroidViewModel(app) {
                 }
             }
         }
+        // A new line from the generator joins the list of lines to test.
+        viewModelScope.launch {
+            CommandGenerator.state.map { it.result?.command }.distinctUntilChanged().collect { reload() }
+        }
         // After an apply elsewhere, or an Undo, "In use" must match what really is in use.
         viewModelScope.launch {
             StrategyApplier.changes.collect {
@@ -141,6 +149,9 @@ class BenchmarkViewModel(app: Application) : AndroidViewModel(app) {
         prefs.edit { putString(PREF_PLAN, plan.name) }
     }
 
+    /** The command line the generator last made, if it made one. */
+    private fun madeLine(): String? = CommandGenerator.state.value.result?.command
+
     val sni: String get() = prefs.getStringNotNull("byedpi_proxytest_sni", "google.com")
 
     // ---- loading ------------------------------------------------------------------------
@@ -158,11 +169,12 @@ class BenchmarkViewModel(app: Application) : AndroidViewModel(app) {
                 val custom = parseCustomProfiles(prefs.getString(PREF_CUSTOM_PROFILES, "") ?: "") {
                     ctx.getString(R.string.pg_custom_n, it)
                 }
-                lists to (
-                    BenchPresets.basic.map { ProfileItem(it.second, it.first, ProfilePack.Basic) } +
-                        community.mapIndexed { i, c -> ProfileItem(c, ctx.getString(R.string.pg_community_n, i + 1), ProfilePack.Community) } +
-                        custom.map { ProfileItem(it.second, it.first, ProfilePack.Custom) }
-                    )
+                val listed = BenchPresets.basic.map { ProfileItem(it.second, it.first, ProfilePack.Basic) } +
+                    community.mapIndexed { i, c -> ProfileItem(c, ctx.getString(R.string.pg_community_n, i + 1), ProfilePack.Community) } +
+                    custom.map { ProfileItem(it.second, it.first, ProfilePack.Custom) }
+                // The generator's last line, with your own lines, unless it is one of those already.
+                val made = madeLine()?.takeIf { m -> listed.none { it.command == m } }
+                lists to (listed + listOfNotNull(made?.let { ProfileItem(it, ctx.getString(R.string.pg_gen_made), ProfilePack.Custom) }))
             } } ?: return@launch
             local.update { old ->
                 val all = profiles.map { it.command }.toSet()
@@ -172,7 +184,13 @@ class BenchmarkViewModel(app: Application) : AndroidViewModel(app) {
                     saved != null -> saved.filter { it in all }.toSet()
                     else -> profiles.filter { it.pack == ProfilePack.Basic }.map { it.command }.toSet()
                 }
-                old.copy(lists = lists, profiles = profiles, selected = selected, loaded = true)
+                // A newly made line is switched on once, so the next Test compares it with the rest;
+                // switching it off afterwards is respected.
+                val made = madeLine()?.takeIf { it in all && prefs.getString(PREF_MADE_SELECTED, null) != it }
+                if (made != null) prefs.edit { putString(PREF_MADE_SELECTED, made) }
+                val withMade = if (made != null) selected + made else selected
+                if (made != null) prefs.edit { putStringSet(PREF_SELECTED, withMade) }
+                old.copy(lists = lists, profiles = profiles, selected = withMade, loaded = true)
             }
         }
     }
@@ -261,8 +279,8 @@ class BenchmarkViewModel(app: Application) : AndroidViewModel(app) {
         }
         val commands = s.profiles.filter { it.command in s.selected }.map { it.command }
         if (commands.isEmpty()) return say(ctx.getString(R.string.pg_err_no_profile))
-        // A regular run tests every active list and replaces the generator's last answer.
-        CommandGenerator.clear(ctx)
+        // The generator's last answer is kept, and its line runs here too when it's selected
+        // (it is by default), so it is scored next to the others on the same sites.
         // TestService reads its profile list from these two upstream preferences.
         prefs.edit(commit = true) {
             putBoolean(PREF_USER_COMMANDS, true)

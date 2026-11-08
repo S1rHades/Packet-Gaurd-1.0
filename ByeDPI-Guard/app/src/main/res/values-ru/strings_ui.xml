@@ -475,6 +475,13 @@
     <string name="pg_src_custom">Ваша</string>
     <string name="pg_src_before">Проверялась раньше</string>
     <string name="pg_src_probe">Базовый приём</string>
+    <string name="pg_made_vs_title">Создано для вас против лучшей здесь</string>
+    <string name="pg_made_vs_help">Обе строки проверялись в этом тесте на одних и тех же сайтах и оцениваются одинаково, так что оценки можно сравнивать напрямую.</string>
+    <string name="pg_made_vs_rank">№%1$d из %2$d</string>
+    <string name="pg_made_vs_none">Строка «Создано для вас» не открыла ни одного сайта в этом тесте.</string>
+    <string name="pg_made_vs_ahead">«Создано для вас» впереди на %1$d баллов.</string>
+    <string name="pg_made_vs_tie">У них одинаковая оценка.</string>
+    <string name="pg_made_vs_behind">«Создано для вас» отстаёт на %1$d баллов. Попробуйте «Сделать для меня» ещё раз с более долгим поиском.</string>
     <string name="pg_err_storage">Не удалось прочитать или сохранить данные. Попробуйте ещё раз.</string>
     <string name="pg_err_reset">Не удалось сбросить настройки</string>
     <plurals name="pg_sites">

@@ -475,6 +475,13 @@
     <string name="pg_src_custom">Сіздікі</string>
     <string name="pg_src_before">Бұрын тексерілген</string>
     <string name="pg_src_probe">Негізгі тәсіл</string>
+    <string name="pg_made_vs_title">Сізге арнап жасалған мен осындағы ең жақсысы</string>
+    <string name="pg_made_vs_help">Екеуі де осы тестте бірдей сайттарда тексерілді және бірдей бағаланды, сондықтан ұпайларды тікелей салыстыруға болады.</string>
+    <string name="pg_made_vs_rank">%2$d ішінен №%1$d</string>
+    <string name="pg_made_vs_none">Сізге арнап жасалған жол бұл тестте ешбір сайтты ашпады.</string>
+    <string name="pg_made_vs_ahead">Сізге арнап жасалған жол %1$d ұпайға алда.</string>
+    <string name="pg_made_vs_tie">Олардың ұпайы бірдей.</string>
+    <string name="pg_made_vs_behind">Сізге арнап жасалған жол %1$d ұпайға артта. Ұзағырақ іздеумен қайта көріңіз.</string>
     <string name="pg_err_storage">Деректерді оқу не сақтау мүмкін болмады. Қайталап көріңіз.</string>
     <string name="pg_err_reset">Баптауларды қалпына келтіру мүмкін болмады</string>
     <plurals name="pg_sites">

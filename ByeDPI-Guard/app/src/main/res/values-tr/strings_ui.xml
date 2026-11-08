@@ -475,6 +475,13 @@
     <string name="pg_src_custom">Sizin</string>
     <string name="pg_src_before">Önceden test edildi</string>
     <string name="pg_src_probe">Temel teknik</string>
+    <string name="pg_made_vs_title">Size özel ile buradaki en iyisi</string>
+    <string name="pg_made_vs_help">İkisi de bu testte aynı sitelerde çalıştı ve aynı şekilde puanlandı, bu yüzden puanlar doğrudan karşılaştırılabilir.</string>
+    <string name="pg_made_vs_rank">%2$d içinde %1$d.</string>
+    <string name="pg_made_vs_none">Size özel satır bu testte hiçbir siteyi açmadı.</string>
+    <string name="pg_made_vs_ahead">Size özel satır %1$d puan önde.</string>
+    <string name="pg_made_vs_tie">Aynı puanı aldılar.</string>
+    <string name="pg_made_vs_behind">Size özel satır %1$d puan geride. Daha uzun aramayla yeniden deneyin.</string>
     <string name="pg_err_storage">Verileriniz okunamadı veya kaydedilemedi. Tekrar deneyin.</string>
     <string name="pg_err_reset">Ayarlar sıfırlanamadı</string>
     <plurals name="pg_sites">

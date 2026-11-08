@@ -475,6 +475,13 @@
     <string name="pg_src_custom">Của bạn</string>
     <string name="pg_src_before">Đã thử trước đây</string>
     <string name="pg_src_probe">Kỹ thuật cơ bản</string>
+    <string name="pg_made_vs_title">Tạo riêng cho bạn so với dòng tốt nhất ở đây</string>
+    <string name="pg_made_vs_help">Cả hai đã chạy trong lần kiểm tra này trên cùng các trang và được chấm điểm như nhau, nên có thể so sánh điểm trực tiếp.</string>
+    <string name="pg_made_vs_rank">#%1$d trong %2$d</string>
+    <string name="pg_made_vs_none">Dòng tạo riêng cho bạn không mở được trang nào trong lần kiểm tra này.</string>
+    <string name="pg_made_vs_ahead">Dòng tạo riêng cho bạn hơn %1$d điểm.</string>
+    <string name="pg_made_vs_tie">Hai dòng bằng điểm nhau.</string>
+    <string name="pg_made_vs_behind">Dòng tạo riêng cho bạn kém %1$d điểm. Hãy thử lại với tìm kiếm lâu hơn.</string>
     <string name="pg_err_storage">Không thể đọc hoặc lưu dữ liệu. Hãy thử lại.</string>
     <string name="pg_err_reset">Không thể đặt lại cài đặt</string>
     <plurals name="pg_sites">

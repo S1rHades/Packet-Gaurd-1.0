@@ -239,6 +239,18 @@ fun BenchmarkScreen(
             }
         }
 
+        // 1b. The generator's line, when this Test ran it: next to the best line of the same run.
+        val made = gen.result?.command
+        if (!generate && !running && made != null && test.strategies.any { it.isCompleted && it.command == made }) {
+            item(key = "made") {
+                MadeVsBestCard(
+                    decision, madeCommand = made, applied = ui.applied, canApply = true,
+                    onApply = { c -> vm.apply(c.command, ctx.getString(R.string.pg_bench_result_label, c.name)) },
+                    modifier = Modifier.animateItem().staggeredEnter(1)
+                )
+            }
+        }
+
         // 2. The test: what it opens, which command lines it tries, the Test button and its
         //    progress, and under it the generator, all in one card.
         item(key = "test") {

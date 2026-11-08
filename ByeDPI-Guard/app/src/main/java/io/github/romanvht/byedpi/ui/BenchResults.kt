@@ -435,3 +435,63 @@ fun AllResultsCard(d: Decision, applied: String?, canApply: Boolean, onApply: (C
         }
     }
 }
+
+/**
+ * The generator's line next to the best line of the same Benchmark run: both ran together on the
+ * same sites and are scored the same way, so the two numbers compare directly.
+ * [made] is null when the generator's line opened none of the sites in this run.
+ */
+@Composable
+fun MadeVsBestCard(
+    d: Decision,
+    madeCommand: String,
+    applied: String?,
+    canApply: Boolean,
+    onApply: (Choice) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val madeIndex = d.ranked.indexOfFirst { it.command == madeCommand }
+    val made = d.ranked.getOrNull(madeIndex)
+    val best = d.ranked.firstOrNull { it.command != madeCommand }
+    AppCard(modifier) {
+        Text(stringResource(R.string.pg_made_vs_title), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        Text(stringResource(R.string.pg_made_vs_help), color = Palette.TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
+        Spacer(Modifier.height(8.dp))
+        @Composable
+        fun line(c: Choice, rank: Int) {
+            Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                ScoreRing(c.score.overall, size = 44.dp)
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(c.name, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text(
+                        stringResource(R.string.pg_made_vs_rank, rank, d.ranked.size) + " · " +
+                            stringResource(R.string.pg_chip_opens, c.stat.reachable, c.stat.sites) +
+                            (c.stat.avgLatencyMs?.let { " · " + stringResource(R.string.pg_ms, it) } ?: "") +
+                            " · " + reliabilityText(c.reliability),
+                        fontSize = 12.sp, color = Palette.TextSecondary
+                    )
+                }
+                TextButton(onClick = { onApply(c) }, enabled = canApply && applied != c.command, modifier = Modifier.heightIn(min = 48.dp)) {
+                    Text(stringResource(if (applied == c.command) R.string.pg_step3_in_use else R.string.pg_apply))
+                }
+            }
+        }
+        if (made != null) line(made, madeIndex + 1)
+        else Text(stringResource(R.string.pg_made_vs_none), fontSize = 13.sp, color = Palette.TextSecondary, modifier = Modifier.padding(vertical = 8.dp))
+        if (best != null) {
+            HorizontalDivider(color = Color.White.copy(alpha = 0.06f))
+            line(best, d.ranked.indexOf(best) + 1)
+        }
+        val verdict = when {
+            made == null || best == null -> null
+            made.score.overall > best.score.overall -> stringResource(R.string.pg_made_vs_ahead, made.score.overall - best.score.overall)
+            made.score.overall == best.score.overall -> stringResource(R.string.pg_made_vs_tie)
+            else -> stringResource(R.string.pg_made_vs_behind, best.score.overall - made.score.overall)
+        }
+        if (verdict != null) {
+            Spacer(Modifier.height(4.dp))
+            Text(verdict, fontSize = 13.sp, lineHeight = 18.sp)
+        }
+    }
+}
