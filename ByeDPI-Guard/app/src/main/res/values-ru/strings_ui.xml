@@ -466,6 +466,7 @@
     <string name="pg_import_invalid">Это не настройка Packet Guard, или в ней есть параметры, которые нельзя менять через общую настройку.</string>
     <string name="pg_import_paste">Добавить общую настройку</string>
     <string name="pg_import_paste_label">Ссылка или сообщение</string>
+    <string name="pg_gen_opens_blocked">Из них %1$d из %2$d, заблокированных без обхода</string>
     <string name="pg_err_storage">Не удалось прочитать или сохранить данные. Попробуйте ещё раз.</string>
     <string name="pg_err_reset">Не удалось сбросить настройки</string>
     <plurals name="pg_sites">

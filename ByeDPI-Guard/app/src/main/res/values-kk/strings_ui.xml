@@ -466,6 +466,7 @@
     <string name="pg_import_invalid">Бұл Packet Guard баптауы емес немесе онда бөлісілген баптау өзгерте алмайтын параметрлер бар.</string>
     <string name="pg_import_paste">Бөлісілген баптауды қосу</string>
     <string name="pg_import_paste_label">Сілтеме немесе хабар</string>
+    <string name="pg_gen_opens_blocked">Оның ішінде айналып өтусіз бұғатталған %2$d сайттың %1$d-і</string>
     <string name="pg_err_storage">Деректерді оқу не сақтау мүмкін болмады. Қайталап көріңіз.</string>
     <string name="pg_err_reset">Баптауларды қалпына келтіру мүмкін болмады</string>
     <plurals name="pg_sites">

@@ -1103,12 +1103,21 @@ private fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) ->
                         ScoreParts(r.score, Modifier.weight(1f))
                     }
                     CommandExplainer(command, Modifier.padding(top = 10.dp), max = 4)
+                    // New results are measured on every site, like the Benchmark; older ones on the blocked sites only.
+                    val allSites = r.sites
                     Fact(
                         Icons.Filled.CheckCircle,
-                        scoreColor(percentOf(r.opened, r.blocked)),
-                        stringResource(R.string.pg_gen_opens, r.opened, r.blocked),
+                        scoreColor(percentOf(r.opened, allSites ?: r.blocked)),
+                        if (allSites != null) stringResource(R.string.pg_chip_opens, r.opened, allSites)
+                        else stringResource(R.string.pg_gen_opens, r.opened, r.blocked),
                         Modifier.padding(top = 10.dp)
                     )
+                    if (allSites != null && r.openedBlocked != null && r.blocked > 0) {
+                        HelperText(
+                            stringResource(R.string.pg_gen_opens_blocked, r.openedBlocked, r.blocked),
+                            Modifier.padding(top = 6.dp, start = 4.dp)
+                        )
+                    }
                     r.latencyMs?.let { ms ->
                         val speed = Speed.of(ms)
                         Fact(
@@ -1147,7 +1156,7 @@ private fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) ->
                                 Column(Modifier.weight(1f).padding(vertical = 8.dp)) {
                                     Text(alt.command, fontFamily = FontFamily.Monospace, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                                     Text(
-                                        stringResource(R.string.pg_gen_opens, alt.opened, alt.sites) +
+                                        stringResource(if (r.sites != null) R.string.pg_chip_opens else R.string.pg_gen_opens, alt.opened, alt.sites) +
                                             (alt.latencyMs?.let { "  ·  " + stringResource(R.string.pg_ms, it) } ?: ""),
                                         color = Palette.TextSecondary, fontSize = 12.sp
                                     )

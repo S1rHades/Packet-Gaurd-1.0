@@ -224,6 +224,9 @@ enum class SearchPlan(val rounds: Int, val perRound: Int, val verify: Int) {
 /** Lines tested before that join round 1 at most. */
 const val KNOWN_MAX = 3
 
+/** Longest command line the search builds by extending a known one. */
+private const val MAX_RAW = 600
+
 /** The no-bypass check: ciadpi with only a comment desyncs nothing. */
 const val BASELINE_COMMAND = "--comment=baseline"
 
@@ -487,6 +490,22 @@ class CommandSearch(val plan: SearchPlan, private val rnd: Random = Random.Defau
         val all = learning.sites
         val missing = if (best == null) all.toSet() else all - best.openedSites
 
+        // 0. Extend lines tested before (community lines and the like) exactly as written: keep
+        //     every group they have and add one more group (`-At,s`) for the sites they miss,
+        //     taken from the line that opens most of those. Simplifying a long community line
+        //     into a few steps would throw away what makes it work.
+        working.filter { it.recipe.raw != null }.take(2).forEach { known ->
+            val gap = all - known.openedSites
+            if (gap.isEmpty()) return@forEach
+            val helpers = working
+                .filter { it !== known && (it.openedSites intersect gap).isNotEmpty() }
+                .sortedByDescending { (it.openedSites intersect gap).size * 1000 + it.score }
+                .take(2)
+                .map { it.recipe.copy(fallback = null).tidy() }
+                .ifEmpty { listOf(explore(gap)) }
+            helpers.forEach { h -> offer(extend(known.recipe, h)) }
+        }
+
         // 1. Fallbacks: the best line, switching to whichever line opens most of what it misses.
         if (best != null && missing.isNotEmpty()) {
             working.drop(1)
@@ -594,6 +613,17 @@ class CommandSearch(val plan: SearchPlan, private val rnd: Random = Random.Defau
             tlsrec = if (tls == "none") null else randomPos(tls, rnd),
             origin = Origin.Explored
         ).tidy()
+    }
+
+    /** [known] as written, plus a last group with [helper] for the sites it misses. */
+    private fun extend(known: Recipe, helper: Recipe): Recipe {
+        val text = known.command + " -At,s " + helper.command
+        return known.copy(
+            raw = text,
+            fallback = helper.copy(fallback = null, raw = null),
+            origin = Origin.Fallback,
+            parents = listOf(known.command, helper.command)
+        ).takeIf { text.length <= MAX_RAW } ?: helper
     }
 
     /** The top candidates once more, to confirm they weren't a fluke. */

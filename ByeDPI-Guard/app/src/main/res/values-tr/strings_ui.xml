@@ -466,6 +466,7 @@
     <string name="pg_import_invalid">Bu bir Packet Guard ayarı değil ya da paylaşılan bir ayarın değiştiremeyeceği seçenekler içeriyor.</string>
     <string name="pg_import_paste">Paylaşılan ayar ekle</string>
     <string name="pg_import_paste_label">Bağlantı veya mesaj</string>
+    <string name="pg_gen_opens_blocked">Atlatma olmadan engellenen %2$d sitenin %1$d tanesi dahil</string>
     <string name="pg_err_storage">Verileriniz okunamadı veya kaydedilemedi. Tekrar deneyin.</string>
     <string name="pg_err_reset">Ayarlar sıfırlanamadı</string>
     <plurals name="pg_sites">
