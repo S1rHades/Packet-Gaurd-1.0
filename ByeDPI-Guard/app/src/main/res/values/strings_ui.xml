@@ -466,6 +466,15 @@
     <string name="pg_import_invalid">That isn’t a Packet Guard setting, or it has options a shared setting can’t change.</string>
     <string name="pg_import_paste">Add a shared setting</string>
     <string name="pg_import_paste_label">Link or message</string>
+    <string name="pg_gen_opens_blocked">Including %1$d of the %2$d that were blocked without a bypass</string>
+    <string name="pg_gen_compare_title">Compared on all your sites</string>
+    <string name="pg_gen_compare_help">Tested together in the same run on the same sites, so the scores compare directly. Ranked by score.</string>
+    <string name="pg_src_new">New</string>
+    <string name="pg_src_community">Community</string>
+    <string name="pg_src_basic">Ready-made</string>
+    <string name="pg_src_custom">Yours</string>
+    <string name="pg_src_before">Tested before</string>
+    <string name="pg_src_probe">Basic technique</string>
     <string name="pg_err_storage">Couldn\'t read or save your data. Try again.</string>
     <string name="pg_err_reset">Couldn\'t reset settings</string>
     <plurals name="pg_sites">

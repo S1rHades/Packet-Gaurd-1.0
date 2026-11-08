@@ -466,6 +466,15 @@
     <string name="pg_import_invalid">Бұл Packet Guard баптауы емес немесе онда бөлісілген баптау өзгерте алмайтын параметрлер бар.</string>
     <string name="pg_import_paste">Бөлісілген баптауды қосу</string>
     <string name="pg_import_paste_label">Сілтеме немесе хабар</string>
+    <string name="pg_gen_opens_blocked">Оның ішінде айналып өтусіз бұғатталған %2$d сайттың %1$d-і</string>
+    <string name="pg_gen_compare_title">Барлық сайттарыңызда салыстыру</string>
+    <string name="pg_gen_compare_help">Бір іске қосуда, бірдей сайттарда бірге тексерілді, сондықтан ұпайларды тікелей салыстыруға болады. Ұпай бойынша реттелген.</string>
+    <string name="pg_src_new">Жаңа</string>
+    <string name="pg_src_community">Қауымдастық</string>
+    <string name="pg_src_basic">Дайын</string>
+    <string name="pg_src_custom">Сіздікі</string>
+    <string name="pg_src_before">Бұрын тексерілген</string>
+    <string name="pg_src_probe">Негізгі тәсіл</string>
     <string name="pg_err_storage">Деректерді оқу не сақтау мүмкін болмады. Қайталап көріңіз.</string>
     <string name="pg_err_reset">Баптауларды қалпына келтіру мүмкін болмады</string>
     <plurals name="pg_sites">

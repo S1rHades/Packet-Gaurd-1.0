@@ -398,4 +398,57 @@ class CommandSearchTest {
             assertEquals(3, best.opened)
         }
     }
+
+    /**
+     * Like the phone in the bug report: a community line opens most blocked sites, partly thanks
+     * to an option the search can't rebuild (here `-Mh` for d.com), and misses c.com, which needs
+     * a TLS record split in the middle of the site name.
+     */
+    private fun communityProvider(command: String): Set<String> {
+        val groups = command.split(Regex(" -A[a-z,]+ ")).map { shellSplit(it) }
+        val all = shellSplit(command)
+        fun opens(t: List<String>, site: String) = when (site) {
+            "a.com" -> t.any { Regex("^-d-?\\d+\\+s").containsMatchIn(it) }
+            "b.com" -> t.any { it.startsWith("-f") } && t.any { it == "-t3" || it == "-t4" }
+            "c.com" -> t.any { it == "-r0+sm" }
+            else -> "-Mh" in all // d.com: only the community line's extra option opens it
+        }
+        return SITES4.filter { s -> groups.any { opens(it, s) } }.toSet()
+    }
+
+    private val SITES4 = listOf("a.com", "b.com", "c.com", "d.com")
+
+    @Test
+    fun aStrongCommunityLineIsKeptWholeAndExtendedForWhatItMisses() {
+        val community = "-d3+s -s5+s -Mh -a1 -As -f-1 -t3 -Qr -a1"
+        assertEquals(setOf("a.com", "b.com", "d.com"), communityProvider(community))
+        val memory = listOf(community, "-r0+sm -o1 -a1", "-o1 -a1").map { c ->
+            val opened = communityProvider(c)
+            io.github.romanvht.byedpi.data.LineRecord(
+                command = c,
+                sites = SITES4.associateWith { s -> intArrayOf(if (s in opened) 2 else 0, 2) }.toMutableMap(),
+                latencySum = 240, latencyCount = 2, updatedAt = 0
+            )
+        }
+        val solved = (1..20).count { seed ->
+            val search = CommandSearch(SearchPlan.Quick, Random(seed))
+            search.prime(memory, SITES4, now = 0)
+            var batch = search.firstRound()
+            for (round in 1..SearchPlan.Quick.rounds) {
+                batch.forEach { r ->
+                    val o = communityProvider(r.command)
+                    search.record(r, Trial(o.size, 4, o.size * 25, if (o.isEmpty()) null else 150, o, SITES4.toSet()))
+                }
+                batch = search.nextRound()
+            }
+            val best = search.best()!!
+            // Never below the community line, and when it gets all four it's the community line
+            // plus a group for c.com, not a simplified copy that loses d.com.
+            assertTrue(best.command, best.opened >= 3)
+            if (best.opened == 4) assertTrue(best.command, best.command.startsWith(community))
+            best.opened == 4
+        }
+        println("community extended: solved $solved of 20")
+        assertTrue("solved $solved of 20", solved >= 18)
+    }
 }

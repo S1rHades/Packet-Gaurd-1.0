@@ -6,6 +6,21 @@ from 2.5.0 on (**Settings → About → Updates**); earlier versions are install
 
 The first lines under each version are what the app shows as "What's new", so keep them short.
 
+## 3.9.0 (November 2026)
+
+- Make one just for me now builds on the best community lines instead of replacing them
+- New: "Compared on all your sites" ranks the new lines next to community, ready-made and your own
+- Its result is scored on all your sites, on the same scale as the Benchmark
+- The answer is never worse than the best line tested before
+
+The rest, in more detail:
+
+- **Compare them yourself.** The search's last run now tests its finalists together with the best community, ready-made and own lines it learned from, on every site. The result card lists them all by score, each marked New, Community (with its number), Ready-made or Yours, with sites opened, speed, success rate and an Apply button. Because they ran together on the same sites, the scores compare directly; the winner is the one at the top.
+
+- **Why it looked worse.** A search tests only the sites that are blocked without a bypass, and its score was out of those alone, while the Benchmark scores every site, most of which open anyway. A community line scoring 86 in the Benchmark could score 46 on the blocked sites alone, which is what the search was compared against.
+- **Building on community lines.** Long community lines were simplified to a few steps before the search built on them, which threw away much of what made them work. Now the best lines tested before are kept exactly as written, and the search adds one more group (`-At,s`) aimed at the sites they still miss.
+- **Scored like the Benchmark.** The finalists, and the best line known before, are re-tested on every site at the end. The result shows "Opens X of Y sites" with a score on the same scale as the Benchmark's, plus how many of the blocked sites it opened. This also catches a line that breaks a site that opened without a bypass.
+
 ## 3.8.0 (November 2026)
 
 - Share a working setting with a QR code or a link

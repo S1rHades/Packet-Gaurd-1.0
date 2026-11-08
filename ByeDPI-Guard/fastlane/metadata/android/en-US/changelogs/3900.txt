@@ -1,0 +1,3 @@
+- Make one just for me builds on the best community lines instead of replacing them
+- Compare the new lines with community, ready-made and your own, tested on the same sites
+- Results are scored on all your sites, like the Benchmark

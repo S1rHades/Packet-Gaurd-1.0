@@ -466,6 +466,15 @@
     <string name="pg_import_invalid">Это не настройка Packet Guard, или в ней есть параметры, которые нельзя менять через общую настройку.</string>
     <string name="pg_import_paste">Добавить общую настройку</string>
     <string name="pg_import_paste_label">Ссылка или сообщение</string>
+    <string name="pg_gen_opens_blocked">Из них %1$d из %2$d, заблокированных без обхода</string>
+    <string name="pg_gen_compare_title">Сравнение на всех ваших сайтах</string>
+    <string name="pg_gen_compare_help">Проверены вместе, за один запуск и на одних и тех же сайтах, поэтому оценки можно сравнивать напрямую. По убыванию оценки.</string>
+    <string name="pg_src_new">Новая</string>
+    <string name="pg_src_community">Сообщество</string>
+    <string name="pg_src_basic">Готовая</string>
+    <string name="pg_src_custom">Ваша</string>
+    <string name="pg_src_before">Проверялась раньше</string>
+    <string name="pg_src_probe">Базовый приём</string>
     <string name="pg_err_storage">Не удалось прочитать или сохранить данные. Попробуйте ещё раз.</string>
     <string name="pg_err_reset">Не удалось сбросить настройки</string>
     <plurals name="pg_sites">

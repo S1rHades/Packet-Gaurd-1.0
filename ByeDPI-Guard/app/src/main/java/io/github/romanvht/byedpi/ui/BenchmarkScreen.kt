@@ -1103,12 +1103,21 @@ private fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) ->
                         ScoreParts(r.score, Modifier.weight(1f))
                     }
                     CommandExplainer(command, Modifier.padding(top = 10.dp), max = 4)
+                    // New results are measured on every site, like the Benchmark; older ones on the blocked sites only.
+                    val allSites = r.sites
                     Fact(
                         Icons.Filled.CheckCircle,
-                        scoreColor(percentOf(r.opened, r.blocked)),
-                        stringResource(R.string.pg_gen_opens, r.opened, r.blocked),
+                        scoreColor(percentOf(r.opened, allSites ?: r.blocked)),
+                        if (allSites != null) stringResource(R.string.pg_chip_opens, r.opened, allSites)
+                        else stringResource(R.string.pg_gen_opens, r.opened, r.blocked),
                         Modifier.padding(top = 10.dp)
                     )
+                    if (allSites != null && r.openedBlocked != null && r.blocked > 0) {
+                        HelperText(
+                            stringResource(R.string.pg_gen_opens_blocked, r.openedBlocked, r.blocked),
+                            Modifier.padding(top = 6.dp, start = 4.dp)
+                        )
+                    }
                     r.latencyMs?.let { ms ->
                         val speed = Speed.of(ms)
                         Fact(
@@ -1132,7 +1141,9 @@ private fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) ->
                         modifier = Modifier.fillMaxWidth().padding(top = 18.dp),
                         height = 60
                     )
-                    if (r.alternatives.isNotEmpty()) {
+                    if (r.compared.size > 1) {
+                        CompareLines(r.compared, winner = command, applied = applied, onApply = onApply, modifier = Modifier.padding(top = 18.dp))
+                    } else if (r.alternatives.isNotEmpty()) {
                         Text(
                             stringResource(R.string.pg_gen_others), color = Palette.TextSecondary, fontSize = 14.sp,
                             modifier = Modifier.padding(top = 18.dp, bottom = 6.dp)
@@ -1147,7 +1158,7 @@ private fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) ->
                                 Column(Modifier.weight(1f).padding(vertical = 8.dp)) {
                                     Text(alt.command, fontFamily = FontFamily.Monospace, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                                     Text(
-                                        stringResource(R.string.pg_gen_opens, alt.opened, alt.sites) +
+                                        stringResource(if (r.sites != null) R.string.pg_chip_opens else R.string.pg_gen_opens, alt.opened, alt.sites) +
                                             (alt.latencyMs?.let { "  ·  " + stringResource(R.string.pg_ms, it) } ?: ""),
                                         color = Palette.TextSecondary, fontSize = 12.sp
                                     )
@@ -1158,6 +1169,73 @@ private fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) ->
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Every line of the search's final run, ranked: the new lines next to the best community,
+ * ready-made and own lines, all tested together on the same sites, so the scores compare directly.
+ */
+@Composable
+internal fun CompareLines(
+    lines: List<GenAlternative>,
+    winner: String,
+    applied: String?,
+    onApply: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier.fillMaxWidth()) {
+        Text(stringResource(R.string.pg_gen_compare_title), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        HelperText(stringResource(R.string.pg_gen_compare_help), Modifier.padding(top = 2.dp, bottom = 8.dp))
+        lines.forEachIndexed { i, line ->
+            val isWinner = line.command == winner
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+                    .glassInset()
+                    .then(if (isWinner) Modifier.border(1.dp, Palette.Glow, Glass.ControlShape) else Modifier)
+                    .padding(start = 10.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "${i + 1}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Palette.TextSecondary,
+                    modifier = Modifier.width(18.dp)
+                )
+                ScoreRing(line.score.overall, size = 40.dp)
+                Spacer(Modifier.width(10.dp))
+                Column(Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        val (label, tint) = when (line.source) {
+                            "new" -> stringResource(R.string.pg_src_new) to Palette.Glow
+                            "community" -> stringResource(R.string.pg_src_community) to Palette.Sky
+                            "basic" -> stringResource(R.string.pg_src_basic) to Palette.Sky
+                            "custom" -> stringResource(R.string.pg_src_custom) to Palette.Sky
+                            "probe" -> stringResource(R.string.pg_src_probe) to Palette.TextSecondary
+                            else -> stringResource(R.string.pg_src_before) to Palette.TextSecondary
+                        }
+                        MetricPill(label, tint)
+                        line.name?.let {
+                            Spacer(Modifier.width(6.dp))
+                            Text(it, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                    }
+                    Text(
+                        line.command, fontFamily = FontFamily.Monospace, fontSize = 12.sp, color = Palette.TextSecondary,
+                        maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 2.dp)
+                    )
+                    Text(
+                        stringResource(R.string.pg_chip_opens, line.opened, line.sites) +
+                            (line.latencyMs?.let { "  ·  " + stringResource(R.string.pg_ms, it) } ?: "") +
+                            (line.successRate?.let { "  ·  " + stringResource(R.string.pg_percent, it) } ?: ""),
+                        fontSize = 12.sp, modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
+                TextButton(onClick = { onApply(line.command) }, enabled = applied != line.command, modifier = Modifier.heightIn(min = 48.dp)) {
+                    Text(stringResource(if (applied == line.command) R.string.pg_step3_in_use else R.string.pg_apply))
                 }
             }
         }
