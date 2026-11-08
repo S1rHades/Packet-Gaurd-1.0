@@ -2,6 +2,7 @@ package io.github.romanvht.byedpi.ui
 
 import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.filled.Info
 import android.app.Activity
@@ -235,7 +236,9 @@ private fun SectionPickerDialog(
                         Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(10.dp))
-                            .toggleable(value = section in chosen, role = Role.Checkbox) { chosen = if (it) chosen + section else chosen - section },
+                            .toggleable(value = section in chosen, role = Role.Checkbox) { chosen = if (it) chosen + section else chosen - section }
+                            .heightIn(min = 48.dp)
+                            .padding(horizontal = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(
@@ -243,6 +246,7 @@ private fun SectionPickerDialog(
                             onCheckedChange = null,
                             colors = CheckboxDefaults.colors(checkedColor = Palette.AccentBlue, uncheckedColor = Palette.Gray)
                         )
+                        Spacer(Modifier.width(12.dp))
                         Text(stringResource(section.label))
                     }
                 }

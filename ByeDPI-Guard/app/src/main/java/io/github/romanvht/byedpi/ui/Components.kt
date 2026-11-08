@@ -21,9 +21,10 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -36,7 +37,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -245,7 +245,11 @@ fun SecondaryButton(
 // Selection controls
 // ---------------------------------------------------------------------------------------------
 
-/** Horizontally scrolling pills with an animated selected state. */
+/**
+ * Pills with an animated selected state. They wrap onto a second line when they don't fit,
+ * rather than scrolling sideways, so none is ever shown cut off at the card's edge.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun <T> PillTabs(
     items: List<T>,
@@ -256,9 +260,10 @@ fun <T> PillTabs(
     icon: ((T) -> ImageVector?)? = null,
     enabled: Boolean = true
 ) {
-    Row(
-        modifier.horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    FlowRow(
+        modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items.forEach { item ->
             Pill(
@@ -284,6 +289,7 @@ fun Pill(
     val accent by animateFloatAsState(if (selected) 1f else 0f, tween(Motion.MEDIUM), label = "pillBg")
     val fg by animateColorAsState(
         when {
+            !enabled && selected -> Color.White.copy(alpha = 0.75f)
             !enabled -> Palette.Gray
             selected -> Color.White
             else -> Palette.TextSecondary
@@ -336,6 +342,8 @@ fun <T> Segmented(
             val accent by animateFloatAsState(if (isSelected) 1f else 0f, tween(Motion.MEDIUM), label = "segBg")
             val fg by animateColorAsState(
                 when {
+                    // Still readable on the blue when locked during a test, just dimmer.
+                    !enabled && isSelected -> Color.White.copy(alpha = 0.75f)
                     !enabled -> Palette.Gray
                     isSelected -> Color.White
                     else -> Palette.TextSecondary
@@ -346,10 +354,10 @@ fun <T> Segmented(
                 Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Glass.Accent, alpha = accent)
+                    .background(Glass.Accent, alpha = if (enabled) accent else accent * 0.55f)
                     .selectable(selected = isSelected, enabled = enabled, role = Role.RadioButton) { onSelect(item) }
                     .heightIn(min = 48.dp)
-                    .padding(vertical = 11.dp),
+                    .padding(horizontal = 6.dp, vertical = 11.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(label(item), color = fg, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)

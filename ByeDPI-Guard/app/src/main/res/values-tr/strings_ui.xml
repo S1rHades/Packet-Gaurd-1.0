@@ -23,7 +23,7 @@
     <string name="pg_more">Diğer</string>
     <string name="pg_name">Ad</string>
     <string name="pg_custom">Özel</string>
-    <string name="pg_ms">%1$d ms</string>
+    <string name="pg_ms">%1$d\u00A0ms</string>
     <string name="pg_percent">%%%1$d</string>
     <string name="pg_n_selected">%1$d seçili</string>
     <string name="pg_profile">Profil</string>
@@ -178,7 +178,7 @@
     <string name="pg_bench_params_help">Bir site, yanıtın tamamı geldiğinde erişilebilir sayılır. Site başına daha fazla istek daha tutarlı sonuç verir ama daha uzun sürer.</string>
     <string name="pg_bench_custom">Özel profiller</string>
     <string name="pg_bench_custom_label">Her satıra bir tane:  Ad | argümanlar</string>
-    <string name="pg_bench_custom_empty">Test → Test edilecek profiller → Özel altında görünürler.</string>
+    <string name="pg_bench_custom_empty">Test → Test edilecek komut satırları → Özel altında görünürler.</string>
     <string name="pg_custom_n">Özel %1$d</string>
     <string name="pg_section_settings">Ayarlar</string>
     <string name="pg_section_apps">Uygulama seçimi</string>
@@ -272,8 +272,8 @@
     <string name="pg_adv_lists">Site listelerini düzenle</string>
     <string name="pg_mode_gen_title">Bana özel oluştur</string>
     <string name="pg_mode_gen_sub">Bağlantınız için yeni komut satırları oluşturur, test eder ve en iyisini tutar.</string>
-    <string name="pg_gen_quick">Hızlı · yaklaşık 3 dk</string>
-    <string name="pg_gen_thorough">Kapsamlı · yaklaşık 10 dk</string>
+    <string name="pg_gen_quick">Hızlı\nyaklaşık 3 dk</string>
+    <string name="pg_gen_thorough">Kapsamlı\nyaklaşık 10 dk</string>
     <string name="pg_gen_start">Komut satırımı oluştur</string>
     <string name="pg_gen_checking">Hangi sitelerin engellendiği kontrol ediliyor…</string>
     <string name="pg_gen_round">Tur %1$d / %2$d</string>
@@ -482,6 +482,8 @@
     <string name="pg_made_vs_ahead">Size özel satır %1$d puan önde.</string>
     <string name="pg_made_vs_tie">Aynı puanı aldılar.</string>
     <string name="pg_made_vs_behind">Size özel satır %1$d puan geride. Daha uzun aramayla yeniden deneyin.</string>
+    <string name="pg_gen_kept_eyebrow">Yeni hiçbir satır onu geçemedi</string>
+    <string name="pg_gen_kept_title">En iyi satırınız</string>
     <string name="pg_err_storage">Verileriniz okunamadı veya kaydedilemedi. Tekrar deneyin.</string>
     <string name="pg_err_reset">Ayarlar sıfırlanamadı</string>
     <plurals name="pg_sites">

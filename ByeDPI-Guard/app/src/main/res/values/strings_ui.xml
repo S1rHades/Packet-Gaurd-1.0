@@ -23,7 +23,7 @@
     <string name="pg_more">More</string>
     <string name="pg_name">Name</string>
     <string name="pg_custom">Custom</string>
-    <string name="pg_ms">%1$d ms</string>
+    <string name="pg_ms">%1$d\u00A0ms</string>
     <string name="pg_percent">%1$d%%</string>
     <string name="pg_n_selected">%1$d selected</string>
     <string name="pg_profile">Profile</string>
@@ -178,7 +178,7 @@
     <string name="pg_bench_params_help">A site counts as reachable when its full response arrives. More requests per site give steadier results but take longer.</string>
     <string name="pg_bench_custom">Custom profiles</string>
     <string name="pg_bench_custom_label">One per line:  Name | arguments</string>
-    <string name="pg_bench_custom_empty">They appear in Benchmark → Profiles to test → Custom.</string>
+    <string name="pg_bench_custom_empty">They appear in Benchmark → Command lines to test → Custom.</string>
     <string name="pg_custom_n">Custom %1$d</string>
     <string name="pg_section_settings">Settings</string>
     <string name="pg_section_apps">Per-app selection</string>
@@ -272,8 +272,8 @@
     <string name="pg_adv_lists">Edit site lists</string>
     <string name="pg_mode_gen_title">Make one just for me</string>
     <string name="pg_mode_gen_sub">Builds new command lines for your connection, tests them and keeps the best.</string>
-    <string name="pg_gen_quick">Quick · about 3 min</string>
-    <string name="pg_gen_thorough">Thorough · about 10 min</string>
+    <string name="pg_gen_quick">Quick\nabout 3 min</string>
+    <string name="pg_gen_thorough">Thorough\nabout 10 min</string>
     <string name="pg_gen_start">Make my command line</string>
     <string name="pg_gen_checking">Checking which sites are blocked…</string>
     <string name="pg_gen_round">Round %1$d of %2$d</string>
@@ -352,7 +352,7 @@
     <string name="pg_ex_fake_sni">Fake packets name another site: %1$s</string>
     <string name="pg_ex_fake_tls_mod">Makes the fake packet look more real</string>
     <string name="pg_ex_fake_offset">Fake packets start at position %1$s</string>
-    <string name="pg_ex_udp_fake">Sends %1$s fake packets before UDP and QUIC traffic</string>
+    <string name="pg_ex_udp_fake">Fake packets sent before UDP and QUIC traffic: %1$s</string>
     <string name="pg_ex_mod_http">Changes how the HTTP header is written</string>
     <string name="pg_ex_auto">If a site still fails, tries the options after this</string>
     <string name="pg_ex_timeout">Waits %1$s seconds before treating a site as failed</string>
@@ -482,6 +482,8 @@
     <string name="pg_made_vs_ahead">Made for you is %1$d points ahead.</string>
     <string name="pg_made_vs_tie">They scored the same.</string>
     <string name="pg_made_vs_behind">Made for you is %1$d points behind. Try Make one just for me again with Search longer.</string>
+    <string name="pg_gen_kept_eyebrow">Nothing new beat it</string>
+    <string name="pg_gen_kept_title">Your best line</string>
     <string name="pg_err_storage">Couldn\'t read or save your data. Try again.</string>
     <string name="pg_err_reset">Couldn\'t reset settings</string>
     <plurals name="pg_sites">

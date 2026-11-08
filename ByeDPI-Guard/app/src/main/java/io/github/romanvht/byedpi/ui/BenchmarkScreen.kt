@@ -846,10 +846,12 @@ private fun ProfileRow(p: ProfileItem, selected: Boolean, enabled: Boolean, onTo
             .glassInset()
             .background(bg)
             .toggleable(value = selected, enabled = enabled, role = Role.Checkbox, onValueChange = { onToggle() })
-            .padding(horizontal = 6.dp, vertical = 4.dp),
+            .heightIn(min = 56.dp)
+            .padding(horizontal = 14.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Checkbox(checked = selected, onCheckedChange = null, enabled = enabled, colors = checkboxColors())
+        Spacer(Modifier.width(14.dp))
         Column(Modifier.weight(1f).padding(end = 8.dp)) {
             Text(p.name, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
             Text(
@@ -1056,7 +1058,7 @@ private fun GenProgress(gen: GenState, plan: SearchPlan) {
 
 /** Step 3 for the generator: the command line it made, in plain words, with one big button. */
 @Composable
-private fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) -> Unit, onSearchLonger: () -> Unit) {
+internal fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) -> Unit, onSearchLonger: () -> Unit) {
     val result = gen.result
     val state = when {
         gen.running -> 0
@@ -1098,9 +1100,17 @@ private fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) ->
                             contentAlignment = Alignment.Center
                         ) { Icon(Icons.Filled.AutoAwesome, null, tint = Palette.Sky, modifier = Modifier.size(28.dp)) }
                         Spacer(Modifier.width(14.dp))
+                        // When a line tested before stays the best, don't call it "made for you".
+                        val keptName = if (r.knownWon) r.compared.firstOrNull { it.command == command }?.name else null
                         Column(Modifier.weight(1f)) {
-                            Text(stringResource(R.string.pg_gen_made), color = Palette.TextSecondary, fontSize = 14.sp)
-                            Text(stringResource(R.string.pg_gen_title_result), fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                            Text(
+                                stringResource(if (r.knownWon) R.string.pg_gen_kept_eyebrow else R.string.pg_gen_made),
+                                color = Palette.TextSecondary, fontSize = 14.sp
+                            )
+                            Text(
+                                keptName ?: stringResource(if (r.knownWon) R.string.pg_gen_kept_title else R.string.pg_gen_title_result),
+                                fontSize = 22.sp, fontWeight = FontWeight.Bold
+                            )
                         }
                     }
                     Text(
@@ -1230,10 +1240,10 @@ internal fun CompareLines(
                             else -> stringResource(R.string.pg_src_before) to Palette.TextSecondary
                         }
                         MetricPill(label, tint)
-                        line.name?.let {
-                            Spacer(Modifier.width(6.dp))
-                            Text(it, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        }
+                    }
+                    // The name gets its own line, so "Community #12" isn't cut to "Commun…".
+                    line.name?.let {
+                        Text(it, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 4.dp))
                     }
                     Text(
                         line.command, fontFamily = FontFamily.Monospace, fontSize = 12.sp, color = Palette.TextSecondary,

@@ -23,7 +23,7 @@
     <string name="pg_more">Ещё</string>
     <string name="pg_name">Название</string>
     <string name="pg_custom">Свой</string>
-    <string name="pg_ms">%1$d мс</string>
+    <string name="pg_ms">%1$d\u00A0мс</string>
     <string name="pg_percent">%1$d%%</string>
     <string name="pg_n_selected">Выбрано: %1$d</string>
     <string name="pg_profile">Профиль</string>
@@ -178,7 +178,7 @@
     <string name="pg_bench_params_help">Сайт считается доступным, когда приходит полный ответ. Больше запросов на сайт дают более стабильный результат, но тест идёт дольше.</string>
     <string name="pg_bench_custom">Свои профили</string>
     <string name="pg_bench_custom_label">По одному на строку:  Название | аргументы</string>
-    <string name="pg_bench_custom_empty">Они появятся в Тест → Профили для теста → Свои.</string>
+    <string name="pg_bench_custom_empty">Они появятся в Тест → Командные строки для проверки → Свои.</string>
     <string name="pg_custom_n">Свой %1$d</string>
     <string name="pg_section_settings">Настройки</string>
     <string name="pg_section_apps">Выбор приложений</string>
@@ -272,8 +272,8 @@
     <string name="pg_adv_lists">Изменить списки сайтов</string>
     <string name="pg_mode_gen_title">Создать для меня</string>
     <string name="pg_mode_gen_sub">Составляет новые командные строки под ваше подключение, проверяет их и оставляет лучшую.</string>
-    <string name="pg_gen_quick">Быстро · около 3 мин</string>
-    <string name="pg_gen_thorough">Тщательно · около 10 мин</string>
+    <string name="pg_gen_quick">Быстро\nоколо 3 мин</string>
+    <string name="pg_gen_thorough">Тщательно\nоколо 10 мин</string>
     <string name="pg_gen_start">Создать командную строку</string>
     <string name="pg_gen_checking">Проверяю, какие сайты заблокированы…</string>
     <string name="pg_gen_round">Раунд %1$d из %2$d</string>
@@ -352,7 +352,7 @@
     <string name="pg_ex_fake_sni">Поддельные пакеты называют другой сайт: %1$s</string>
     <string name="pg_ex_fake_tls_mod">Делает поддельный пакет правдоподобнее</string>
     <string name="pg_ex_fake_offset">Поддельные пакеты начинаются с позиции %1$s</string>
-    <string name="pg_ex_udp_fake">Отправляет %1$s поддельных пакетов перед трафиком UDP и QUIC</string>
+    <string name="pg_ex_udp_fake">Поддельных пакетов перед трафиком UDP и QUIC: %1$s</string>
     <string name="pg_ex_mod_http">Меняет запись HTTP-заголовка</string>
     <string name="pg_ex_auto">Если сайт всё ещё не открылся, пробует параметры после этого</string>
     <string name="pg_ex_timeout">Ждёт %1$s с, прежде чем считать сайт недоступным</string>
@@ -482,6 +482,8 @@
     <string name="pg_made_vs_ahead">«Создано для вас» впереди на %1$d баллов.</string>
     <string name="pg_made_vs_tie">У них одинаковая оценка.</string>
     <string name="pg_made_vs_behind">«Создано для вас» отстаёт на %1$d баллов. Попробуйте «Сделать для меня» ещё раз с более долгим поиском.</string>
+    <string name="pg_gen_kept_eyebrow">Ничто новое её не превзошло</string>
+    <string name="pg_gen_kept_title">Ваша лучшая строка</string>
     <string name="pg_err_storage">Не удалось прочитать или сохранить данные. Попробуйте ещё раз.</string>
     <string name="pg_err_reset">Не удалось сбросить настройки</string>
     <plurals name="pg_sites">

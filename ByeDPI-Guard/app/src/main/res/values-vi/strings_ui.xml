@@ -23,7 +23,7 @@
     <string name="pg_more">Thêm</string>
     <string name="pg_name">Tên</string>
     <string name="pg_custom">Tùy chỉnh</string>
-    <string name="pg_ms">%1$d ms</string>
+    <string name="pg_ms">%1$d\u00A0ms</string>
     <string name="pg_percent">%1$d%%</string>
     <string name="pg_n_selected">Đã chọn %1$d</string>
     <string name="pg_profile">Cấu hình</string>
@@ -178,7 +178,7 @@
     <string name="pg_bench_params_help">Một trang được coi là truy cập được khi nhận đủ phản hồi. Nhiều yêu cầu mỗi trang cho kết quả ổn định hơn nhưng lâu hơn.</string>
     <string name="pg_bench_custom">Cấu hình tùy chỉnh</string>
     <string name="pg_bench_custom_label">Mỗi dòng một mục:  Tên | tham số</string>
-    <string name="pg_bench_custom_empty">Chúng sẽ xuất hiện trong Kiểm tra → Cấu hình cần kiểm tra → Tùy chỉnh.</string>
+    <string name="pg_bench_custom_empty">Chúng sẽ xuất hiện trong Kiểm tra → Dòng lệnh để thử → Tùy chỉnh.</string>
     <string name="pg_custom_n">Tùy chỉnh %1$d</string>
     <string name="pg_section_settings">Cài đặt</string>
     <string name="pg_section_apps">Lựa chọn ứng dụng</string>
@@ -272,8 +272,8 @@
     <string name="pg_adv_lists">Sửa danh sách trang</string>
     <string name="pg_mode_gen_title">Tạo riêng cho tôi</string>
     <string name="pg_mode_gen_sub">Tạo các dòng lệnh mới cho kết nối của bạn, kiểm tra và giữ dòng lệnh tốt nhất.</string>
-    <string name="pg_gen_quick">Nhanh · khoảng 3 phút</string>
-    <string name="pg_gen_thorough">Kỹ · khoảng 10 phút</string>
+    <string name="pg_gen_quick">Nhanh\nkhoảng 3 phút</string>
+    <string name="pg_gen_thorough">Kỹ\nkhoảng 10 phút</string>
     <string name="pg_gen_start">Tạo dòng lệnh của tôi</string>
     <string name="pg_gen_checking">Đang kiểm tra trang nào bị chặn…</string>
     <string name="pg_gen_round">Vòng %1$d / %2$d</string>
@@ -482,6 +482,8 @@
     <string name="pg_made_vs_ahead">Dòng tạo riêng cho bạn hơn %1$d điểm.</string>
     <string name="pg_made_vs_tie">Hai dòng bằng điểm nhau.</string>
     <string name="pg_made_vs_behind">Dòng tạo riêng cho bạn kém %1$d điểm. Hãy thử lại với tìm kiếm lâu hơn.</string>
+    <string name="pg_gen_kept_eyebrow">Không dòng mới nào vượt qua nó</string>
+    <string name="pg_gen_kept_title">Dòng tốt nhất của bạn</string>
     <string name="pg_err_storage">Không thể đọc hoặc lưu dữ liệu. Hãy thử lại.</string>
     <string name="pg_err_reset">Không thể đặt lại cài đặt</string>
     <plurals name="pg_sites">

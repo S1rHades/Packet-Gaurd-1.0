@@ -151,12 +151,15 @@ fun parseCustomProfiles(
 
 /**
  * Whole minutes left for a run that is [fraction] done after [elapsedMs], rounded up, or null
- * while there's too little to go on (under 5% done or under 10 seconds in).
+ * while there's too little to go on (under 5% done or under 10 seconds in) or the estimate is
+ * over three hours, which only a wrong start time gives.
  */
 fun minutesLeft(elapsedMs: Long, fraction: Float): Int? {
     if (fraction < 0.05f || elapsedMs < 10_000 || fraction >= 1f) return null
     val leftMs = elapsedMs * (1f - fraction) / fraction
-    return ((leftMs + 59_999) / 60_000).toInt().coerceAtLeast(1)
+    val minutes = ((leftMs + 59_999) / 60_000).toInt().coerceAtLeast(1)
+    // A start time that wasn't recorded (or a clock change) gives nonsense: say nothing then.
+    return minutes.takeIf { it <= 180 }
 }
 
 /** The built-in lists most people want, most wanted first; the rest keep their order after these. */

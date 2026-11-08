@@ -11,6 +11,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -277,7 +280,9 @@ private fun DnsDialog(current: String, onPick: (String) -> Unit, onDismiss: () -
                         Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(10.dp))
-                            .selectable(selected = choice == value, role = Role.RadioButton) { choice = value },
+                            .selectable(selected = choice == value, role = Role.RadioButton) { choice = value }
+                            .heightIn(min = 48.dp)
+                            .padding(horizontal = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(
@@ -285,6 +290,7 @@ private fun DnsDialog(current: String, onPick: (String) -> Unit, onDismiss: () -
                             onClick = null,
                             colors = RadioButtonDefaults.colors(selectedColor = Palette.Glow)
                         )
+                        Spacer(Modifier.width(12.dp))
                         Text(label)
                     }
                 }

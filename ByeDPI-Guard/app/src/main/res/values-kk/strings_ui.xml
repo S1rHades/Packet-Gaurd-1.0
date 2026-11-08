@@ -23,7 +23,7 @@
     <string name="pg_more">Тағы</string>
     <string name="pg_name">Атауы</string>
     <string name="pg_custom">Өзіндік</string>
-    <string name="pg_ms">%1$d мс</string>
+    <string name="pg_ms">%1$d\u00A0мс</string>
     <string name="pg_percent">%1$d%%</string>
     <string name="pg_n_selected">Таңдалды: %1$d</string>
     <string name="pg_profile">Профиль</string>
@@ -178,7 +178,7 @@
     <string name="pg_bench_params_help">Толық жауап келгенде сайт қолжетімді деп саналады. Сайтқа сұраныс көп болса, нәтиже тұрақтырақ, бірақ тест ұзағырақ жүреді.</string>
     <string name="pg_bench_custom">Өзіндік профильдер</string>
     <string name="pg_bench_custom_label">Әр жолға біреуден:  Атауы | аргументтер</string>
-    <string name="pg_bench_custom_empty">Олар Тест → Тексерілетін профильдер → Өзіндік бөлімінде шығады.</string>
+    <string name="pg_bench_custom_empty">Олар Тест → Тексерілетін пәрмен жолдары → Өзіндік бөлімінде шығады.</string>
     <string name="pg_custom_n">Өзіндік %1$d</string>
     <string name="pg_section_settings">Баптаулар</string>
     <string name="pg_section_apps">Қолданбаларды таңдау</string>
@@ -272,8 +272,8 @@
     <string name="pg_adv_lists">Сайт тізімдерін өзгерту</string>
     <string name="pg_mode_gen_title">Маған арнап жасау</string>
     <string name="pg_mode_gen_sub">Қосылымыңызға жаңа командалық жолдар құрып, тексеріп, ең жақсысын қалдырады.</string>
-    <string name="pg_gen_quick">Жылдам · шамамен 3 мин</string>
-    <string name="pg_gen_thorough">Мұқият · шамамен 10 мин</string>
+    <string name="pg_gen_quick">Жылдам\nшамамен 3 мин</string>
+    <string name="pg_gen_thorough">Мұқият\nшамамен 10 мин</string>
     <string name="pg_gen_start">Командалық жолымды жасау</string>
     <string name="pg_gen_checking">Қай сайттар бұғатталғаны тексерілуде…</string>
     <string name="pg_gen_round">%2$d раундтың %1$d-сі</string>
@@ -482,6 +482,8 @@
     <string name="pg_made_vs_ahead">Сізге арнап жасалған жол %1$d ұпайға алда.</string>
     <string name="pg_made_vs_tie">Олардың ұпайы бірдей.</string>
     <string name="pg_made_vs_behind">Сізге арнап жасалған жол %1$d ұпайға артта. Ұзағырақ іздеумен қайта көріңіз.</string>
+    <string name="pg_gen_kept_eyebrow">Ешбір жаңа жол одан асып түспеді</string>
+    <string name="pg_gen_kept_title">Ең жақсы жолыңыз</string>
     <string name="pg_err_storage">Деректерді оқу не сақтау мүмкін болмады. Қайталап көріңіз.</string>
     <string name="pg_err_reset">Баптауларды қалпына келтіру мүмкін болмады</string>
     <plurals name="pg_sites">

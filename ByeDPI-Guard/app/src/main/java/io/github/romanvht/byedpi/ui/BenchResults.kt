@@ -152,7 +152,7 @@ fun FactChips(c: Choice, modifier: Modifier = Modifier) {
             large = true
         )
         c.speed?.let { s ->
-            MetricPill(stringResource(s.label) + (c.stat.avgLatencyMs?.let { " · " + stringResource(R.string.pg_ms, it) } ?: ""), speedTint(s), large = true)
+            MetricPill(stringResource(s.label).replaceFirstChar { it.titlecase() } + (c.stat.avgLatencyMs?.let { " · " + stringResource(R.string.pg_ms, it) } ?: ""), speedTint(s), large = true)
         }
         MetricPill(reliabilityText(c.reliability), reliabilityTint(c.reliability), large = true)
     }

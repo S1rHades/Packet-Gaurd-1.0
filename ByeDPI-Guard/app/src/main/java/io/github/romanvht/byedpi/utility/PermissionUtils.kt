@@ -27,8 +27,11 @@ object PermissionUtils {
 
     fun isBatteryOptimizationDisabled(context: Context): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-            powerManager.isIgnoringBatteryOptimizations(context.packageName)
+            // Some systems (and previews) don't offer this service; then there's nothing to change.
+            runCatching {
+                val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+                powerManager.isIgnoringBatteryOptimizations(context.packageName)
+            }.getOrDefault(true)
         } else {
             true
         }
