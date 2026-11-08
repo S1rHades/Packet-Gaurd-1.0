@@ -6,6 +6,21 @@ from 2.5.0 on (**Settings → About → Updates**); earlier versions are install
 
 The first lines under each version are what the app shows as "What's new", so keep them short.
 
+## 3.9.2 (November 2026)
+
+- Fixes several visual glitches found in a full review of every screen
+- Tabs and chips no longer get cut off at the edge of the screen
+- The comparison list shows each line's full name
+
+The rest, in more detail:
+
+- **Cut-off tabs and chips.** The Settings tabs, the Basic / Community / Custom chips and the desync method chips scrolled sideways and showed the last one cut off ("Benchmarl"). They now wrap onto a second line.
+- **Cramped checkboxes.** In "Command lines to test" the checkbox touched the row's edge and the text. The rows are roomier now, and so are the choices in the backup dialog and the DNS server dialog.
+- **Comparison list.** Names such as "Community #12" were cut to "Commun…" next to their tag. They now have a line of their own.
+- **"Made for you" when it wasn't.** When no new line beat one tested before, the result was still headed "Made for you". It now says "Nothing new beat it" with the line's name.
+- **Locked choices hard to read.** While a test runs, the chosen Quick / Thorough option (and other locked choices) faded to grey on blue. It now stays readable, and the two options read "Quick / about 3 min" on two even lines.
+- **Smaller fixes.** "96 ms" no longer splits across lines. A start time that wasn't recorded no longer shows "about 42716748 minutes left". The update status no longer looks like a second button. The Custom profiles hint names the current section ("Command lines to test"). "Sends 1 fake packets" is reworded. The Russian speed chip starts with a capital letter.
+
 ## 3.9.1 (November 2026)
 
 - Make one just for me now aims to beat your best line, not just match it

@@ -28,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
@@ -205,7 +206,7 @@ fun UpdatesGroup() {
             UpdatePhase.Available, UpdatePhase.Downloading, UpdatePhase.Installing ->
                 Triple(Icons.Filled.SystemUpdate, Palette.Glow, stringResource(R.string.pg_upd_available, state.release?.version.orEmpty()))
             UpdatePhase.Failed -> Triple(Icons.Filled.Warning, Palette.Warning, state.problem?.let { problemText(it) } ?: "")
-            UpdatePhase.Idle -> Triple(Icons.Filled.Refresh, Palette.TextSecondary, stringResource(R.string.pg_upd_never))
+            UpdatePhase.Idle -> Triple(Icons.Filled.Schedule, Palette.TextSecondary, stringResource(R.string.pg_upd_never))
         }
         AnimatedContent(
             targetState = Triple(icon, tint, line),
