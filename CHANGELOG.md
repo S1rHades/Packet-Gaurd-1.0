@@ -6,6 +6,20 @@ from 2.5.0 on (**Settings → About → Updates**); earlier versions are install
 
 The first lines under each version are what the app shows as "What's new", so keep them short.
 
+## 3.9.1 (November 2026)
+
+- Make one just for me now aims to beat your best line, not just match it
+- The line that scores best on all your sites is always the one it builds on
+- If nothing new beats it, one more round builds on it for the sites it missed
+- Its line now joins every Test, scored the same way as the community lines, with a side-by-side card
+
+The rest, in more detail:
+
+- **One score for all.** A Test no longer erases the generator's answer. Its line is added to your own lines as "Made for you" and switched on, so every Test runs it on the same sites as the community lines and scores it on the same 0–100 scale. A new card, "Made for you vs the best here", shows its score and place next to the best line of that Test, with how many points apart they are. Switch it off under Custom to leave it out.
+
+- **The right line to beat.** The search picked which lines tested before to build on by how they did on the blocked sites alone. A community line that scores 86 in the Benchmark, because it opens the blocked sites without breaking the rest, could lose that pick to lines that open the blocked sites but break others, so the search never built on it. Now the two lines with the best score on every site, the way the Benchmark scores them, always take part and are kept whole.
+- **One more round to beat it.** If the all-sites test at the end is still won by a line known before, the search builds on that line once more, adding one or two groups (`-At,s`) for the exact sites it missed in that test. It then tests them against it on every site. The winner is only replaced if a new line actually scores higher in the same test; a line tested twice counts its average.
+
 ## 3.9.0 (November 2026)
 
 - Make one just for me now builds on the best community lines instead of replacing them

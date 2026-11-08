@@ -451,4 +451,59 @@ class CommandSearchTest {
         println("community extended: solved $solved of 20")
         assertTrue("solved $solved of 20", solved >= 18)
     }
+
+    private val EVERY8 = SITES4 + listOf("e.com", "f.com", "g.com", "h.com")
+
+    private fun recordOf(command: String, opened: Set<String>, latency: Long, sites: List<String> = EVERY8) =
+        io.github.romanvht.byedpi.data.LineRecord(
+            command = command,
+            sites = sites.associateWith { s -> intArrayOf(if (s in opened) 2 else 0, 2) }.toMutableMap(),
+            latencySum = latency * 2, latencyCount = 2, updatedAt = 0
+        )
+
+    @Test
+    fun theLineBestOnEverySiteIsAlwaysOneToBeat() {
+        // The community line opens three of the four blocked sites and every site that opens
+        // without a bypass. The others do a little better on the blocked sites alone, but break
+        // every other site, so on all sites (the Benchmark's score) they are far worse.
+        val champion = "-d1 -s1+s -d1+s -s3+s -d6+s -s12+s -d14+s -s20+s -d24+s -s30+s -a1"
+        val memory = listOf(
+            recordOf(champion, setOf("a.com", "b.com", "d.com", "e.com", "f.com", "g.com", "h.com"), 600),
+            recordOf("-f-1 -t3 -d2+s", setOf("a.com", "b.com", "c.com"), 100),
+            recordOf("-f-1 -t4 -d3+s", setOf("a.com", "b.com", "c.com"), 100),
+            recordOf("-f-1 -t3 -d1+s -r1+s", setOf("a.com", "b.com", "c.com"), 100),
+            recordOf("-f-1 -t4 -d1+s -o1", setOf("a.com", "b.com", "c.com"), 100)
+        )
+        val search = CommandSearch(SearchPlan.Quick, Random(1))
+        search.prime(memory, SITES4, now = 0, everySite = EVERY8)
+        assertEquals(champion, search.champions.first().command)
+        assertTrue(search.knownLines.any { it.command == champion })
+        assertTrue(search.knownLines.size <= KNOWN_MAX)
+        assertTrue(search.firstRound().any { it.command == champion })
+
+        // Without the full site list it is still chosen on the blocked sites as before.
+        val old = CommandSearch(SearchPlan.Quick, Random(1))
+        old.prime(memory, SITES4, now = 0)
+        assertTrue(old.champions.isEmpty())
+    }
+
+    @Test
+    fun whenAKnownLineWinsTheChallengersKeepItWholeAndAddWhatItMissed() {
+        val champion = "-d1 -s1+s -d1+s -s3+s -d6+s -s12+s -a1"
+        val leaderSites = EVERY8.toSet() - setOf("c.com", "h.com")
+        val leader = Scored(parseRecipe(champion)!!, 6, 8, 80, 300, 1, 0.0, leaderSites)
+        val forC = Scored(parseRecipe("-r0+sm -o1")!!.copy(raw = null), 2, 8, 30, 200, 1, 0.0, setOf("c.com", "e.com"))
+        val forH = Scored(Recipe(Method.Split, Pos(2)), 2, 8, 30, 200, 1, 0.0, setOf("h.com", "e.com"))
+        val search = CommandSearch(SearchPlan.Quick, Random(3))
+        val out = search.challengers(leader, listOf(leader, forC, forH), EVERY8)
+        assertTrue(out.isNotEmpty())
+        out.forEach { r ->
+            assertTrue(r.command, r.command.startsWith("$champion -At,s "))
+            assertTrue(r.command, isGenerated(r.command))
+        }
+        // One adds both missing sites' helpers, each as its own group.
+        assertTrue(out.any { "-r0+sm" in it.command && "-s2" in it.command && Regex(" -At,s ").findAll(it.command).count() == 2 })
+        // Nothing left to add when it already opens every site.
+        assertTrue(search.challengers(leader.copy(openedSites = EVERY8.toSet()), listOf(forC), EVERY8).isEmpty())
+    }
 }

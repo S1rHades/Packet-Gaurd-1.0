@@ -134,4 +134,26 @@ class ScreenshotTest(private val locale: String) {
             }
         }
     }
+
+    @Test
+    fun benchmarkMadeVsBest() = shot {
+        GlassBackground {
+            Column(Modifier.padding(16.dp)) {
+                MadeVsBestCard(
+                    decide(
+                        Dashboard(
+                            profiles = listOf(
+                                ProfileStat("Community #12", "-d1 -s1+s -d1+s -s3+s", 10, 12, 92, 420, mapOf("youtube" to 8, "discord" to 2)),
+                                ProfileStat("Made for you", "-d1 -s1+s -d1+s -s3+s -At,s -r0+sm", 12, 12, 96, 380, mapOf("youtube" to 8, "discord" to 4)),
+                                ProfileStat("Disorder @1", "-d1", 7, 12, 100, 62, mapOf("youtube" to 6, "discord" to 1))
+                            ),
+                            lists = listOf(ListStat("youtube", "YouTube", 8, 8, 90, "tls", 8), ListStat("discord", "Discord", 4, 4, 120, "fake", 4))
+                        ),
+                        lists
+                    ),
+                    madeCommand = "-d1 -s1+s -d1+s -s3+s -At,s -r0+sm", applied = null, canApply = true, onApply = {}
+                )
+            }
+        }
+    }
 }

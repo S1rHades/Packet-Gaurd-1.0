@@ -409,7 +409,7 @@
     <string name="pg_tr_less_dep">Fails more often</string>
     <string name="pg_tr_more_dep">Works more often</string>
     <string name="pg_tr_slower">%1$d ms slower</string>
-    <string name="pg_gen_known_won">This line was tested before on your phone, and none of the %1$d new lines built beat it on your blocked sites.</string>
+    <string name="pg_gen_known_won">This line was tested before on your phone. None of the %1$d new lines beat it on all your sites, including ones built on it for the sites it missed, so it stays your best.</string>
     <string name="pg_gen_beats_known">Scores %1$d. The best line tested before on your phone scored %2$d on these sites.</string>
     <string name="pg_notif_protected">Protected</string>
     <string name="pg_notif_paused">Paused</string>
@@ -475,6 +475,13 @@
     <string name="pg_src_custom">Yours</string>
     <string name="pg_src_before">Tested before</string>
     <string name="pg_src_probe">Basic technique</string>
+    <string name="pg_made_vs_title">Made for you vs the best here</string>
+    <string name="pg_made_vs_help">Both ran in this test on the same sites and are scored the same way, so the scores compare directly.</string>
+    <string name="pg_made_vs_rank">#%1$d of %2$d</string>
+    <string name="pg_made_vs_none">Made for you opened none of the sites in this test.</string>
+    <string name="pg_made_vs_ahead">Made for you is %1$d points ahead.</string>
+    <string name="pg_made_vs_tie">They scored the same.</string>
+    <string name="pg_made_vs_behind">Made for you is %1$d points behind. Try Make one just for me again with Search longer.</string>
     <string name="pg_err_storage">Couldn\'t read or save your data. Try again.</string>
     <string name="pg_err_reset">Couldn\'t reset settings</string>
     <plurals name="pg_sites">

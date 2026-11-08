@@ -222,7 +222,13 @@ enum class SearchPlan(val rounds: Int, val perRound: Int, val verify: Int) {
 }
 
 /** Lines tested before that join round 1 at most. */
-const val KNOWN_MAX = 3
+const val KNOWN_MAX = 5
+
+/** Of those, the best on the blocked sites alone; the rest are the best on every site ([CHAMPIONS]). */
+private const val KNOWN_ON_BLOCKED = 3
+
+/** Remembered lines that scored best on every site, which the search always tries to beat. */
+private const val CHAMPIONS = 2
 
 /** Longest command line the search builds by extending a known one. */
 private const val MAX_RAW = 600
@@ -411,16 +417,44 @@ class CommandSearch(val plan: SearchPlan, private val rnd: Random = Random.Defau
     val knownLines: List<Recipe> get() = known
 
     /**
+     * The remembered lines with the best score on every site, the way the Benchmark scores them
+     * (best first). These are the lines to beat: the search keeps them whole and builds on them.
+     */
+    var champions: List<Recipe> = emptyList()
+        private set
+
+    /**
      * Starts from what this phone already knows: every remembered line's results on the [blocked]
      * sites teach the learning (older ones count less, halving every [halfLifeDays]), and the
      * best-looking ones are tested again in round 1, exactly as written.
      */
-    fun prime(memory: List<LineRecord>, blocked: Collection<String>, now: Long, halfLifeDays: Double = 14.0) {
+    fun prime(
+        memory: List<LineRecord>,
+        blocked: Collection<String>,
+        now: Long,
+        halfLifeDays: Double = 14.0,
+        everySite: Collection<String> = emptyList()
+    ) {
         val targets = blocked.toSet()
         if (targets.isEmpty()) return
+        val every = everySite.toSet()
         val candidates = mutableListOf<Pair<Recipe, Double>>()
+        val onEvery = mutableListOf<Pair<Recipe, Double>>()
         for (rec in memory) {
             val parsed = parseRecipe(rec.command) ?: continue
+            val age = ((now - rec.updatedAt).coerceAtLeast(0)) / 86_400_000.0
+            // Its score on every site, as the Benchmark shows it, when it was tested on most of
+            // them; a site it was never tested on counts as not opened.
+            if (every.isNotEmpty()) {
+                val all = rec.sites.filterKeys { it in every }.filterValues { it.size >= 2 && it[1] > 0 }
+                if (all.size * 5 >= every.size * 4) {
+                    val opened = all.count { it.value[0] > 0 }
+                    val rate = all.values.sumOf { it[0] } * 100 / all.values.sumOf { it[1] }.coerceAtLeast(1)
+                    val overall = CmdScore.of(opened, every.size, rate, rec.avgLatencyMs).overall
+                    // Older results count a little less, but a strong line stays a strong line.
+                    if (opened > 0) onEvery += parsed to overall * (0.5 + 0.5 * 0.5.pow(age / halfLifeDays))
+                }
+            }
             val seen = rec.sites.filterKeys { it in targets }.filterValues { it.size >= 2 && it[1] > 0 }
             if (seen.isEmpty()) continue
             learnedFrom++
@@ -438,7 +472,10 @@ class CommandSearch(val plan: SearchPlan, private val rnd: Random = Random.Defau
             val rate = seen.values.sumOf { it[0] } * 100 / seen.values.sumOf { it[1] }.coerceAtLeast(1)
             candidates += parsed to scoreOf(opened, targets.size, rate, rec.avgLatencyMs, parsed.parts) * weight
         }
-        known = candidates.sortedByDescending { it.second }.take(KNOWN_MAX).map { it.first }
+        champions = onEvery.sortedByDescending { it.second }.map { it.first }.distinctBy { it.command }.take(CHAMPIONS)
+        val onBlocked = candidates.sortedByDescending { it.second }.map { it.first }
+            .filter { c -> champions.none { it.command == c.command } }.take(KNOWN_ON_BLOCKED)
+        known = (champions + onBlocked).distinctBy { it.command }.take(KNOWN_MAX)
     }
 
     fun record(recipe: Recipe, trial: Trial) {
@@ -494,16 +531,17 @@ class CommandSearch(val plan: SearchPlan, private val rnd: Random = Random.Defau
         //     every group they have and add one more group (`-At,s`) for the sites they miss,
         //     taken from the line that opens most of those. Simplifying a long community line
         //     into a few steps would throw away what makes it work.
-        working.filter { it.recipe.raw != null }.take(2).forEach { known ->
+        //     The lines that scored best on every site ([champions]) always get this, even when
+        //     other lines did better on the blocked sites alone.
+        val champ = champions.map { it.command }.toSet()
+        val bases = (working.filter { it.command in champ } + working.filter { it.recipe.raw != null }.take(2))
+            .distinctBy { it.command }.take(3)
+        bases.forEach { known ->
             val gap = all - known.openedSites
             if (gap.isEmpty()) return@forEach
-            val helpers = working
-                .filter { it !== known && (it.openedSites intersect gap).isNotEmpty() }
-                .sortedByDescending { (it.openedSites intersect gap).size * 1000 + it.score }
-                .take(2)
-                .map { it.recipe.copy(fallback = null).tidy() }
+            helpersFor(known, gap, working).take(if (known.command in champ) 2 else 1)
                 .ifEmpty { listOf(explore(gap)) }
-            helpers.forEach { h -> offer(extend(known.recipe, h)) }
+                .forEach { h -> offer(extend(known.recipe, h)) }
         }
 
         // 1. Fallbacks: the best line, switching to whichever line opens most of what it misses.
@@ -613,6 +651,50 @@ class CommandSearch(val plan: SearchPlan, private val rnd: Random = Random.Defau
             tlsrec = if (tls == "none") null else randomPos(tls, rnd),
             origin = Origin.Explored
         ).tidy()
+    }
+
+    /**
+     * Lines that open the most of [gap] (the sites [base] misses), ready to add to [base] as a
+     * last group: never [base] itself or a line already built on it.
+     */
+    private fun helpersFor(base: Scored, gap: Set<String>, pool: List<Scored>): List<Recipe> = pool
+        .filter { it.command != base.command && base.command !in it.command && (it.openedSites intersect gap).isNotEmpty() }
+        .sortedByDescending { (it.openedSites intersect gap).size * 1000 + it.score }
+        .map { it.recipe.copy(fallback = null).tidy() }
+        .distinctBy { it.command }
+
+    /**
+     * New lines meant to beat [best], a line known before that won the all-sites test
+     * ([tested] holds that test's results, so the sites it missed are known exactly): [best]
+     * kept whole, with one or two more groups for the sites it missed, taken from the lines
+     * that opened them in that test or in the search. None of them was tested before.
+     */
+    fun challengers(best: Scored, tested: List<Scored>, every: Collection<String>, max: Int = 4): List<Recipe> {
+        val gap = every.toSet() - best.openedSites
+        if (gap.isEmpty()) return emptyList()
+        val pool = (tested + ranking().filter { it.works }).distinctBy { it.command }
+        val helpers = helpersFor(best, gap, pool)
+        val out = LinkedHashMap<String, Recipe>()
+        fun add(r: Recipe) {
+            if (r.command != best.command && r.command !in trials && r.command !in tested.map { it.command } && r.command !in out) out[r.command] = r
+        }
+        helpers.take(3).forEach { add(extend(best.recipe, it)) }
+        // Two groups: the helper that opens most of the gap, then the one that opens most of the rest.
+        val first = helpers.firstOrNull()
+        if (first != null) {
+            val opens = pool.firstOrNull { it.recipe.copy(fallback = null).tidy().command == first.command }?.openedSites.orEmpty()
+            val rest = gap - opens
+            val second = helpersFor(best, rest, pool).firstOrNull { it.command != first.command }
+            if (second != null && rest.isNotEmpty()) {
+                val one = extend(best.recipe, first)
+                if (one.raw != null) add(extend(one, second).copy(parents = listOf(best.command, first.command, second.command)))
+            }
+        }
+        if (out.isEmpty()) {
+            val targets = gap.filter { it in learning.sites }.ifEmpty { learning.sites.toList() }
+            if (targets.isNotEmpty()) add(extend(best.recipe, explore(targets)))
+        }
+        return out.values.take(max)
     }
 
     /** [known] as written, plus a last group with [helper] for the sites it misses. */

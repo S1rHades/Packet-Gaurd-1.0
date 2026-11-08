@@ -409,7 +409,7 @@
     <string name="pg_tr_less_dep">Жиірек істемейді</string>
     <string name="pg_tr_more_dep">Жиірек жұмыс істейді</string>
     <string name="pg_tr_slower">%1$d мс баяуырақ</string>
-    <string name="pg_gen_known_won">Бұл жол телефоныңызда бұрын тексерілген, және құрылған %1$d жаңа жолдың ешқайсысы бұғатталған сайттарда одан асып түспеді.</string>
+    <string name="pg_gen_known_won">Бұл жол телефоныңызда бұрын тексерілген. Ол ашпаған сайттар үшін соның негізінде құрылғандарын қоса, %1$d жаңа жолдың ешқайсысы барлық сайттарыңызда одан асып түспеді, сондықтан ол ең жақсысы болып қалады.</string>
     <string name="pg_gen_beats_known">Ұпай %1$d. Телефоныңызда бұрын тексерілген ең жақсы жол бұл сайттарда %2$d алды.</string>
     <string name="pg_notif_protected">Қорғалған</string>
     <string name="pg_notif_paused">Кідіртілді</string>
@@ -475,6 +475,13 @@
     <string name="pg_src_custom">Сіздікі</string>
     <string name="pg_src_before">Бұрын тексерілген</string>
     <string name="pg_src_probe">Негізгі тәсіл</string>
+    <string name="pg_made_vs_title">Сізге арнап жасалған мен осындағы ең жақсысы</string>
+    <string name="pg_made_vs_help">Екеуі де осы тестте бірдей сайттарда тексерілді және бірдей бағаланды, сондықтан ұпайларды тікелей салыстыруға болады.</string>
+    <string name="pg_made_vs_rank">%2$d ішінен №%1$d</string>
+    <string name="pg_made_vs_none">Сізге арнап жасалған жол бұл тестте ешбір сайтты ашпады.</string>
+    <string name="pg_made_vs_ahead">Сізге арнап жасалған жол %1$d ұпайға алда.</string>
+    <string name="pg_made_vs_tie">Олардың ұпайы бірдей.</string>
+    <string name="pg_made_vs_behind">Сізге арнап жасалған жол %1$d ұпайға артта. Ұзағырақ іздеумен қайта көріңіз.</string>
     <string name="pg_err_storage">Деректерді оқу не сақтау мүмкін болмады. Қайталап көріңіз.</string>
     <string name="pg_err_reset">Баптауларды қалпына келтіру мүмкін болмады</string>
     <plurals name="pg_sites">
