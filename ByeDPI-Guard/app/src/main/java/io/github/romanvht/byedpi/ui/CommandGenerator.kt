@@ -31,7 +31,11 @@ data class GenAlternative(
     val sites: Int,
     val latencyMs: Long?,
     /** Successful requests, 0–100; null in results saved by older versions. */
-    val successRate: Int? = null
+    val successRate: Int? = null,
+    /** Where it comes from: "new", "community", "basic", "custom", "before" or "probe". */
+    val source: String? = null,
+    /** Its name when it's a profile ("Community #12", "Split @1", a custom name). */
+    val name: String? = null
 ) {
     val score: CmdScore get() = CmdScore.of(opened, sites, successRate ?: if (opened > 0) opened * 100 / sites.coerceAtLeast(1) else 0, latencyMs)
 }
@@ -67,7 +71,12 @@ data class GenResult(
      * blocked ones; [openedBlocked] is how many of the [blocked] sites it opened.
      */
     val sites: Int? = null,
-    val openedBlocked: Int? = null
+    val openedBlocked: Int? = null,
+    /**
+     * Every line of the final run, best score first: the search's finalists next to the best
+     * community, ready-made and own lines, all tested together on the same sites.
+     */
+    val compared: List<GenAlternative> = emptyList()
 ) {
     /** The winner's 0–100 score over the blocked sites, the same scale as the Benchmark's. */
     val score: CmdScore
@@ -210,7 +219,9 @@ object CommandGenerator {
         val knownCommands = search.knownLines.map { it.command }.toSet()
         val ranking = search.ranking()
         val knownOnBlocked = ranking.firstOrNull { it.command in knownCommands }
-        val finalists = (search.verificationRound() + listOfNotNull(knownOnBlocked?.recipe))
+        // The best lines known before (community, ready-made, your own) run in the same test,
+        // so the comparison on the result card is like for like.
+        val finalists = (search.verificationRound() + search.knownLines + listOfNotNull(knownOnBlocked?.recipe))
             .distinctBy { it.command }
         val byCommand = finalists.associateBy { it.command }
         var onAll: List<Scored> = emptyList()
@@ -224,13 +235,28 @@ object CommandGenerator {
                     Scored(recipe, t.opened, t.sites, t.successRate, t.latencyMs, 1,
                         scoreOf(t.opened, t.sites, t.successRate, t.latencyMs, recipe.parts), t.openedSites)
                 }
-                .sortedWith(compareByDescending<Scored> { it.score }.thenBy { it.recipe.parts })
+                // Ranked by the same 0–100 score the card and the Benchmark show, so the winner is
+                // the line at the top of the comparison.
+                .sortedWith(
+                    compareByDescending<Scored> { CmdScore.of(it.opened, it.sites, it.successRate, it.latencyMs).overall }
+                        .thenByDescending { it.opened }
+                        .thenBy { it.recipe.parts }
+                )
         }
 
         if (onAll.isNotEmpty()) {
             val working = onAll.filter { it.works }
             val best = working.firstOrNull()
             val knownBest = onAll.firstOrNull { it.command in knownCommands }
+            val label = labeler(app)
+            fun alt(x: Scored): GenAlternative {
+                val (source, name) = when {
+                    x.recipe.origin == Origin.Probe -> "probe" to null
+                    x.recipe.origin == Origin.Known -> label(x.command) ?: ("before" to null)
+                    else -> "new" to null
+                }
+                return GenAlternative(x.command, x.opened, x.sites, x.latencyMs, x.successRate, source, name)
+            }
             finish(
                 app,
                 GenResult(
@@ -250,7 +276,8 @@ object CommandGenerator {
                     knownBest = knownBest?.let { GenAlternative(it.command, it.opened, it.sites, it.latencyMs, it.successRate) },
                     knownWon = best != null && best.command in knownCommands,
                     sites = best?.sites ?: allSites,
-                    openedBlocked = best?.openedSites?.count { it in blocked }
+                    openedBlocked = best?.openedSites?.count { it in blocked },
+                    compared = onAll.map { alt(it) }
                 )
             )
             return
@@ -279,6 +306,30 @@ object CommandGenerator {
                 knownWon = best != null && best.command in knownCommands
             )
         )
+    }
+
+    /** Names a tested command line after the profile it is (with {sni} filled in as tests do). */
+    private fun labeler(app: Context): (String) -> Pair<String, String>? {
+        val prefs = app.getPreferences()
+        val sni = prefs.getString("byedpi_proxytest_sni", null) ?: "google.com"
+        fun key(c: String) = normalizeCommand(c.replace("{sni}", "\"$sni\""))
+        val names = HashMap<String, Pair<String, String>>()
+        runCatching {
+            app.assets.open("proxytest_strategies.list").bufferedReader().useLines { seq ->
+                seq.map { it.trim() }.filter { it.isNotEmpty() }.forEachIndexed { i, c ->
+                    names.putIfAbsentCompat(key(c), "community" to app.getString(io.github.romanvht.byedpi.R.string.pg_community_n, i + 1))
+                }
+            }
+        }
+        BenchPresets.basic.forEach { (n, c) -> names.putIfAbsentCompat(key(c), "basic" to n) }
+        parseCustomProfiles(prefs.getString(PREF_CUSTOM_PROFILES, "") ?: "") {
+            app.getString(io.github.romanvht.byedpi.R.string.pg_custom_n, it)
+        }.forEach { (n, c) -> names.putIfAbsentCompat(key(c), "custom" to n) }
+        return { c -> names[normalizeCommand(c)] }
+    }
+
+    private fun <K, V> HashMap<K, V>.putIfAbsentCompat(k: K, v: V) {
+        if (!containsKey(k)) put(k, v)
     }
 
     private fun finish(app: Context, result: GenResult) {

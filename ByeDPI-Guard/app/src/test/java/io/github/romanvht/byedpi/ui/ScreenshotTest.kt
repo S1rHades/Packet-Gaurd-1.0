@@ -115,4 +115,23 @@ class ScreenshotTest(private val locale: String) {
 
     @Test
     fun firstRunFind() = shot { FirstRunGuide(onDone = {}, onFind = {}, startPage = 2) }
+
+    @Test
+    fun generatorCompare() = shot {
+        GlassBackground {
+            Column(Modifier.padding(16.dp)) {
+                AppCard {
+                    CompareLines(
+                        listOf(
+                            GenAlternative("-d1 -s1+s -d1+s -s3+s -At,s -r0+sm", 93, 96, 410, 95, "new"),
+                            GenAlternative("-s1 -r1+s", 81, 96, 120, 97, "basic", "TLS record split (SNI)"),
+                            GenAlternative("-d1 -s1+s -d1+s -s3+s -s6+s -d9+s -r1+s -S -a1", 87, 96, 528, 90, "community", "Community #12"),
+                            GenAlternative("-o1 -r6", 84, 96, 598, 88, "new")
+                        ),
+                        winner = "-d1 -s1+s -d1+s -s3+s -At,s -r0+sm", applied = null, onApply = {}
+                    )
+                }
+            }
+        }
+    }
 }

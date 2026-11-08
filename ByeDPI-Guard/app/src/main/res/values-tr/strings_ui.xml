@@ -467,6 +467,14 @@
     <string name="pg_import_paste">Paylaşılan ayar ekle</string>
     <string name="pg_import_paste_label">Bağlantı veya mesaj</string>
     <string name="pg_gen_opens_blocked">Atlatma olmadan engellenen %2$d sitenin %1$d tanesi dahil</string>
+    <string name="pg_gen_compare_title">Tüm sitelerinizde karşılaştırma</string>
+    <string name="pg_gen_compare_help">Aynı çalıştırmada aynı sitelerde birlikte test edildi, bu yüzden puanlar doğrudan karşılaştırılabilir. Puana göre sıralı.</string>
+    <string name="pg_src_new">Yeni</string>
+    <string name="pg_src_community">Topluluk</string>
+    <string name="pg_src_basic">Hazır</string>
+    <string name="pg_src_custom">Sizin</string>
+    <string name="pg_src_before">Önceden test edildi</string>
+    <string name="pg_src_probe">Temel teknik</string>
     <string name="pg_err_storage">Verileriniz okunamadı veya kaydedilemedi. Tekrar deneyin.</string>
     <string name="pg_err_reset">Ayarlar sıfırlanamadı</string>
     <plurals name="pg_sites">
