@@ -198,7 +198,7 @@ object CommandGenerator {
         // 2. Rounds of candidates, each built from what worked so far.
         val search = CommandSearch(plan, Random(System.nanoTime()))
         val memory = withContext(Dispatchers.IO) { LineMemoryStore.load(app) }
-        search.prime(memory, blocked, System.currentTimeMillis())
+        search.prime(memory, blocked, System.currentTimeMillis(), everySite = baseline.siteResults.map { it.site })
         // Fewer known lines than the most it could take: the progress bar's total shrinks to match.
         mutable.update { it.copy(budget = it.budget - (KNOWN_MAX - search.knownLines.size)) }
         var batch = search.firstRound()
@@ -223,25 +223,54 @@ object CommandGenerator {
         // so the comparison on the result card is like for like.
         val finalists = (search.verificationRound() + search.knownLines + listOfNotNull(knownOnBlocked?.recipe))
             .distinctBy { it.command }
-        val byCommand = finalists.associateBy { it.command }
+        val byCommand = HashMap(finalists.associateBy { it.command })
+        val runs = LinkedHashMap<String, MutableList<Trial>>()
+        suspend fun onEverySite(recipes: List<Recipe>) {
+            recipes.forEach { if (it.command !in byCommand) byCommand[it.command] = it }
+            runBatch(app, recipes.map { it.command }, sites = null)
+                .filter { it.isCompleted && it.command in byCommand }
+                .forEach { r -> runs.getOrPut(r.command) { mutableListOf() } += Trial.of(r) }
+        }
+        // Ranked by the same 0–100 score the card and the Benchmark show, so the winner is the
+        // line at the top of the comparison. A line tested twice counts its average.
+        fun ranked(): List<Scored> = runs.map { (command, t) ->
+            val recipe = byCommand.getValue(command)
+            val opened = t.sumOf { it.opened } / t.size
+            val rate = t.sumOf { it.successRate } / t.size
+            val lat = t.mapNotNull { it.latencyMs }.takeIf { it.isNotEmpty() }?.let { it.sum() / it.size }
+            val always = t.map { it.openedSites }.reduce { a, b -> a intersect b }
+            Scored(recipe, opened, t.maxOf { it.sites }, rate, lat, t.size,
+                scoreOf(opened, t.maxOf { it.sites }, rate, lat, recipe.parts), always)
+        }.sortedWith(
+            compareByDescending<Scored> { CmdScore.of(it.opened, it.sites, it.successRate, it.latencyMs).overall }
+                .thenByDescending { it.opened }
+                .thenBy { it.recipe.parts }
+        )
         var onAll: List<Scored> = emptyList()
         if (finalists.isNotEmpty()) {
             mutable.update { it.copy(phase = GenPhase.Verifying) }
-            onAll = runBatch(app, finalists.map { it.command }, sites = null)
-                .filter { it.isCompleted && it.command in byCommand }
-                .map { r ->
-                    val t = Trial.of(r)
-                    val recipe = byCommand.getValue(r.command)
-                    Scored(recipe, t.opened, t.sites, t.successRate, t.latencyMs, 1,
-                        scoreOf(t.opened, t.sites, t.successRate, t.latencyMs, recipe.parts), t.openedSites)
+            onEverySite(finalists)
+            onAll = ranked()
+        }
+
+        // 4. Nothing new beat the best line known before (a community line, say): build on that
+        //    line for the sites it missed in this test and race them against it once more, so
+        //    the answer improves on it rather than settling for something worse. It is tested
+        //    again alongside them, so the comparison stays like for like.
+        val leader = onAll.firstOrNull()
+        if (leader != null && leader.works && !newLine(leader.recipe.origin)) {
+            val everySite = baseline.siteResults.map { it.site }
+            val challengers = search.challengers(leader, onAll, everySite)
+            if (challengers.isNotEmpty()) {
+                mutable.update { it.copy(budget = it.budget + challengers.size + 1) }
+                // If this extra test fails, the first all-sites test still gives the answer.
+                try {
+                    onEverySite(listOf(leader.recipe) + challengers)
+                } catch (e: IllegalStateException) {
+                    Log.w(TAG, "The extra all-sites test failed", e)
                 }
-                // Ranked by the same 0–100 score the card and the Benchmark show, so the winner is
-                // the line at the top of the comparison.
-                .sortedWith(
-                    compareByDescending<Scored> { CmdScore.of(it.opened, it.sites, it.successRate, it.latencyMs).overall }
-                        .thenByDescending { it.opened }
-                        .thenBy { it.recipe.parts }
-                )
+                onAll = ranked()
+            }
         }
 
         if (onAll.isNotEmpty()) {

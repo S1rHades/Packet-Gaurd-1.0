@@ -409,7 +409,7 @@
     <string name="pg_tr_less_dep">Daha sık başarısız olur</string>
     <string name="pg_tr_more_dep">Daha sık çalışır</string>
     <string name="pg_tr_slower">%1$d ms daha yavaş</string>
-    <string name="pg_gen_known_won">Bu satır telefonunuzda daha önce test edildi ve oluşturulan %1$d yeni satırdan hiçbiri engellenen sitelerinizde onu geçemedi.</string>
+    <string name="pg_gen_known_won">Bu satır telefonunuzda daha önce test edildi. Açamadığı siteler için onun üzerine kurulanlar dahil, %1$d yeni satırdan hiçbiri tüm sitelerinizde onu geçemedi; bu yüzden en iyisi o.</string>
     <string name="pg_gen_beats_known">Puan %1$d. Telefonunuzda daha önce test edilen en iyi satır bu sitelerde %2$d aldı.</string>
     <string name="pg_notif_protected">Korunuyor</string>
     <string name="pg_notif_paused">Duraklatıldı</string>

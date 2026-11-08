@@ -409,7 +409,7 @@
     <string name="pg_tr_less_dep">Lỗi thường hơn</string>
     <string name="pg_tr_more_dep">Ổn định hơn</string>
     <string name="pg_tr_slower">chậm hơn %1$d ms</string>
-    <string name="pg_gen_known_won">Dòng này đã được thử trên điện thoại của bạn, và không dòng nào trong %1$d dòng mới tạo vượt qua nó trên các trang bị chặn.</string>
+    <string name="pg_gen_known_won">Dòng này đã được thử trên điện thoại của bạn. Không dòng nào trong %1$d dòng mới, kể cả những dòng dựa trên nó cho các trang nó chưa mở được, vượt qua nó trên tất cả các trang của bạn, nên nó vẫn là tốt nhất.</string>
     <string name="pg_gen_beats_known">Điểm %1$d. Dòng tốt nhất đã thử trước đây trên điện thoại này đạt %2$d trên các trang này.</string>
     <string name="pg_notif_protected">Đang bảo vệ</string>
     <string name="pg_notif_paused">Đã tạm dừng</string>

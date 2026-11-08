@@ -409,7 +409,7 @@
     <string name="pg_tr_less_dep">Fails more often</string>
     <string name="pg_tr_more_dep">Works more often</string>
     <string name="pg_tr_slower">%1$d ms slower</string>
-    <string name="pg_gen_known_won">This line was tested before on your phone, and none of the %1$d new lines built beat it on your blocked sites.</string>
+    <string name="pg_gen_known_won">This line was tested before on your phone. None of the %1$d new lines beat it on all your sites, including ones built on it for the sites it missed, so it stays your best.</string>
     <string name="pg_gen_beats_known">Scores %1$d. The best line tested before on your phone scored %2$d on these sites.</string>
     <string name="pg_notif_protected">Protected</string>
     <string name="pg_notif_paused">Paused</string>

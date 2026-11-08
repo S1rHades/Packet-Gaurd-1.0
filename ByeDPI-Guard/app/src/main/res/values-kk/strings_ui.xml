@@ -409,7 +409,7 @@
     <string name="pg_tr_less_dep">Жиірек істемейді</string>
     <string name="pg_tr_more_dep">Жиірек жұмыс істейді</string>
     <string name="pg_tr_slower">%1$d мс баяуырақ</string>
-    <string name="pg_gen_known_won">Бұл жол телефоныңызда бұрын тексерілген, және құрылған %1$d жаңа жолдың ешқайсысы бұғатталған сайттарда одан асып түспеді.</string>
+    <string name="pg_gen_known_won">Бұл жол телефоныңызда бұрын тексерілген. Ол ашпаған сайттар үшін соның негізінде құрылғандарын қоса, %1$d жаңа жолдың ешқайсысы барлық сайттарыңызда одан асып түспеді, сондықтан ол ең жақсысы болып қалады.</string>
     <string name="pg_gen_beats_known">Ұпай %1$d. Телефоныңызда бұрын тексерілген ең жақсы жол бұл сайттарда %2$d алды.</string>
     <string name="pg_notif_protected">Қорғалған</string>
     <string name="pg_notif_paused">Кідіртілді</string>
