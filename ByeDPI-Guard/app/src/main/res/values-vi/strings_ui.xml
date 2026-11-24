@@ -271,10 +271,10 @@
     <string name="pg_adv_subtitle">Chọn cấu hình, sửa danh sách trang, xem từng trang</string>
     <string name="pg_adv_lists">Sửa danh sách trang</string>
     <string name="pg_mode_gen_title">Tạo riêng cho tôi</string>
-    <string name="pg_mode_gen_sub">Tạo các dòng lệnh mới cho kết nối của bạn, kiểm tra và giữ dòng lệnh tốt nhất.</string>
+    <string name="pg_mode_gen_sub">Tạo cài đặt mới riêng cho kết nối của bạn và giữ cái tốt nhất. Mất 3–10 phút.</string>
     <string name="pg_gen_quick">Nhanh\nkhoảng 3 phút</string>
     <string name="pg_gen_thorough">Kỹ\nkhoảng 10 phút</string>
-    <string name="pg_gen_start">Tạo dòng lệnh của tôi</string>
+    <string name="pg_gen_start">Tạo cài đặt của tôi</string>
     <string name="pg_gen_checking">Đang kiểm tra trang nào bị chặn…</string>
     <string name="pg_gen_round">Vòng %1$d / %2$d</string>
     <string name="pg_gen_verifying">Đang kiểm tra lại các lựa chọn tốt nhất…</string>
@@ -283,11 +283,11 @@
     <string name="pg_gen_idle">Dòng lệnh của bạn sẽ hiện ở đây sau khi tìm xong.</string>
     <string name="pg_gen_nothing_blocked">Tin vui: hiện không trang nào của bạn bị chặn, nên không cần vượt chặn.</string>
     <string name="pg_gen_none_help">Không dòng lệnh nào mở được các trang bị chặn. Tìm lâu hơn đôi khi sẽ thấy. Nếu không, nhà mạng có thể chặn các trang này theo địa chỉ, và Packet Guard không vượt qua được.</string>
-    <string name="pg_gen_title_result">Dòng lệnh của bạn</string>
+    <string name="pg_gen_title_result">Cài đặt của bạn đã sẵn sàng</string>
     <string name="pg_gen_made">Tạo riêng cho bạn</string>
     <string name="pg_gen_opens">Mở được %1$d / %2$d trang bị chặn</string>
     <string name="pg_gen_others">Các dòng lệnh khác cũng hoạt động</string>
-    <string name="pg_gen_use">Dùng dòng lệnh này</string>
+    <string name="pg_gen_use">Dùng cài đặt này</string>
     <string name="pg_upd_title">Cập nhật</string>
     <string name="pg_upd_current">Bạn đang dùng phiên bản %1$s</string>
     <string name="pg_upd_check">Kiểm tra cập nhật</string>
@@ -360,7 +360,7 @@
     <string name="pg_ex_hosts">Chỉ cho các trang trong danh sách</string>
     <string name="pg_ex_md5">Đánh dấu gói giả để trang bỏ qua chúng</string>
     <string name="pg_gen_probing">Đang thử từng kỹ thuật cơ bản để biết cái nào lọt qua</string>
-    <string name="pg_gen_building">Đang tạo dòng lệnh mới từ những gì đã hiệu quả</string>
+    <string name="pg_gen_building">Đang tạo cài đặt mới từ những gì đã hiệu quả</string>
     <string name="pg_gen_new_badge">Mới · tạo từ bài kiểm tra của bạn</string>
     <string name="pg_gen_how_tuned">Tinh chỉnh từ dòng tốt nhất</string>
     <string name="pg_gen_how_combined">Kết hợp hai dòng mở được các trang khác nhau</string>
@@ -384,7 +384,7 @@
     <string name="pg_goal_reliable">Ổn định nhất</string>
     <string name="pg_goal_reliable_sub">Thành công %1$d%% số lần</string>
     <string name="pg_goal_same">Cài đặt được đề xuất đã là tốt nhất cho việc này.</string>
-    <string name="pg_goal_use">Dùng cái này</string>
+    <string name="pg_goal_use">Dùng thay thế</string>
     <string name="pg_goal_vs">So với cài đặt được đề xuất:</string>
     <string name="pg_group_all">mở được hết</string>
     <string name="pg_group_some">%1$d / %2$d</string>
@@ -426,7 +426,7 @@
     <string name="pg_notif_gen_round">Vòng %1$d/%2$d · %3$d%%</string>
     <string name="pg_notif_gen_verifying">Đang thử lại các dòng tốt nhất · %1$d%%</string>
     <string name="pg_test_sites">Trang cần mở</string>
-    <string name="pg_test_lines">Dòng lệnh để thử</string>
+    <string name="pg_test_lines">Cài đặt để thử</string>
     <string name="pg_test_lines_choose">Chọn</string>
     <string name="pg_test_lines_hide">Ẩn</string>
     <string name="pg_fr_skip">Bỏ qua</string>
@@ -484,6 +484,37 @@
     <string name="pg_made_vs_behind">Dòng tạo riêng cho bạn kém %1$d điểm. Hãy thử lại với tìm kiếm lâu hơn.</string>
     <string name="pg_gen_kept_eyebrow">Không dòng mới nào vượt qua nó</string>
     <string name="pg_gen_kept_title">Dòng tốt nhất của bạn</string>
+    <string name="pg_use">Dùng</string>
+    <string name="pg_score_of_100">trên 100</string>
+    <string name="pg_details">Chi tiết</string>
+    <string name="pg_other_options">Lựa chọn khác</string>
+    <string name="pg_test_summary_title">Bài kiểm tra của bạn</string>
+    <string name="pg_test_caption">Thử lần lượt từng cài đặt bạn chọn. Giữ ứng dụng mở.</string>
+    <string name="pg_running_test_title">Đang kiểm tra các trang</string>
+    <string name="pg_running_gen_title">Đang tạo cài đặt cho bạn</string>
+    <string name="pg_running_keep">Giữ ứng dụng mở. Bảo vệ tạm dừng đến khi xong.</string>
+    <string name="pg_running_testing">Đang kiểm tra: %1$s</string>
+    <string name="pg_gen_stop_note">Nếu dừng, sẽ không có kết quả.</string>
+    <string name="pg_step_check">Kiểm tra</string>
+    <string name="pg_step_build">Tạo</string>
+    <string name="pg_step_verify">Thử lại</string>
+    <string name="pg_step_pick">Chọn</string>
+    <string name="pg_gen_verdict_blocked">%1$d / %2$d trang bị chặn giờ đã mở</string>
+    <string name="pg_gen_vs_best">Tốt nhất trong số còn lại</string>
+    <string name="pg_cmp_ahead">Hơn %1$d điểm</string>
+    <string name="pg_cmp_tie_sites">Cùng điểm nhưng mở được nhiều trang hơn</string>
+    <string name="pg_cmp_tie_simple">Cùng điểm nhưng đơn giản hơn</string>
+    <string name="pg_cmp_tie">Cùng điểm</string>
+    <string name="pg_gen_make_another">Tạo cái khác</string>
+    <string name="pg_copy_command">Sao chép lệnh</string>
+    <string name="pg_compare_all">So sánh cả %1$d</string>
+    <string name="pg_row_opens">%1$d/%2$d trang</string>
+    <string name="pg_best_so_far_chip">Tốt nhất hiện tại %1$d/%2$d</string>
+    <plurals name="pg_n_settings">
+        <item quantity="other">%d cài đặt</item>
+    </plurals>
+    <string name="pg_done">Xong</string>
+    <string name="pg_bench_custom_edit">Sửa cài đặt của bạn</string>
     <string name="pg_err_storage">Không thể đọc hoặc lưu dữ liệu. Hãy thử lại.</string>
     <string name="pg_err_reset">Không thể đặt lại cài đặt</string>
     <plurals name="pg_sites">
@@ -499,7 +530,7 @@
         <item quantity="other">Xong · đã kiểm tra %d cấu hình</item>
     </plurals>
     <plurals name="pg_gen_tried">
-        <item quantity="other">Đã thử %d dòng lệnh</item>
+        <item quantity="other">Đã thử %d</item>
     </plurals>
     <plurals name="pg_gen_finished">
         <item quantity="other">Xong · đã thử %d dòng lệnh</item>

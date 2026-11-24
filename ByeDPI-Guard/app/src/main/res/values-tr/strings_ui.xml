@@ -271,10 +271,10 @@
     <string name="pg_adv_subtitle">Profil seçimi, site listeleri, site bazında sonuçlar</string>
     <string name="pg_adv_lists">Site listelerini düzenle</string>
     <string name="pg_mode_gen_title">Bana özel oluştur</string>
-    <string name="pg_mode_gen_sub">Bağlantınız için yeni komut satırları oluşturur, test eder ve en iyisini tutar.</string>
+    <string name="pg_mode_gen_sub">Bağlantınıza özel yeni ayarlar oluşturur ve en iyisini tutar. 3–10 dakika sürer.</string>
     <string name="pg_gen_quick">Hızlı\nyaklaşık 3 dk</string>
     <string name="pg_gen_thorough">Kapsamlı\nyaklaşık 10 dk</string>
-    <string name="pg_gen_start">Komut satırımı oluştur</string>
+    <string name="pg_gen_start">Ayarımı oluştur</string>
     <string name="pg_gen_checking">Hangi sitelerin engellendiği kontrol ediliyor…</string>
     <string name="pg_gen_round">Tur %1$d / %2$d</string>
     <string name="pg_gen_verifying">En iyiler yeniden kontrol ediliyor…</string>
@@ -283,11 +283,11 @@
     <string name="pg_gen_idle">Arama bitince komut satırınız burada görünecek.</string>
     <string name="pg_gen_nothing_blocked">İyi haber: şu anda sitelerinizin hiçbiri engelli değil, atlatmaya gerek yok.</string>
     <string name="pg_gen_none_help">Komut satırlarının hiçbiri engelli sitelerinizi açmadı. Daha uzun bir arama bazen bir tane bulur. Bulamazsa sağlayıcınız bu siteleri adresle engelliyor olabilir; Packet Guard bunu aşamaz.</string>
-    <string name="pg_gen_title_result">Komut satırınız</string>
+    <string name="pg_gen_title_result">Ayarınız hazır</string>
     <string name="pg_gen_made">Size özel</string>
     <string name="pg_gen_opens">%2$d engelli sitenin %1$d tanesini açıyor</string>
     <string name="pg_gen_others">Çalışan diğer komut satırları</string>
-    <string name="pg_gen_use">Bu komut satırını kullan</string>
+    <string name="pg_gen_use">Bu ayarı kullan</string>
     <string name="pg_upd_title">Güncellemeler</string>
     <string name="pg_upd_current">Sürümünüz: %1$s</string>
     <string name="pg_upd_check">Güncellemeleri denetle</string>
@@ -360,7 +360,7 @@
     <string name="pg_ex_hosts">Yalnızca listedeki siteler için</string>
     <string name="pg_ex_md5">Sahte paketleri sitenin yok sayacağı şekilde işaretler</string>
     <string name="pg_gen_probing">Neyin geçtiğini öğrenmek için her temel teknik deneniyor</string>
-    <string name="pg_gen_building">İşe yarayanlardan yeni komut satırları oluşturuluyor</string>
+    <string name="pg_gen_building">İşe yarayanlardan yeni ayarlar oluşturuluyor</string>
     <string name="pg_gen_new_badge">Yeni · testinizden oluşturuldu</string>
     <string name="pg_gen_how_tuned">En iyi çalışandan geliştirildi</string>
     <string name="pg_gen_how_combined">Farklı siteleri açan iki satırı birleştirir</string>
@@ -384,7 +384,7 @@
     <string name="pg_goal_reliable">En güvenilir</string>
     <string name="pg_goal_reliable_sub">Zamanın %%%1$d kadarında çalıştı</string>
     <string name="pg_goal_same">Önerilen ayarınız bunun için zaten en iyisi.</string>
-    <string name="pg_goal_use">Bunun yerine bunu kullan</string>
+    <string name="pg_goal_use">Bunun yerine kullan</string>
     <string name="pg_goal_vs">Önerilenle karşılaştırıldığında:</string>
     <string name="pg_group_all">hepsini açar</string>
     <string name="pg_group_some">%1$d / %2$d</string>
@@ -426,7 +426,7 @@
     <string name="pg_notif_gen_round">Tur %1$d / %2$d · %%%3$d</string>
     <string name="pg_notif_gen_verifying">En iyiler yeniden test ediliyor · %%%1$d</string>
     <string name="pg_test_sites">Açılacak siteler</string>
-    <string name="pg_test_lines">Test edilecek komut satırları</string>
+    <string name="pg_test_lines">Test edilecek ayarlar</string>
     <string name="pg_test_lines_choose">Seç</string>
     <string name="pg_test_lines_hide">Gizle</string>
     <string name="pg_fr_skip">Atla</string>
@@ -484,6 +484,38 @@
     <string name="pg_made_vs_behind">Size özel satır %1$d puan geride. Daha uzun aramayla yeniden deneyin.</string>
     <string name="pg_gen_kept_eyebrow">Yeni hiçbir satır onu geçemedi</string>
     <string name="pg_gen_kept_title">En iyi satırınız</string>
+    <string name="pg_use">Kullan</string>
+    <string name="pg_score_of_100">100 üzerinden</string>
+    <string name="pg_details">Ayrıntılar</string>
+    <string name="pg_other_options">Diğer seçenekler</string>
+    <string name="pg_test_summary_title">Testiniz</string>
+    <string name="pg_test_caption">Seçtiğiniz ayarları tek tek dener. Uygulamayı açık tutun.</string>
+    <string name="pg_running_test_title">Siteleriniz test ediliyor</string>
+    <string name="pg_running_gen_title">Ayarınız hazırlanıyor</string>
+    <string name="pg_running_keep">Uygulamayı açık tutun. Koruma bitene kadar duraklatıldı.</string>
+    <string name="pg_running_testing">Test edilen: %1$s</string>
+    <string name="pg_gen_stop_note">Durdurursanız sonuç alınmaz.</string>
+    <string name="pg_step_check">Siteler</string>
+    <string name="pg_step_build">Oluştur</string>
+    <string name="pg_step_verify">Doğrula</string>
+    <string name="pg_step_pick">Seç</string>
+    <string name="pg_gen_verdict_blocked">Engelli %2$d sitenin %1$d tanesi artık açılıyor</string>
+    <string name="pg_gen_vs_best">Diğerlerinin en iyisi</string>
+    <string name="pg_cmp_ahead">%1$d puan önde</string>
+    <string name="pg_cmp_tie_sites">Aynı puan, ama daha çok site açıyor</string>
+    <string name="pg_cmp_tie_simple">Aynı puan, ama daha basit</string>
+    <string name="pg_cmp_tie">Aynı puan</string>
+    <string name="pg_gen_make_another">Bir tane daha</string>
+    <string name="pg_copy_command">Komutu kopyala</string>
+    <string name="pg_compare_all">%1$d tanesini karşılaştır</string>
+    <string name="pg_row_opens">%1$d/%2$d site</string>
+    <string name="pg_best_so_far_chip">Şimdilik en iyi %1$d/%2$d</string>
+    <plurals name="pg_n_settings">
+        <item quantity="one">%d ayar</item>
+        <item quantity="other">%d ayar</item>
+    </plurals>
+    <string name="pg_done">Tamam</string>
+    <string name="pg_bench_custom_edit">Kendi ayarlarınızı düzenleyin</string>
     <string name="pg_err_storage">Verileriniz okunamadı veya kaydedilemedi. Tekrar deneyin.</string>
     <string name="pg_err_reset">Ayarlar sıfırlanamadı</string>
     <plurals name="pg_sites">
@@ -503,8 +535,8 @@
         <item quantity="other">Bitti · %d profil test edildi</item>
     </plurals>
     <plurals name="pg_gen_tried">
-        <item quantity="one">%d komut satırı denendi</item>
-        <item quantity="other">%d komut satırı denendi</item>
+        <item quantity="one">%d denendi</item>
+        <item quantity="other">%d denendi</item>
     </plurals>
     <plurals name="pg_gen_finished">
         <item quantity="one">Bitti · %d komut satırı denendi</item>

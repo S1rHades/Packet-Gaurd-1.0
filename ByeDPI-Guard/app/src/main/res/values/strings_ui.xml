@@ -271,10 +271,10 @@
     <string name="pg_adv_subtitle">Choose profiles, edit site lists, see each site</string>
     <string name="pg_adv_lists">Edit site lists</string>
     <string name="pg_mode_gen_title">Make one just for me</string>
-    <string name="pg_mode_gen_sub">Builds new command lines for your connection, tests them and keeps the best.</string>
+    <string name="pg_mode_gen_sub">Builds new settings just for your connection and keeps the best. Takes 3–10 minutes.</string>
     <string name="pg_gen_quick">Quick\nabout 3 min</string>
     <string name="pg_gen_thorough">Thorough\nabout 10 min</string>
-    <string name="pg_gen_start">Make my command line</string>
+    <string name="pg_gen_start">Make my setting</string>
     <string name="pg_gen_checking">Checking which sites are blocked…</string>
     <string name="pg_gen_round">Round %1$d of %2$d</string>
     <string name="pg_gen_verifying">Double-checking the best ones…</string>
@@ -283,11 +283,11 @@
     <string name="pg_gen_idle">Your command line will appear here after the search.</string>
     <string name="pg_gen_nothing_blocked">Good news: none of your sites are blocked right now, so they don’t need a bypass.</string>
     <string name="pg_gen_none_help">None of the command lines opened your blocked sites. A longer search sometimes finds one. If it doesn’t, your provider may block these sites by address, which Packet Guard can’t get around.</string>
-    <string name="pg_gen_title_result">Your command line</string>
+    <string name="pg_gen_title_result">Your setting is ready</string>
     <string name="pg_gen_made">Made for you</string>
     <string name="pg_gen_opens">Opens %1$d of %2$d blocked sites</string>
     <string name="pg_gen_others">Other command lines that also worked</string>
-    <string name="pg_gen_use">Use this command line</string>
+    <string name="pg_gen_use">Use this setting</string>
     <string name="pg_upd_title">Updates</string>
     <string name="pg_upd_current">You have version %1$s</string>
     <string name="pg_upd_check">Check for updates</string>
@@ -360,7 +360,7 @@
     <string name="pg_ex_hosts">Only for the listed sites</string>
     <string name="pg_ex_md5">Marks fake packets so the site ignores them</string>
     <string name="pg_gen_probing">Trying each basic technique to learn what gets through</string>
-    <string name="pg_gen_building">Building new command lines from what worked</string>
+    <string name="pg_gen_building">Building new settings from what worked</string>
     <string name="pg_gen_new_badge">New · built from your test</string>
     <string name="pg_gen_how_tuned">Tuned from what worked best</string>
     <string name="pg_gen_how_combined">Combines two lines that opened different sites</string>
@@ -384,7 +384,7 @@
     <string name="pg_goal_reliable">Most reliable</string>
     <string name="pg_goal_reliable_sub">Worked %1$d%% of the time</string>
     <string name="pg_goal_same">Your recommended setting is already the best for this.</string>
-    <string name="pg_goal_use">Use this instead</string>
+    <string name="pg_goal_use">Use instead</string>
     <string name="pg_goal_vs">Compared with the recommended one:</string>
     <string name="pg_group_all">opens all</string>
     <string name="pg_group_some">%1$d of %2$d</string>
@@ -426,7 +426,7 @@
     <string name="pg_notif_gen_round">Round %1$d of %2$d · %3$d%%</string>
     <string name="pg_notif_gen_verifying">Re-testing the best · %1$d%%</string>
     <string name="pg_test_sites">Sites to open</string>
-    <string name="pg_test_lines">Command lines to test</string>
+    <string name="pg_test_lines">Settings to test</string>
     <string name="pg_test_lines_choose">Choose</string>
     <string name="pg_test_lines_hide">Hide</string>
     <string name="pg_fr_skip">Skip</string>
@@ -484,6 +484,38 @@
     <string name="pg_made_vs_behind">Made for you is %1$d points behind. Try Make one just for me again with Search longer.</string>
     <string name="pg_gen_kept_eyebrow">Nothing new beat it</string>
     <string name="pg_gen_kept_title">Your best line</string>
+    <string name="pg_use">Use</string>
+    <string name="pg_score_of_100">out of 100</string>
+    <string name="pg_details">Details</string>
+    <string name="pg_other_options">Other options</string>
+    <string name="pg_test_summary_title">Your test</string>
+    <string name="pg_test_caption">Tries each setting you picked, one at a time. Keep the app open.</string>
+    <string name="pg_running_test_title">Testing your sites</string>
+    <string name="pg_running_gen_title">Making your setting</string>
+    <string name="pg_running_keep">Keep the app open. Protection is paused until it ends.</string>
+    <string name="pg_running_testing">Testing: %1$s</string>
+    <string name="pg_gen_stop_note">Stopping ends the search without a result.</string>
+    <string name="pg_step_check">Check sites</string>
+    <string name="pg_step_build">Build</string>
+    <string name="pg_step_verify">Test all</string>
+    <string name="pg_step_pick">Pick</string>
+    <string name="pg_gen_verdict_blocked">%1$d of the %2$d blocked sites now open</string>
+    <string name="pg_gen_vs_best">Best of the rest</string>
+    <string name="pg_cmp_ahead">Ahead by %1$d</string>
+    <string name="pg_cmp_tie_sites">Same score, but opens more sites</string>
+    <string name="pg_cmp_tie_simple">Same score, but simpler</string>
+    <string name="pg_cmp_tie">Same score</string>
+    <string name="pg_gen_make_another">Make another</string>
+    <string name="pg_copy_command">Copy command</string>
+    <string name="pg_compare_all">Compare all %1$d</string>
+    <string name="pg_row_opens">%1$d/%2$d sites</string>
+    <string name="pg_best_so_far_chip">Best so far %1$d/%2$d</string>
+    <plurals name="pg_n_settings">
+        <item quantity="one">%d setting</item>
+        <item quantity="other">%d settings</item>
+    </plurals>
+    <string name="pg_done">Done</string>
+    <string name="pg_bench_custom_edit">Edit your own settings</string>
     <string name="pg_err_storage">Couldn\'t read or save your data. Try again.</string>
     <string name="pg_err_reset">Couldn\'t reset settings</string>
     <plurals name="pg_sites">
@@ -503,8 +535,8 @@
         <item quantity="other">Finished · %d profiles tested</item>
     </plurals>
     <plurals name="pg_gen_tried">
-        <item quantity="one">%d command line tried</item>
-        <item quantity="other">%d command lines tried</item>
+        <item quantity="one">%d tried</item>
+        <item quantity="other">%d tried</item>
     </plurals>
     <plurals name="pg_gen_finished">
         <item quantity="one">Finished · %d command line tried</item>

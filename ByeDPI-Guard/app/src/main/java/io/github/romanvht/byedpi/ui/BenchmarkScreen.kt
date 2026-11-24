@@ -152,12 +152,20 @@ fun BenchmarkScreen(
     val stopping = test.isStopping || gen.stopping
     var linesOpen by rememberSaveable { mutableStateOf(false) }
 
+    // Once there's an answer, the setup folds into summaries; Edit opens it again.
+    var editTest by rememberSaveable { mutableStateOf(false) }
+    var genOpen by rememberSaveable { mutableStateOf(false) }
+    var customOpen by remember { mutableStateOf(false) }
+    LaunchedEffect(running) { if (running) { editTest = false; genOpen = false } }
+    val hasAnswer = if (generate) gen.result != null || gen.failed else anyDone
+    val folded = hasAnswer && !editTest
+
     // While a test runs and its card is scrolled away, Stop stays pinned in thumb reach.
     val listState = rememberLazyListState()
     val pinAction by remember {
         derivedStateOf {
             val info = listState.layoutInfo
-            val card = info.visibleItemsInfo.firstOrNull { it.key == "test" }
+            val card = info.visibleItemsInfo.firstOrNull { it.key == "running" }
             val shown = card != null && card.offset < info.viewportEndOffset - 200 && card.offset + card.size > 200
             running && info.totalItemsCount > 0 && !shown
         }
@@ -189,21 +197,72 @@ fun BenchmarkScreen(
             )
         }
 
-        // 1. The answer: one card with the recommendation, other goals, site groups and the
-        //    combined line. A search's own answer takes its place after "Make one just for me".
-        if (generate) {
-            if (gen.result != null || (!gen.running && gen.failed)) {
+        if (running) {
+            // While running: one focused card, nothing else to scroll past.
+            item(key = "running") {
+                RunningCard(test, gen, ui, plan, sni, customName, onStop = vm::stop, modifier = Modifier.animateItem().staggeredEnter(1))
+            }
+        } else {
+            // 1. The answer first.
+            if (generate) {
+                if (gen.result != null || gen.failed) {
+                    item(key = "results") {
+                        AppCard(
+                            Modifier.animateItem().staggeredEnter(1),
+                            borderColor = if (gen.result?.command != null) Palette.Glow else Palette.Border,
+                            contentPadding = PaddingValues(20.dp)
+                        ) {
+                            GenResultPanel(
+                                gen = gen,
+                                applied = ui.applied,
+                                onApply = { command -> vm.apply(command, ctx.getString(R.string.pg_gen_made)) },
+                                onSearchLonger = {
+                                    vm.selectPlan(SearchPlan.Thorough)
+                                    vm.startGenerator()
+                                },
+                                onMakeAnother = vm::startGenerator
+                            )
+                        }
+                    }
+                }
+            } else if (decision.recommended != null) {
                 item(key = "results") {
-                    AppCard(
-                        Modifier.animateItem().staggeredEnter(1),
-                        borderColor = if (gen.result?.command != null && !gen.running) Palette.Glow else Palette.Border,
-                        contentPadding = PaddingValues(20.dp)
-                    ) {
-                        GenResultPanel(
-                            gen = gen,
-                            applied = ui.applied,
-                            onApply = { command -> vm.apply(command, ctx.getString(R.string.pg_gen_made)) },
-                            onSearchLonger = {
+                    RecommendedCard(
+                        decision, running = false, applied = ui.applied,
+                        onApply = { c -> vm.apply(c.command, ctx.getString(R.string.pg_bench_winner_label, c.name)) },
+                        modifier = Modifier.animateItem().staggeredEnter(1)
+                    )
+                }
+                // The generator's line is compared here only when it isn't the recommendation already.
+                val made = gen.result?.command
+                val madeRan = made != null && made != decision.recommended?.command &&
+                    test.strategies.any { it.isCompleted && it.command == made }
+                item(key = "other") {
+                    OtherOptionsCard(
+                        decision, applied = ui.applied,
+                        onApplyGoal = { c -> vm.apply(c.command, ctx.getString(R.string.pg_bench_result_label, c.name)) },
+                        onApplyCombined = { vm.apply(it.command, ctx.getString(R.string.pg_comb_label)) },
+                        modifier = Modifier.animateItem(),
+                        extra = if (madeRan && made != null) {
+                            {
+                                MadeVsBestSection(
+                                    decision, madeCommand = made, applied = ui.applied, canApply = true,
+                                    onApply = { c -> vm.apply(c.command, ctx.getString(R.string.pg_bench_result_label, c.name)) }
+                                )
+                            }
+                        } else null
+                    )
+                }
+            } else if (anyDone) {
+                item(key = "results") {
+                    AppCard(Modifier.animateItem().staggeredEnter(1), contentPadding = PaddingValues(20.dp)) {
+                        ResultPanel(
+                            winner = null,
+                            finished = true,
+                            running = false,
+                            applied = false,
+                            onApply = {},
+                            onTryGenerator = {
                                 vm.selectPlan(SearchPlan.Thorough)
                                 vm.startGenerator()
                             }
@@ -211,68 +270,40 @@ fun BenchmarkScreen(
                     }
                 }
             }
-        } else if (decision.recommended != null) {
-            item(key = "results") {
-                RecommendedCard(
-                    decision, running = running, applied = ui.applied,
-                    onApply = { c -> vm.apply(c.command, ctx.getString(R.string.pg_bench_winner_label, c.name)) },
-                    onApplyGoal = { c -> vm.apply(c.command, ctx.getString(R.string.pg_bench_result_label, c.name)) },
-                    onApplyCombined = { vm.apply(it.command, ctx.getString(R.string.pg_comb_label)) },
-                    modifier = Modifier.animateItem().staggeredEnter(1)
-                )
-            }
-        } else if (anyDone && !running) {
-            item(key = "results") {
-                AppCard(Modifier.animateItem().staggeredEnter(1), contentPadding = PaddingValues(20.dp)) {
-                    ResultPanel(
-                        winner = null,
-                        finished = true,
-                        running = false,
-                        applied = false,
-                        onApply = {},
-                        onTryGenerator = {
-                            vm.selectPlan(SearchPlan.Thorough)
-                            vm.startGenerator()
-                        }
+
+            // 2. The two ways to test: the ready-made test and "Make one just for me", each in
+            //    its own card. With an answer on screen both fold to a line.
+            item(key = "test") {
+                if (folded) {
+                    TestSummaryCard(ui, onEdit = { editTest = true }, onTest = vm::startTest, modifier = Modifier.animateItem())
+                } else {
+                    TestCard(
+                        ui = ui, anyDone = anyDone, generate = generate, bypassActive = bypassActive,
+                        linesOpen = linesOpen, onToggleLines = { linesOpen = !linesOpen },
+                        onToggleList = vm::toggleList, onSelectPack = vm::selectPack, onSelectAll = vm::selectAllVisible,
+                        onClear = vm::clearVisible, onToggleProfile = vm::toggleProfile, onEditCustom = { customOpen = true },
+                        onTest = vm::startTest,
+                        modifier = Modifier.animateItem().staggeredEnter(2)
                     )
                 }
             }
-        }
-
-        // 1b. The generator's line, when this Test ran it: next to the best line of the same run.
-        val made = gen.result?.command
-        if (!generate && !running && made != null && test.strategies.any { it.isCompleted && it.command == made }) {
-            item(key = "made") {
-                MadeVsBestCard(
-                    decision, madeCommand = made, applied = ui.applied, canApply = true,
-                    onApply = { c -> vm.apply(c.command, ctx.getString(R.string.pg_bench_result_label, c.name)) },
-                    modifier = Modifier.animateItem().staggeredEnter(1)
+            item(key = "gen") {
+                GeneratorCard(
+                    gen = gen, plan = plan, folded = hasAnswer && !genOpen, enabled = true,
+                    onToggleFold = { genOpen = !genOpen }, onPlan = vm::selectPlan, onGenerate = vm::startGenerator,
+                    modifier = Modifier.animateItem().staggeredEnter(3)
                 )
             }
-        }
 
-        // 2. The test: what it opens, which command lines it tries, the Test button and its
-        //    progress, and under it the generator, all in one card.
-        item(key = "test") {
-            TestCard(
-                ui = ui, test = test, gen = gen, plan = plan, generate = generate, anyDone = anyDone,
-                bypassActive = bypassActive, sni = sni, customName = customName,
-                linesOpen = linesOpen, onToggleLines = { linesOpen = !linesOpen },
-                onToggleList = vm::toggleList, onSelectPack = vm::selectPack, onSelectAll = vm::selectAllVisible,
-                onClear = vm::clearVisible, onToggleProfile = vm::toggleProfile,
-                onTest = vm::startTest, onGenerate = vm::startGenerator, onStop = vm::stop, onPlan = vm::selectPlan,
-                modifier = Modifier.animateItem().staggeredEnter(2)
-            )
-        }
-
-        // 3. Every result, folded, for anyone who wants to compare them all.
-        if (!generate && decision.recommended != null && !running) {
-            item(key = "all") {
-                AllResultsCard(
-                    decision, applied = ui.applied, canApply = true,
-                    onApply = { c -> vm.apply(c.command, ctx.getString(R.string.pg_bench_result_label, c.name)) },
-                    modifier = Modifier.animateItem()
-                )
+            // 3. Every result, folded, for anyone who wants to compare them all.
+            if (!generate && decision.recommended != null) {
+                item(key = "all") {
+                    AllResultsCard(
+                        decision, applied = ui.applied, canApply = true,
+                        onApply = { c -> vm.apply(c.command, ctx.getString(R.string.pg_bench_result_label, c.name)) },
+                        modifier = Modifier.animateItem()
+                    )
+                }
             }
         }
 
@@ -295,6 +326,10 @@ fun BenchmarkScreen(
             item(key = "advDomains") {
                 DomainTable(perDomain, Modifier.animateItem())
             }
+            // Test timing and your own lines, moved here from Settings.
+            item(key = "advParams") {
+                Column(Modifier.animateItem(), verticalArrangement = Arrangement.spacedBy(16.dp)) { BenchmarkSettings() }
+            }
         }
     }
     AnimatedVisibility(
@@ -310,6 +345,10 @@ fun BenchmarkScreen(
                 .padding(start = 20.dp, end = 20.dp, top = 24.dp, bottom = 12.dp)
         ) { StopAction(Modifier.fillMaxWidth()) }
     }
+    }
+
+    if (customOpen) {
+        CustomLinesDialog(onDismiss = { customOpen = false; vm.reload() })
     }
 
     editor?.let { state ->
@@ -332,21 +371,13 @@ fun BenchmarkScreen(
     }
 }
 
-/**
- * The test, in one card: which sites it opens, which command lines it tries, the Test button and
- * its progress, and under it "Make one just for me".
- */
+/** The ready-made test, in one card: which sites it opens, which settings it tries, and Start. */
 @Composable
 internal fun TestCard(
     ui: BenchUi,
-    test: TestState,
-    gen: GenState,
-    plan: SearchPlan,
-    generate: Boolean,
     anyDone: Boolean,
+    generate: Boolean,
     bypassActive: Boolean,
-    sni: String,
-    customName: String,
     linesOpen: Boolean,
     onToggleLines: () -> Unit,
     onToggleList: (String) -> Unit,
@@ -354,90 +385,36 @@ internal fun TestCard(
     onSelectAll: () -> Unit,
     onClear: () -> Unit,
     onToggleProfile: (String) -> Unit,
+    onEditCustom: () -> Unit,
     onTest: () -> Unit,
-    onGenerate: () -> Unit,
-    onStop: () -> Unit,
-    onPlan: (SearchPlan) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val running = test.isRunning || gen.running
-    val benchRunning = test.isRunning && !gen.running
-    val stopping = test.isStopping || gen.stopping
     AppCard(modifier, contentPadding = PaddingValues(20.dp)) {
         Text(stringResource(R.string.pg_test_sites), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(10.dp))
         if (ui.lists.isEmpty()) {
             BigHint(stringResource(R.string.pg_step1_empty))
         } else {
-            ListTiles(ui.lists, enabled = !running, onToggle = onToggleList)
+            ListTiles(ui.lists, enabled = true, onToggle = onToggleList)
             BigHint(stringResource(R.string.pg_step1_hint), Modifier.padding(top = 10.dp))
         }
 
         Spacer(Modifier.height(16.dp))
-        TestLines(ui, linesOpen, enabled = !running, onToggleOpen = onToggleLines, onSelectPack, onSelectAll, onClear, onToggleProfile)
+        TestLines(ui, linesOpen, enabled = true, onToggleOpen = onToggleLines, onSelectPack, onSelectAll, onClear, onToggleProfile, onEditCustom)
 
         Spacer(Modifier.height(16.dp))
-        AnimatedVisibility(
-            visible = bypassActive && !running,
-            enter = expandVertically() + fadeIn(),
-            exit = shrinkVertically() + fadeOut()
-        ) {
+        if (bypassActive) {
             InfoBanner(stringResource(R.string.pg_step2_pause), Icons.Filled.Info, modifier = Modifier.padding(bottom = 12.dp))
         }
         PrimaryButton(
-            text = when {
-                benchRunning && test.isStopping -> stringResource(R.string.pg_stopping)
-                benchRunning -> stringResource(R.string.pg_stop)
-                anyDone && !generate -> stringResource(R.string.pg_test_again)
-                else -> stringResource(R.string.pg_step2_start)
-            },
-            icon = if (benchRunning) Icons.Filled.Stop else Icons.Filled.PlayArrow,
-            onClick = { if (benchRunning) onStop() else onTest() },
-            enabled = !stopping && !gen.running,
-            container = if (benchRunning) Palette.SurfaceHigher else Palette.AccentBlue,
+            text = stringResource(if (anyDone && !generate) R.string.pg_test_again else R.string.pg_step2_start),
+            icon = Icons.Filled.PlayArrow,
+            onClick = onTest,
             modifier = Modifier.fillMaxWidth(),
-            height = 64
+            height = 60
         )
-        AnimatedVisibility(
-            visible = benchRunning,
-            enter = expandVertically() + fadeIn(),
-            exit = shrinkVertically() + fadeOut()
-        ) { BigProgress(test, ui, sni, customName) }
-
-        // The generator, under the Test button.
-        HorizontalDivider(color = Color.White.copy(alpha = 0.08f), modifier = Modifier.padding(top = 20.dp, bottom = 16.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Filled.AutoAwesome, null, tint = Palette.Sky, modifier = Modifier.size(22.dp))
-            Spacer(Modifier.width(10.dp))
-            Text(stringResource(R.string.pg_mode_gen_title), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-        }
-        BigHint(stringResource(R.string.pg_mode_gen_sub), Modifier.padding(top = 4.dp, bottom = 12.dp))
-        Segmented(
-            items = SearchPlan.entries.toList(),
-            selected = plan,
-            onSelect = onPlan,
-            label = { stringResource(if (it == SearchPlan.Quick) R.string.pg_gen_quick else R.string.pg_gen_thorough) },
-            enabled = !running
-        )
-        SecondaryButton(
-            text = when {
-                gen.stopping -> stringResource(R.string.pg_stopping)
-                gen.running -> stringResource(R.string.pg_stop)
-                else -> stringResource(R.string.pg_gen_start)
-            },
-            icon = if (gen.running) Icons.Filled.Stop else Icons.Filled.AutoAwesome,
-            onClick = { if (gen.running) onStop() else onGenerate() },
-            enabled = !stopping && !benchRunning,
-            modifier = Modifier.fillMaxWidth().padding(top = 12.dp).heightIn(min = 56.dp)
-        )
-        AnimatedVisibility(
-            visible = gen.running || (generate && gen.failed),
-            enter = expandVertically() + fadeIn(),
-            exit = shrinkVertically() + fadeOut()
-        ) { GenProgress(gen, plan) }
-        if (!running) {
-            BigHint(stringResource(R.string.pg_step2_keep_open), Modifier.padding(top = 12.dp))
-        }    }
+        HelperText(stringResource(R.string.pg_test_caption), Modifier.padding(top = 10.dp))
+    }
 }
 
 /**
@@ -453,7 +430,8 @@ private fun TestLines(
     onSelectPack: (ProfilePack) -> Unit,
     onSelectAll: () -> Unit,
     onClear: () -> Unit,
-    onToggleProfile: (String) -> Unit
+    onToggleProfile: (String) -> Unit,
+    onEditCustom: () -> Unit
 ) {
     val expandedText = stringResource(if (open) R.string.pg_a11y_expanded else R.string.pg_a11y_collapsed)
     val byPack = ProfilePack.entries.mapNotNull { pack ->
@@ -487,8 +465,15 @@ private fun TestLines(
                 label = { pack -> "${stringResource(pack.label)} (${ui.profiles.count { it.pack == pack }})" }
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = onSelectAll, enabled = enabled) { Text(stringResource(R.string.pg_select_all)) }
-                TextButton(onClick = onClear, enabled = enabled) { Text(stringResource(R.string.pg_clear)) }
+                TextButton(onClick = onSelectAll, enabled = enabled, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.pg_select_all)) }
+                TextButton(onClick = onClear, enabled = enabled, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.pg_clear)) }
+            }
+            if (ui.pack == ProfilePack.Custom) {
+                TextButton(onClick = onEditCustom, enabled = enabled, modifier = Modifier.heightIn(min = 48.dp)) {
+                    Icon(Icons.Filled.Edit, null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.pg_bench_custom_edit))
+                }
             }
             if (ui.pack == ProfilePack.Custom && ui.visibleProfiles.isEmpty()) {
                 HelperText(stringResource(R.string.pg_bench_no_custom))
@@ -509,7 +494,7 @@ private fun TestLines(
 
 /** Larger helper text for the simple steps. */
 @Composable
-private fun BigHint(text: String, modifier: Modifier = Modifier, color: Color = Palette.TextSecondary) {
+internal fun BigHint(text: String, modifier: Modifier = Modifier, color: Color = Palette.TextSecondary) {
     Text(text, color = color, fontSize = 15.sp, lineHeight = 21.sp, modifier = modifier)
 }
 
@@ -575,7 +560,7 @@ private fun ListTile(list: ListItemUi, enabled: Boolean, onClick: () -> Unit, mo
 
 /** Big percentage, a thick bar and one plain sentence about what's happening. */
 @Composable
-private fun BigProgress(test: TestState, ui: BenchUi, sni: String, customName: String) {
+internal fun BigProgress(test: TestState, ui: BenchUi, sni: String, customName: String) {
     val running = test.isRunning
     val total = test.strategies.size.coerceAtLeast(1)
     val partial = test.strategies.getOrNull(test.currentStrategy - 1)
@@ -584,13 +569,11 @@ private fun BigProgress(test: TestState, ui: BenchUi, sni: String, customName: S
     val fraction = ((test.strategies.count { it.isCompleted } + partial) / total).coerceIn(0f, 1f)
     val animated by animateFloatAsState(fraction, tween(Motion.SLOW), label = "benchProgress")
 
-    Column(Modifier.fillMaxWidth().padding(top = 18.dp)) {
+    Column(Modifier.fillMaxWidth().padding(top = 14.dp)) {
         Row(verticalAlignment = Alignment.Bottom) {
             Box(Modifier.clearAndSetSemantics {}) { RollingText(stringResource(R.string.pg_percent, (animated * 100).toInt()), fontSize = 34.sp) }
-            Spacer(Modifier.width(10.dp))
-            if (running) {
-                Icon(Icons.Filled.HourglassTop, null, tint = Palette.Sky, modifier = Modifier.padding(bottom = 8.dp).size(20.dp))
-            }
+            Spacer(Modifier.weight(1f))
+            if (running && !test.isStopping) TimeLeft(ui.startedAt, fraction, Modifier.padding(bottom = 6.dp))
         }
         ProgressBar(animated, Modifier.padding(vertical = 10.dp))
         val label = when {
@@ -610,41 +593,12 @@ private fun BigProgress(test: TestState, ui: BenchUi, sni: String, customName: S
             // Read out when it changes ("Trying profile 4 of 8"), without the ticking percentage.
             modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
         ) { BigHint(it, color = Color.White) }
-        if (running && !test.isStopping) TimeLeft(ui.startedAt, fraction)
-    }
-}
-
-/**
- * The search's stages as a row of short bars: checking the sites, each round, then the re-test.
- * Finished stages are green, the current one blue, the rest empty, so the finish line is visible.
- */
-@Composable
-private fun StageStrip(gen: GenState, plan: SearchPlan, modifier: Modifier = Modifier) {
-    val rounds = if (gen.rounds > 0) gen.rounds else plan.rounds
-    val total = rounds + 2
-    val finished = !gen.running && gen.result != null
-    val current = when {
-        finished -> total
-        gen.phase == GenPhase.Checking -> 0
-        gen.phase == GenPhase.Searching -> gen.round.coerceIn(1, rounds)
-        gen.phase == GenPhase.Verifying -> total - 1
-        else -> -1
-    }
-    Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        repeat(total) { i ->
-            val color = when {
-                i < current -> Palette.Success
-                i == current && gen.running -> Palette.Glow
-                else -> Glass.Inset
-            }
-            Box(Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)).background(color))
-        }
     }
 }
 
 /** "About 3 minutes left", worked out from how fast the run has gone so far. */
 @Composable
-private fun TimeLeft(startedAt: Long, fraction: Float) {
+internal fun TimeLeft(startedAt: Long, fraction: Float, modifier: Modifier = Modifier) {
     if (startedAt <= 0L) return
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(startedAt) {
@@ -654,16 +608,17 @@ private fun TimeLeft(startedAt: Long, fraction: Float) {
         }
     }
     val minutes = minutesLeft(now - startedAt, fraction) ?: return
+    // Grey, not link blue: it's information, not something to tap.
     BigHint(
         pluralStringResource(R.plurals.pg_time_left, minutes, minutes),
-        Modifier.padding(top = 6.dp),
-        color = Palette.Sky
+        modifier.padding(top = 6.dp),
+        color = Palette.TextSecondary
     )
 }
 
 /** A thick, rounded progress bar in the accent gradient. */
 @Composable
-private fun ProgressBar(fraction: Float, modifier: Modifier = Modifier) {
+internal fun ProgressBar(fraction: Float, modifier: Modifier = Modifier) {
     // For TalkBack, in steps of 5% so it doesn't change on every frame of the animation.
     val stepped = (fraction * 20).toInt() / 20f
     Box(
@@ -1010,55 +965,16 @@ private fun checkboxColors() = CheckboxDefaults.colors(
 // ---- command line generator -------------------------------------------------------------------
 
 /** The search's progress: a big percentage, a thick bar and what it's doing in plain words. */
-@Composable
-private fun GenProgress(gen: GenState, plan: SearchPlan) {
-    val fraction = if (gen.budget == 0) 0f else (gen.done.toFloat() / gen.budget).coerceIn(0f, 1f)
-    val animated by animateFloatAsState(fraction, tween(Motion.SLOW), label = "genProgress")
-    val tried = (gen.done - 1).coerceAtLeast(0)
-    Column(Modifier.fillMaxWidth().padding(top = 18.dp)) {
-        Row(verticalAlignment = Alignment.Bottom) {
-            Box(Modifier.clearAndSetSemantics {}) { RollingText(stringResource(R.string.pg_percent, (animated * 100).toInt()), fontSize = 34.sp) }
-            Spacer(Modifier.width(10.dp))
-            if (gen.running) {
-                Icon(Icons.Filled.HourglassTop, null, tint = Palette.Sky, modifier = Modifier.padding(bottom = 8.dp).size(20.dp))
-            }
-        }
-        ProgressBar(animated, Modifier.padding(top = 10.dp))
-        StageStrip(gen, plan, Modifier.padding(top = 8.dp, bottom = 10.dp))
-        val label = when {
-            gen.stopping -> stringResource(R.string.pg_stopping)
-            gen.failed && !gen.running -> stringResource(R.string.pg_gen_failed)
-            gen.phase == GenPhase.Checking -> stringResource(R.string.pg_gen_checking)
-            gen.phase == GenPhase.Searching ->
-                stringResource(R.string.pg_gen_round, gen.round, gen.rounds) + "\n" +
-                    stringResource(if (gen.round <= 1) R.string.pg_gen_probing else R.string.pg_gen_building) + "\n" +
-                    pluralStringResource(R.plurals.pg_gen_tried, tried, tried)
-            gen.phase == GenPhase.Verifying -> stringResource(R.string.pg_gen_verifying)
-            gen.result != null -> pluralStringResource(R.plurals.pg_gen_finished, gen.result.tested, gen.result.tested)
-            else -> ""
-        }
-        AnimatedContent(
-            targetState = label,
-            transitionSpec = { fadeIn(tween(Motion.MEDIUM)) togetherWith fadeOut(tween(Motion.FAST)) },
-            label = "genStatus",
-            // Read out when it changes ("Trying profile 4 of 8"), without the ticking percentage.
-            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
-        ) { BigHint(it, color = if (gen.failed && !gen.running) Palette.Warning else Color.White) }
-        if (gen.running && !gen.stopping) TimeLeft(gen.startedAt, fraction)
-        val leader = gen.leader
-        if (gen.running && leader != null) {
-            BigHint(
-                stringResource(R.string.pg_gen_best_so_far_opens, leader.opened, leader.sites),
-                Modifier.padding(top = 6.dp),
-                color = Palette.Sky
-            )
-        }
-    }
-}
-
 /** Step 3 for the generator: the command line it made, in plain words, with one big button. */
 @Composable
-internal fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) -> Unit, onSearchLonger: () -> Unit) {
+internal fun GenResultPanel(
+    gen: GenState,
+    applied: String?,
+    onApply: (String) -> Unit,
+    onSearchLonger: () -> Unit,
+    onMakeAnother: () -> Unit = {}
+) {
+    val ctx = LocalContext.current
     val result = gen.result
     val state = when {
         gen.running -> 0
@@ -1093,6 +1009,8 @@ internal fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) -
             else -> {
                 val r = result ?: return@AnimatedContent
                 val command = r.command ?: return@AnimatedContent
+                // When a line tested before stays the best, don't call it "made for you".
+                val keptName = if (r.knownWon) r.compared.firstOrNull { it.command == command }?.name else null
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
@@ -1100,8 +1018,6 @@ internal fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) -
                             contentAlignment = Alignment.Center
                         ) { Icon(Icons.Filled.AutoAwesome, null, tint = Palette.Sky, modifier = Modifier.size(28.dp)) }
                         Spacer(Modifier.width(14.dp))
-                        // When a line tested before stays the best, don't call it "made for you".
-                        val keptName = if (r.knownWon) r.compared.firstOrNull { it.command == command }?.name else null
                         Column(Modifier.weight(1f)) {
                             Text(
                                 stringResource(if (r.knownWon) R.string.pg_gen_kept_eyebrow else R.string.pg_gen_made),
@@ -1113,45 +1029,39 @@ internal fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) -
                             )
                         }
                     }
-                    Text(
-                        command,
-                        fontFamily = FontFamily.Monospace, fontSize = 15.sp, color = Palette.Sky,
-                        modifier = Modifier.fillMaxWidth().padding(top = 14.dp).glassInset().padding(horizontal = 14.dp, vertical = 12.dp)
-                    )
-                    HowItWasMade(r, Modifier.padding(top = 10.dp))
-                    Row(Modifier.padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        ScoreRing(r.score.overall, size = 64.dp)
-                        Spacer(Modifier.width(14.dp))
-                        ScoreParts(r.score, Modifier.weight(1f))
-                    }
-                    CommandExplainer(command, Modifier.padding(top = 10.dp), max = 4)
-                    // New results are measured on every site, like the Benchmark; older ones on the blocked sites only.
+                    // The verdict: the score and what it opens, in words.
                     val allSites = r.sites
-                    Fact(
-                        Icons.Filled.CheckCircle,
-                        scoreColor(percentOf(r.opened, allSites ?: r.blocked)),
-                        if (allSites != null) stringResource(R.string.pg_chip_opens, r.opened, allSites)
-                        else stringResource(R.string.pg_gen_opens, r.opened, r.blocked),
-                        Modifier.padding(top = 10.dp)
-                    )
-                    if (allSites != null && r.openedBlocked != null && r.blocked > 0) {
-                        HelperText(
-                            stringResource(R.string.pg_gen_opens_blocked, r.openedBlocked, r.blocked),
-                            Modifier.padding(top = 6.dp, start = 4.dp)
-                        )
+                    Row(Modifier.padding(top = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+                        ScoreRing(r.score.overall, size = 60.dp)
+                        Spacer(Modifier.width(14.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                if (allSites != null) stringResource(R.string.pg_chip_opens, r.opened, allSites)
+                                else stringResource(R.string.pg_gen_opens, r.opened, r.blocked),
+                                fontSize = 17.sp, fontWeight = FontWeight.Bold
+                            )
+                            if (allSites != null && r.openedBlocked != null && r.blocked > 0) {
+                                Text(
+                                    stringResource(R.string.pg_gen_verdict_blocked, r.openedBlocked, r.blocked),
+                                    color = Palette.TextSecondary, fontSize = 13.sp, lineHeight = 18.sp
+                                )
+                            }
+                            r.latencyMs?.let { ms ->
+                                val speed = Speed.of(ms)
+                                Text(
+                                    stringResource(R.string.pg_step3_speed, stringResource(speed.label)) + " · " + stringResource(R.string.pg_ms, ms),
+                                    color = if (speed == Speed.Slow) Palette.Warning else Palette.TextSecondary, fontSize = 13.sp
+                                )
+                            }
+                        }
                     }
-                    r.latencyMs?.let { ms ->
-                        val speed = Speed.of(ms)
-                        Fact(
-                            Icons.Filled.Bolt,
-                            when (speed) {
-                                Speed.Fast -> Palette.Success
-                                Speed.Ok -> Palette.Warning
-                                Speed.Slow -> Palette.Error
-                            },
-                            stringResource(R.string.pg_step3_speed, stringResource(speed.label)) + "  ·  " +
-                                stringResource(R.string.pg_ms, ms),
-                            Modifier.padding(top = 8.dp)
+                    // Against the best of the rest, tested in the same run.
+                    val mine = r.compared.firstOrNull { it.command == command }
+                    val other = r.compared.firstOrNull { it.command != command }
+                    if (mine != null && other != null) {
+                        MiniCompare(
+                            mine, keptName ?: stringResource(R.string.pg_gen_made), other,
+                            Modifier.padding(top = 14.dp)
                         )
                     }
                     val inUse = applied == command
@@ -1160,33 +1070,50 @@ internal fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) -
                         icon = if (inUse) Icons.Filled.Check else null,
                         onClick = { onApply(command) },
                         enabled = !inUse,
-                        modifier = Modifier.fillMaxWidth().padding(top = 18.dp),
-                        height = 60
+                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                        height = 56
                     )
-                    if (r.compared.size > 1) {
-                        CompareLines(r.compared, winner = command, applied = applied, onApply = onApply, modifier = Modifier.padding(top = 18.dp))
-                    } else if (r.alternatives.isNotEmpty()) {
+                    Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                        TextButton(onClick = onMakeAnother, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.pg_gen_make_another)) }
+                        TextButton(
+                            onClick = { io.github.romanvht.byedpi.utility.ClipboardUtils.copy(ctx, command, "command") },
+                            modifier = Modifier.heightIn(min = 48.dp)
+                        ) { Text(stringResource(R.string.pg_copy_command)) }
+                    }
+                    Fold(stringResource(R.string.pg_details)) {
                         Text(
-                            stringResource(R.string.pg_gen_others), color = Palette.TextSecondary, fontSize = 14.sp,
-                            modifier = Modifier.padding(top = 18.dp, bottom = 6.dp)
+                            command,
+                            fontFamily = FontFamily.Monospace, fontSize = 14.sp, color = Palette.Sky,
+                            modifier = Modifier.fillMaxWidth().glassInset().padding(horizontal = 14.dp, vertical = 12.dp)
                         )
-                        r.alternatives.forEach { alt ->
-                            Row(
-                                Modifier.fillMaxWidth().padding(vertical = 4.dp).glassInset().padding(start = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                ScoreRing(alt.score.overall, size = 36.dp)
-                                Spacer(Modifier.width(10.dp))
-                                Column(Modifier.weight(1f).padding(vertical = 8.dp)) {
-                                    Text(alt.command, fontFamily = FontFamily.Monospace, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                                    Text(
-                                        stringResource(if (r.sites != null) R.string.pg_chip_opens else R.string.pg_gen_opens, alt.opened, alt.sites) +
-                                            (alt.latencyMs?.let { "  ·  " + stringResource(R.string.pg_ms, it) } ?: ""),
-                                        color = Palette.TextSecondary, fontSize = 12.sp
-                                    )
-                                }
-                                TextButton(onClick = { onApply(alt.command) }, enabled = applied != alt.command) {
-                                    Text(stringResource(if (applied == alt.command) R.string.pg_step3_in_use else R.string.pg_apply))
+                        HowItWasMade(r, Modifier.padding(top = 10.dp))
+                        ScoreParts(r.score, Modifier.padding(top = 12.dp))
+                        CommandExplainer(command, Modifier.padding(top = 12.dp), max = 8)
+                    }
+                    if (r.compared.size > 1) {
+                        Fold(stringResource(R.string.pg_compare_all, r.compared.size)) {
+                            CompareLines(r.compared, winner = command, applied = applied, onApply = onApply)
+                        }
+                    } else if (r.alternatives.isNotEmpty()) {
+                        Fold(stringResource(R.string.pg_gen_others)) {
+                            r.alternatives.forEach { alt ->
+                                Row(
+                                    Modifier.fillMaxWidth().padding(vertical = 4.dp).glassInset().padding(start = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    ScoreRing(alt.score.overall, size = 36.dp)
+                                    Spacer(Modifier.width(10.dp))
+                                    Column(Modifier.weight(1f).padding(vertical = 8.dp)) {
+                                        Text(alt.command, fontFamily = FontFamily.Monospace, fontSize = 13.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                                        Text(
+                                            stringResource(R.string.pg_row_opens, alt.opened, alt.sites) +
+                                                (alt.latencyMs?.let { " · " + stringResource(R.string.pg_ms, it) } ?: ""),
+                                            color = Palette.TextSecondary, fontSize = 12.sp
+                                        )
+                                    }
+                                    TextButton(onClick = { onApply(alt.command) }, enabled = applied != alt.command, modifier = Modifier.heightIn(min = 48.dp)) {
+                                        Text(stringResource(if (applied == alt.command) R.string.pg_step3_in_use else R.string.pg_use))
+                                    }
                                 }
                             }
                         }
@@ -1194,6 +1121,45 @@ internal fun GenResultPanel(gen: GenState, applied: String?, onApply: (String) -
                 }
             }
         }
+    }
+}
+
+/**
+ * The answer next to the best of the rest, from the same run, with why it's ahead in words:
+ * by how many points, or on a tie, that it opens more sites or is simpler.
+ */
+@Composable
+private fun MiniCompare(mine: GenAlternative, mineName: String, other: GenAlternative, modifier: Modifier = Modifier) {
+    @Composable
+    fun row(name: String, a: GenAlternative, bold: Boolean) {
+        Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            ScoreRing(a.score.overall, size = 34.dp)
+            Spacer(Modifier.width(10.dp))
+            Text(
+                name, fontSize = 14.sp, fontWeight = if (bold) FontWeight.SemiBold else FontWeight.Normal,
+                maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f)
+            )
+            Text(stringResource(R.string.pg_row_opens, a.opened, a.sites), color = Palette.TextSecondary, fontSize = 12.sp)
+        }
+    }
+    val otherName = other.name ?: when (other.source) {
+        "community" -> stringResource(R.string.pg_src_community)
+        "basic" -> stringResource(R.string.pg_src_basic)
+        "custom" -> stringResource(R.string.pg_src_custom)
+        else -> stringResource(R.string.pg_gen_vs_best)
+    }
+    val diff = mine.score.overall - other.score.overall
+    val why = when {
+        diff > 0 -> stringResource(R.string.pg_cmp_ahead, diff)
+        diff == 0 && mine.opened > other.opened -> stringResource(R.string.pg_cmp_tie_sites)
+        diff == 0 && mine.command.length < other.command.length -> stringResource(R.string.pg_cmp_tie_simple)
+        diff == 0 -> stringResource(R.string.pg_cmp_tie)
+        else -> null
+    }
+    Column(modifier.fillMaxWidth().glassInset().padding(horizontal = 12.dp, vertical = 8.dp)) {
+        row(mineName, mine, bold = true)
+        row(otherName, other, bold = false)
+        if (why != null) Text(why, color = Palette.Success, fontSize = 13.sp, modifier = Modifier.padding(top = 2.dp))
     }
 }
 
@@ -1250,14 +1216,14 @@ internal fun CompareLines(
                         maxLines = 2, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(top = 2.dp)
                     )
                     Text(
-                        stringResource(R.string.pg_chip_opens, line.opened, line.sites) +
-                            (line.latencyMs?.let { "  ·  " + stringResource(R.string.pg_ms, it) } ?: "") +
-                            (line.successRate?.let { "  ·  " + stringResource(R.string.pg_percent, it) } ?: ""),
+                        stringResource(R.string.pg_row_opens, line.opened, line.sites) +
+                            (line.latencyMs?.let { " · " + stringResource(R.string.pg_ms, it) } ?: "") +
+                            (line.successRate?.let { " · " + stringResource(R.string.pg_percent, it) } ?: ""),
                         fontSize = 12.sp, modifier = Modifier.padding(top = 2.dp)
                     )
                 }
                 TextButton(onClick = { onApply(line.command) }, enabled = applied != line.command, modifier = Modifier.heightIn(min = 48.dp)) {
-                    Text(stringResource(if (applied == line.command) R.string.pg_step3_in_use else R.string.pg_apply))
+                    Text(stringResource(if (applied == line.command) R.string.pg_step3_in_use else R.string.pg_use))
                 }
             }
         }
