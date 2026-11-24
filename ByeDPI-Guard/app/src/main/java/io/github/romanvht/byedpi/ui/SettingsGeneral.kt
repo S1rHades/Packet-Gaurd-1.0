@@ -125,7 +125,10 @@ fun GeneralSettings(bypassActive: Boolean, onChanged: () -> Unit) {
     }
 
     SettingsGroup(stringResource(R.string.pg_general_behavior)) {
-        SwitchRow(stringResource(R.string.pg_general_auto_connect), autoConnect, { autoConnect = it })
+        SwitchRow(
+            stringResource(R.string.pg_general_auto_connect), autoConnect, { autoConnect = it },
+            subtitle = stringResource(R.string.pg_general_auto_connect_help)
+        )
         SwitchRow(
             stringResource(R.string.pg_general_boot), autostart, { autostart = it },
             subtitle = stringResource(R.string.pg_general_boot_help)
@@ -139,7 +142,11 @@ fun GeneralSettings(bypassActive: Boolean, onChanged: () -> Unit) {
                 InfoBanner(
                     stringResource(R.string.pg_general_private_dns, pd.hostname),
                     Icons.Filled.Lock,
-                    action = { TextButton(onClick = { PrivateDnsUtils.openSettings(ctx) }) { Text(stringResource(R.string.pg_change)) } }
+                    action = {
+                        TextButton(onClick = { PrivateDnsUtils.openSettings(ctx) }, modifier = Modifier.heightIn(min = 48.dp)) {
+                            Text(stringResource(R.string.pg_change))
+                        }
+                    }
                 )
             } else {
                 NavRow(

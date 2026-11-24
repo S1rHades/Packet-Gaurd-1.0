@@ -2,6 +2,7 @@ package io.github.romanvht.byedpi.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -22,7 +23,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.MoreVert
@@ -42,10 +46,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
@@ -119,7 +128,25 @@ fun StrategySettings(onChanged: () -> Unit, onMessage: (String) -> Unit) {
         }
     }
 
-    // One tab, two ways to say the same thing: type a command line, or use switches.
+    // First: what is in use right now, by name, in plain words.
+    val activeName = if (cmdEnabled) {
+        items.firstOrNull { it.text == active }?.name?.takeIf { it.isNotBlank() } ?: stringResource(R.string.pg_in_use_typed)
+    } else {
+        stringResource(R.string.pg_strategy_switches)
+    }
+    val activeParts = remember(active, cmdEnabled) { if (cmdEnabled) explainCommand(active) else emptyList() }
+    SettingsGroup(stringResource(R.string.pg_in_use)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Filled.CheckCircle, null, tint = Palette.Success, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(10.dp))
+            Text(activeName, fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+        }
+        activeParts.firstOrNull()?.let { part ->
+            HelperText(explainText(part), Modifier.padding(top = 6.dp))
+        }
+    }
+
+    // Two ways to say the same thing: type a command, or use switches.
     SettingsGroup(stringResource(R.string.pg_strategy_source)) {
         Segmented(
             items = listOf(true, false),
@@ -137,49 +164,67 @@ fun StrategySettings(onChanged: () -> Unit, onMessage: (String) -> Unit) {
     }
 
     AnimatedVisibility(!cmdEnabled, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
-        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) { EngineSettings(onChanged) }
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) { EngineSettings(onChanged) }
     }
 
+    // The typed command is for experts: folded away unless it is being edited.
+    val beingEdited = cleaned != active
+    var expertOpen by rememberSaveable { mutableStateOf(beingEdited) }
+    LaunchedEffect(beingEdited) { if (beingEdited) expertOpen = true }
     AnimatedVisibility(cmdEnabled, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
-        SettingsGroup(stringResource(R.string.pg_strategy_active)) {
-            OutlinedTextField(
-                value = args,
-                onValueChange = { args = it },
-                label = { Text(stringResource(R.string.pg_ciadpi_args)) },
-                modifier = Modifier.fillMaxWidth().heightIn(min = 96.dp),
-                textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
-                shape = RoundedCornerShape(14.dp),
-                colors = fieldColors()
-            )
-            Row(Modifier.padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                PrimaryButton(
-                    text = stringResource(if (cleaned == active) R.string.pg_active else R.string.pg_save_apply),
-                    onClick = { applyNow(args) },
-                    enabled = cleaned.isNotEmpty() && cleaned != active,
-                    modifier = Modifier.weight(1f),
-                    height = 48
-                )
-                Spacer(Modifier.width(8.dp))
-                IconButton(onClick = {
-                    ClipboardUtils.paste(ctx)?.takeIf { it.isNotBlank() }?.let { args = it.trim() }
-                }) { Icon(Icons.Filled.ContentPaste, stringResource(R.string.pg_paste), tint = Palette.TextSecondary) }
-                IconButton(onClick = { args = "" }) {
-                    Icon(Icons.Filled.Clear, stringResource(R.string.pg_clear), tint = Palette.TextSecondary)
+        AppCard {
+            ExpertHeader(expertOpen, onToggle = { expertOpen = !expertOpen })
+            AnimatedVisibility(expertOpen, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
+                Column(Modifier.padding(top = 8.dp)) {
+                    OutlinedTextField(
+                        value = args,
+                        onValueChange = { args = it },
+                        label = { Text(stringResource(R.string.pg_ciadpi_args)) },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 96.dp),
+                        textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = fieldColors()
+                    )
+                    Row(Modifier.padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        if (cleaned == active) {
+                            // Not a button: says plainly that this command is the one in use.
+                            Row(Modifier.weight(1f).heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Filled.Check, null, tint = Palette.Success, modifier = Modifier.size(20.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text(stringResource(R.string.pg_in_use), color = Palette.Success, fontWeight = FontWeight.SemiBold)
+                            }
+                        } else {
+                            PrimaryButton(
+                                text = stringResource(R.string.pg_save_apply),
+                                onClick = { applyNow(args) },
+                                enabled = cleaned.isNotEmpty(),
+                                modifier = Modifier.weight(1f),
+                                height = 48
+                            )
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        IconButton(onClick = {
+                            ClipboardUtils.paste(ctx)?.takeIf { it.isNotBlank() }?.let { args = it.trim() }
+                        }, modifier = Modifier.size(48.dp)) { Icon(Icons.Filled.ContentPaste, stringResource(R.string.pg_paste), tint = Palette.TextSecondary) }
+                        IconButton(onClick = { args = "" }, modifier = Modifier.size(48.dp)) {
+                            Icon(Icons.Filled.Clear, stringResource(R.string.pg_clear), tint = Palette.TextSecondary)
+                        }
+                    }
+                    // Show what a messy paste will be saved as, before it is.
+                    AnimatedVisibility(cleaned.isNotEmpty() && cleaned != args.trim()) {
+                        HelperText(
+                            stringResource(R.string.pg_understood_as, cleaned),
+                            Modifier.padding(top = 8.dp),
+                            color = Palette.Sky
+                        )
+                    }
+                    CommandExplainer(cleaned, Modifier.padding(top = 12.dp))
+                    HelperText(
+                        stringResource(R.string.pg_strategy_help),
+                        Modifier.padding(top = 8.dp)
+                    )
                 }
             }
-            // Show what a messy paste will be saved as, before it is.
-            AnimatedVisibility(cleaned.isNotEmpty() && cleaned != args.trim()) {
-                HelperText(
-                    stringResource(R.string.pg_understood_as, cleaned),
-                    Modifier.padding(top = 8.dp),
-                    color = Palette.Sky
-                )
-            }
-            CommandExplainer(cleaned, Modifier.padding(top = 12.dp))
-            HelperText(
-                stringResource(R.string.pg_strategy_help),
-                Modifier.padding(top = 8.dp)
-            )
             TextButton(onClick = { pasting = true }, modifier = Modifier.padding(top = 4.dp).heightIn(min = 48.dp)) {
                 Text(stringResource(R.string.pg_import_paste))
             }
@@ -285,6 +330,26 @@ fun StrategySettings(onChanged: () -> Unit, onMessage: (String) -> Unit) {
                 }
             }
         )
+    }
+}
+
+/** "Expert: edit the command", a whole-row toggle with a turning chevron. */
+@Composable
+private fun ExpertHeader(open: Boolean, onToggle: () -> Unit) {
+    val turn by animateFloatAsState(if (open) 180f else 0f, tween(Motion.MEDIUM), label = "expertChevron")
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(role = Role.Button, onClick = onToggle)
+            .heightIn(min = 48.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            stringResource(R.string.pg_expert_edit), style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.weight(1f).semantics { heading() }
+        )
+        Icon(Icons.Filled.ExpandMore, null, tint = Palette.TextSecondary, modifier = Modifier.rotate(turn))
     }
 }
 

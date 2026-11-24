@@ -91,6 +91,8 @@ fun AppRoot(requestedTab: Tab? = null, onTabRequestHandled: () -> Unit = {}) {
     val benchUi by benchVm.ui.collectAsStateWithLifecycle()
 
     var tab by rememberSaveable { mutableStateOf(Tab.Connect) }
+    // A Settings sub-tab to open next, e.g. Strategy from the Connect screen's "Setting" row.
+    var settingsRequest by remember { mutableStateOf<SettingsTab?>(null) }
     // Read before anything else marks the app as used (e.g. the update check's version note).
     var firstRunDone by remember { mutableStateOf(FirstRun.isDone(ctx)) }
     LaunchedEffect(requestedTab) {
@@ -286,13 +288,19 @@ fun AppRoot(requestedTab: Tab? = null, onTabRequestHandled: () -> Unit = {}) {
                         tab = Tab.Benchmark
                         benchVm.runFirstSetup()
                     },
-                    onDismissStruggle = connectVm::dismissStruggle
+                    onDismissStruggle = connectVm::dismissStruggle,
+                    onOpenSetting = {
+                        settingsRequest = SettingsTab.Strategy
+                        tab = Tab.Settings
+                    }
                 )
                 Tab.Benchmark -> BenchmarkScreen(benchVm, bypassActive = bypassActive)
                 Tab.Settings -> SettingsScreen(
                     bypassActive = bypassActive,
                     onChanged = { connectVm.refreshProfile() },
-                    onMessage = { say(it) }
+                    onMessage = { say(it) },
+                    requestedTab = settingsRequest,
+                    onTabRequestHandled = { settingsRequest = null }
                 )
             }
         }

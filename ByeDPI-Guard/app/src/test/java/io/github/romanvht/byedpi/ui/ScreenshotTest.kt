@@ -93,7 +93,7 @@ class ScreenshotTest(private val locale: String) {
 
     @Test
     fun benchmarkRecommended() = shot {
-        GlassBackground { Column(Modifier.padding(16.dp)) { RecommendedCard(decision, false, null, {}, {}, {}) } }
+        GlassBackground { Column(Modifier.padding(16.dp)) { RecommendedCard(decision, false, null, {}) } }
     }
 
     @Test
@@ -101,11 +101,11 @@ class ScreenshotTest(private val locale: String) {
         GlassBackground {
             Column(Modifier.padding(16.dp)) {
                 TestCard(
-                    ui, TestState(), GenState(), SearchPlan.Quick, generate = false, anyDone = true, bypassActive = false,
-                    sni = "google.com", customName = "Custom", linesOpen = false, onToggleLines = {}, onToggleList = {},
-                    onSelectPack = {}, onSelectAll = {}, onClear = {}, onToggleProfile = {}, onTest = {}, onGenerate = {},
-                    onStop = {}, onPlan = {}
+                    ui, anyDone = false, generate = false, bypassActive = true, linesOpen = false, onToggleLines = {},
+                    onToggleList = {}, onSelectPack = {}, onSelectAll = {}, onClear = {}, onToggleProfile = {},
+                    onEditCustom = {}, onTest = {}
                 )
+                GeneratorCard(GenState(), SearchPlan.Quick, folded = false, enabled = true, onToggleFold = {}, onPlan = {}, onGenerate = {}, modifier = Modifier.padding(top = 16.dp))
             }
         }
     }
@@ -154,6 +154,55 @@ class ScreenshotTest(private val locale: String) {
                     madeCommand = "-d1 -s1+s -d1+s -s3+s -At,s -r0+sm", applied = null, canApply = true, onApply = {}
                 )
             }
+        }
+    }
+
+    private val genResult = GenResult(
+        command = "-d1 -s1+s -d1+s -s3+s -At,s -r0+sm", opened = 93, blocked = 30, latencyMs = 410, totalSites = 96, tested = 41,
+        generated = true, how = "Fallback", madeFrom = listOf("-d1 -s1+s -d1+s -s3+s", "-r0+sm"), built = 30, successRate = 95, learnedFrom = 12,
+        sites = 96, openedBlocked = 28,
+        compared = listOf(
+            GenAlternative("-d1 -s1+s -d1+s -s3+s -At,s -r0+sm", 93, 96, 410, 95, "new"),
+            GenAlternative("-d1 -s1+s -d1+s -s3+s -s6+s -d9+s -r1+s -S -a1", 87, 96, 528, 90, "community", "Community #12"),
+            GenAlternative("-s1 -r1+s", 81, 96, 120, 97, "basic", "TLS record split (SNI)")
+        )
+    )
+
+    @Test
+    fun generatorResult() = shot {
+        GlassBackground { Column(Modifier.padding(16.dp)) { AppCard { GenResultPanel(GenState(phase = GenPhase.Done, result = genResult), null, {}, {}) } } }
+    }
+
+    @Test
+    fun generatorRunning() = shot {
+        GlassBackground {
+            Column(Modifier.padding(16.dp)) {
+                RunningCard(
+                    TestState(isRunning = true), GenState(running = true, phase = GenPhase.Searching, round = 2, rounds = 3, done = 14, budget = 34, plan = SearchPlan.Quick),
+                    ui, SearchPlan.Quick, "google.com", "Custom", onStop = {}
+                )
+            }
+        }
+    }
+
+    @Test
+    fun benchmarkFolded() = shot {
+        GlassBackground {
+            Column(Modifier.padding(16.dp)) {
+                TestSummaryCard(ui, onEdit = {}, onTest = {})
+                GeneratorCard(GenState(), SearchPlan.Quick, folded = true, enabled = true, onToggleFold = {}, onPlan = {}, onGenerate = {}, modifier = Modifier.padding(top = 16.dp))
+                OtherOptionsCard(decision, null, {}, {}, Modifier.padding(top = 16.dp))
+            }
+        }
+    }
+
+    @Test
+    fun connectWeak() = shot {
+        GlassBackground {
+            ConnectScreen(
+                ConnectionState.Connected(io.github.romanvht.byedpi.data.Mode.VPN), LiveMetrics(310, 22),
+                ActiveProfile("TLS record split (SNI)", "-s1 -r1+s", "VPN"), onToggle = {}, struggling = true
+            )
         }
     }
 }

@@ -97,14 +97,11 @@ fun AboutSettings(onMessage: (String) -> Unit) {
         if (uri != null) pendingImport = SettingsUtils.readSettings(ctx, uri)
     }
 
-    // First thing on this screen: where Packet Guard comes from.
-    InfoBanner(
-        stringResource(R.string.pg_about_origin),
-        Icons.Filled.Info,
-        modifier = Modifier.padding(bottom = 4.dp)
-    )
+    // First thing on this screen, kept short: where Packet Guard comes from.
+    InfoBanner(stringResource(R.string.pg_about_origin), Icons.Filled.Info)
 
-    SettingsGroup("Packet Guard") {
+    // No card title: the name is right there next to the logo.
+    AppCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
             BrandMark(44)
             Spacer(Modifier.width(14.dp))

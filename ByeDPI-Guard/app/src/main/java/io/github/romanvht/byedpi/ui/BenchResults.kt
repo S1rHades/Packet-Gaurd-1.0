@@ -133,13 +133,14 @@ private fun reliabilityTint(r: Reliability) = when (r) {
     Reliability.Sometimes -> Palette.Error
 }
 
-private fun speedTint(s: Speed) = when (s) {
+internal fun speedTint(s: Speed) = when (s) {
     Speed.Fast -> Palette.Success
-    Speed.Ok -> Palette.Warning
+    // OK is fine: amber is kept for real warnings.
+    Speed.Ok -> Palette.TextSecondary
     Speed.Slow -> Palette.Error
 }
 
-/** Sites opened, speed and dependability as three plain chips. */
+/** Sites opened and speed as two plain chips; dependability is in the Details. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FactChips(c: Choice, modifier: Modifier = Modifier) {
@@ -154,7 +155,26 @@ fun FactChips(c: Choice, modifier: Modifier = Modifier) {
         c.speed?.let { s ->
             MetricPill(stringResource(s.label).replaceFirstChar { it.titlecase() } + (c.stat.avgLatencyMs?.let { " · " + stringResource(R.string.pg_ms, it) } ?: ""), speedTint(s), large = true)
         }
-        MetricPill(reliabilityText(c.reliability), reliabilityTint(c.reliability), large = true)
+    }
+}
+
+/** A row that folds [content] away until tapped ("Details ▾"), with a 48 dp target. */
+@Composable
+internal fun Fold(label: String, modifier: Modifier = Modifier, startOpen: Boolean = false, content: @Composable () -> Unit) {
+    var open by rememberSaveable(label) { mutableStateOf(startOpen) }
+    val expandedText = stringResource(if (open) R.string.pg_a11y_expanded else R.string.pg_a11y_collapsed)
+    Column(modifier.fillMaxWidth()) {
+        Row(
+            Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable(role = Role.Button) { open = !open }
+                .semantics { stateDescription = expandedText }.heightIn(min = 48.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(label, color = Palette.Sky, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+            Icon(if (open) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore, null, tint = Palette.Sky)
+        }
+        AnimatedVisibility(open, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
+            Column(Modifier.fillMaxWidth().padding(bottom = 4.dp)) { content() }
+        }
     }
 }
 
@@ -177,32 +197,39 @@ fun TradeoffChips(list: List<Tradeoff>, modifier: Modifier = Modifier) {
     }
 }
 
-/** The answer: one setting, its score, why, and one button. */
+/**
+ * The answer: one setting, its score, why, and one button straight after. The score parts and
+ * what the line does are folded under "Details"; other options live in their own card.
+ */
 @Composable
 fun RecommendedCard(
     d: Decision,
     running: Boolean,
     applied: String?,
     onApply: (Choice) -> Unit,
-    onApplyGoal: (Choice) -> Unit,
-    onApplyCombined: (Combined) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val c = d.recommended ?: return
     AppCard(modifier, borderColor = Palette.Glow, contentPadding = androidx.compose.foundation.layout.PaddingValues(18.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                MetricPill(stringResource(if (running) R.string.pg_step3_best_so_far else R.string.pg_rec_badge), Palette.Glow, large = true)
+                Text(
+                    stringResource(if (running) R.string.pg_step3_best_so_far else R.string.pg_rec_badge),
+                    color = Palette.Sky, fontSize = 13.sp, fontWeight = FontWeight.SemiBold
+                )
                 AnimatedContent(
                     targetState = c.name,
                     transitionSpec = { fadeIn(tween(Motion.MEDIUM)) togetherWith fadeOut(tween(Motion.FAST)) },
                     label = "recName"
-                ) { Text(it, fontSize = 21.sp, fontWeight = FontWeight.Bold, lineHeight = 26.sp, modifier = Modifier.padding(top = 8.dp)) }
+                ) { Text(it, fontSize = 21.sp, fontWeight = FontWeight.Bold, lineHeight = 26.sp, modifier = Modifier.padding(top = 2.dp)) }
             }
             Spacer(Modifier.width(12.dp))
-            ScoreRing(c.score.overall, size = 64.dp)
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                ScoreRing(c.score.overall, size = 60.dp)
+                Text(stringResource(R.string.pg_score_of_100), color = Palette.TextSecondary, fontSize = 11.sp)
+            }
         }
-        FactChips(c, Modifier.padding(top = 12.dp))
+        FactChips(c, Modifier.padding(top = 10.dp))
         if (!running) {
             Text(
                 stringResource(
@@ -217,8 +244,6 @@ fun RecommendedCard(
                 modifier = Modifier.padding(top = 10.dp)
             )
         }
-        ScoreParts(c.score, Modifier.padding(top = 12.dp))
-        if (!running) CommandExplainer(c.command, Modifier.padding(top = 12.dp), max = 3)
         val inUse = applied == c.command
         PrimaryButton(
             text = when {
@@ -229,24 +254,51 @@ fun RecommendedCard(
             icon = if (inUse) Icons.Filled.Check else null,
             onClick = { onApply(c) },
             enabled = !running && !inUse,
-            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
-            height = 60
+            modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
+            height = 56
         )
-        // Everything else about the answer lives in the same card: other goals, then how it
-        // does on each site group, then one line for all groups when that opens more.
         if (!running) {
-            if (d.goals.isNotEmpty()) {
-                SectionDivider()
-                GoalSection(d, applied, onApplyGoal)
+            Fold(stringResource(R.string.pg_details), Modifier.padding(top = 6.dp)) {
+                ScoreParts(c.score, Modifier.padding(top = 4.dp))
+                CommandExplainer(c.command, Modifier.padding(top = 12.dp), max = 8)
             }
-            if (d.groups.isNotEmpty()) {
-                SectionDivider()
-                GroupsSection(d.groups)
-            }
-            d.combined?.let { comb ->
-                SectionDivider()
-                CombinedSection(comb, applied, onApplyCombined)
-            }
+        }
+    }
+}
+
+/**
+ * Everything else about the answer, in one card under it: other goals (fastest, most reliable,
+ * per group), how the recommendation does on each site group, and one line for all groups.
+ */
+@Composable
+fun OtherOptionsCard(
+    d: Decision,
+    applied: String?,
+    onApplyGoal: (Choice) -> Unit,
+    onApplyCombined: (Combined) -> Unit,
+    modifier: Modifier = Modifier,
+    extra: (@Composable () -> Unit)? = null
+) {
+    if (d.goals.isEmpty() && d.groups.isEmpty() && d.combined == null && extra == null) return
+    AppCard(modifier, contentPadding = androidx.compose.foundation.layout.PaddingValues(18.dp)) {
+        Text(stringResource(R.string.pg_other_options), fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+        var first = true
+        fun gap(): Boolean { val f = first; first = false; return !f }
+        if (d.goals.isNotEmpty()) {
+            if (gap()) SectionDivider() else Spacer(Modifier.height(10.dp))
+            GoalSection(d, applied, onApplyGoal)
+        }
+        extra?.let {
+            if (gap()) SectionDivider() else Spacer(Modifier.height(10.dp))
+            it()
+        }
+        if (d.groups.isNotEmpty()) {
+            if (gap()) SectionDivider() else Spacer(Modifier.height(10.dp))
+            GroupsSection(d.groups)
+        }
+        d.combined?.let { comb ->
+            if (gap()) SectionDivider() else Spacer(Modifier.height(10.dp))
+            CombinedSection(comb, applied, onApplyCombined)
         }
     }
 }
@@ -267,7 +319,7 @@ private fun GoalSection(d: Decision, applied: String?, onApply: (Choice) -> Unit
     var picked by rememberSaveable { mutableStateOf(goalKey(d.goals.first())) }
     val goal = d.goals.firstOrNull { goalKey(it) == picked } ?: d.goals.first()
     Column(modifier.fillMaxWidth()) {
-        Text(stringResource(R.string.pg_goal_question), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        Text(stringResource(R.string.pg_goal_question), fontSize = 15.sp, color = Palette.TextSecondary)
         FlowRow(
             Modifier.padding(top = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -424,7 +476,7 @@ fun AllResultsCard(d: Decision, applied: String?, canApply: Boolean, onApply: (C
                             )
                         }
                         TextButton(onClick = { onApply(c) }, enabled = canApply && applied != c.command, modifier = Modifier.heightIn(min = 48.dp)) {
-                            Text(stringResource(if (applied == c.command) R.string.pg_step3_in_use else R.string.pg_apply))
+                            Text(stringResource(if (applied == c.command) R.string.pg_step3_in_use else R.string.pg_use))
                         }
                     }
                 }
@@ -450,10 +502,23 @@ fun MadeVsBestCard(
     onApply: (Choice) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    AppCard(modifier) { MadeVsBestSection(d, madeCommand, applied, canApply, onApply) }
+}
+
+/** The same comparison as [MadeVsBestCard], without its card, for inside "Other options". */
+@Composable
+fun MadeVsBestSection(
+    d: Decision,
+    madeCommand: String,
+    applied: String?,
+    canApply: Boolean,
+    onApply: (Choice) -> Unit,
+    modifier: Modifier = Modifier
+) {
     val madeIndex = d.ranked.indexOfFirst { it.command == madeCommand }
     val made = d.ranked.getOrNull(madeIndex)
     val best = d.ranked.firstOrNull { it.command != madeCommand }
-    AppCard(modifier) {
+    Column(modifier.fillMaxWidth()) {
         Text(stringResource(R.string.pg_made_vs_title), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
         Text(stringResource(R.string.pg_made_vs_help), color = Palette.TextSecondary, fontSize = 12.sp, lineHeight = 16.sp)
         Spacer(Modifier.height(8.dp))
@@ -473,7 +538,7 @@ fun MadeVsBestCard(
                     )
                 }
                 TextButton(onClick = { onApply(c) }, enabled = canApply && applied != c.command, modifier = Modifier.heightIn(min = 48.dp)) {
-                    Text(stringResource(if (applied == c.command) R.string.pg_step3_in_use else R.string.pg_apply))
+                    Text(stringResource(if (applied == c.command) R.string.pg_step3_in_use else R.string.pg_use))
                 }
             }
         }

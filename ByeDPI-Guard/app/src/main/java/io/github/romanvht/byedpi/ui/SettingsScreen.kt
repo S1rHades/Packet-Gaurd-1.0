@@ -13,23 +13,26 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Terminal
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -50,9 +53,17 @@ const val PREF_SHOW_ADVANCED = "pg_show_advanced"
 enum class SettingsTab(@StringRes val label: Int, val icon: ImageVector) {
     General(R.string.pg_settings_general, Icons.Filled.Tune),
     Strategy(R.string.pg_settings_strategy, Icons.Filled.Terminal),
-    Benchmark(R.string.pg_tab_benchmark, Icons.Filled.Speed),
     About(R.string.pg_settings_about, Icons.Filled.Info)
 }
+
+/**
+ * Saved by name, so a tab that no longer exists here (Benchmark moved to the Benchmark
+ * screen's "Edit custom lines") opens General instead of failing to restore.
+ */
+private val SettingsTabSaver = Saver<SettingsTab, String>(
+    save = { it.name },
+    restore = { name -> SettingsTab.entries.firstOrNull { it.name == name } ?: SettingsTab.General }
+)
 
 /**
  * Settings, organised in tabs. Everything upstream's preference screens offered lives here,
@@ -63,10 +74,18 @@ fun SettingsScreen(
     bypassActive: Boolean,
     onChanged: () -> Unit,
     onMessage: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    requestedTab: SettingsTab? = null,
+    onTabRequestHandled: () -> Unit = {}
 ) {
     val ctx = LocalContext.current
-    var tab by rememberSaveable { mutableStateOf(SettingsTab.General) }
+    var tab by rememberSaveable(stateSaver = SettingsTabSaver) { mutableStateOf(SettingsTab.General) }
+    LaunchedEffect(requestedTab) {
+        if (requestedTab != null) {
+            tab = requestedTab
+            onTabRequestHandled()
+        }
+    }
     var dirty by rememberSaveable { mutableStateOf(false) }
     BackHandler(enabled = tab != SettingsTab.General) { tab = SettingsTab.General }
     val changed: () -> Unit = {
@@ -100,7 +119,7 @@ fun SettingsScreen(
                     TextButton(onClick = {
                         onMessage(reconnect(ctx))
                         dirty = false
-                    }) { Text(stringResource(R.string.pg_reconnect)) }
+                    }, modifier = Modifier.heightIn(min = 48.dp)) { Text(stringResource(R.string.pg_reconnect)) }
                 }
             )
         }
@@ -114,13 +133,12 @@ fun SettingsScreen(
                 Modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(start = 20.dp, end = 20.dp, top = 14.dp, bottom = 28.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+                    .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 28.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 when (current) {
                     SettingsTab.General -> GeneralSettings(bypassActive, changed)
                     SettingsTab.Strategy -> StrategySettings(changed, onMessage)
-                    SettingsTab.Benchmark -> BenchmarkSettings()
                     SettingsTab.About -> AboutSettings(onMessage)
                 }
             }
@@ -144,10 +162,12 @@ fun SettingsGroup(
     title: String,
     modifier: Modifier = Modifier,
     trailing: (@Composable () -> Unit)? = null,
+    contentAlpha: Float = 1f,
     content: @Composable () -> Unit
 ) {
     AppCard(modifier.fillMaxWidth()) {
         SectionTitle(title, trailing = trailing)
-        content()
+        // Dimming only the content keeps the card title readable.
+        Column(Modifier.alpha(contentAlpha)) { content() }
     }
 }
