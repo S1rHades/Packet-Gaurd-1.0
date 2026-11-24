@@ -6,6 +6,25 @@ from 2.5.0 on (**Settings → About → Updates**); earlier versions are install
 
 The first lines under each version are what the app shows as "What's new", so keep them short.
 
+## 3.10.0 (November 2026)
+
+- Benchmark: the answer and its button come first, and the setup folds away once you have results
+- One clear progress card while a test or a search runs, with labelled steps and time left
+- "Make one just for me" now opens with a verdict and a simple comparison
+- Connect warns in amber when sites stop opening, instead of still showing green
+- Plainer Settings: Strategy, Engine, General and About are easier to read
+
+The rest, in more detail:
+
+- **Benchmark results.** "Use this setting" now sits right under the score and the reason. The score bars and what the setting does are under "Details". Other goals, site groups and the generator's comparison share one "Other options" card. After a test, the setup becomes a one-line summary with Edit and Test again, and "Make one just for me" folds to a single row. The screen is about a third as long as before.
+- **While running.** A single card shows the percentage, the time left, what is being tried and Stop at the bottom. For the generator it also shows labelled steps (Check sites, Build, Test all, Pick), how many settings were tried and the best so far. The setup and the other choice are hidden until it finishes.
+- **Generator result.** It opens with how many sites the setting opens (and how many of the blocked ones), then the setting next to the best other one from the same run, with why it's ahead. The command, its explanation and the full list are folded away, and "Make another" and "Copy command" sit under the button.
+- **First visit.** The ready-made test and "Make one just for me" are two separate cards, each saying what it does and how long it takes.
+- **One word for one action.** Buttons that do the same thing now share one name, and fit on one line in every language. Everyday text says "setting" rather than "command line".
+- **Connect.** When most recent checks fail, the shield turns amber with "!", the headline says sites may not open, and a short strip offers "Find a new setting". The card shows the setting by name (tap to change it), one "Sites opening" line, and the command under Details. The shield has a "Tap to connect / disconnect" caption.
+- **Settings.** The Benchmark tab inside Settings is gone: your own settings are edited from the Benchmark tab's Custom list, and test timing is under Benchmark's Advanced options. Strategy opens with what's in use and puts the typed command under "Expert". The Engine banner says plainly what to do. General settings have one-line explanations, and About is shorter.
+- **First-run guide.** The main button stays in the same place on every page, the VPN page shows the prompt Android will display, and the last page says you can stop any time.
+
 ## 3.9.2 (November 2026)
 
 - Fixes several visual glitches found in a full review of every screen
