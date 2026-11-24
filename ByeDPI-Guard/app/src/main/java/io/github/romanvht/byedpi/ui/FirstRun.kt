@@ -14,8 +14,12 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,6 +30,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -46,6 +51,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -100,7 +106,7 @@ fun FirstRunGuide(onDone: () -> Unit, onFind: () -> Unit, modifier: Modifier = M
         Column(Modifier.fillMaxSize().safeDrawingPadding().padding(horizontal = 24.dp, vertical = 12.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Dots(page, Modifier.weight(1f))
-                TextButton(onClick = onDone, modifier = Modifier.heightIn(min = 48.dp)) {
+                TextButton(onClick = onDone, modifier = Modifier.heightIn(min = 48.dp).widthIn(min = 48.dp)) {
                     Text(stringResource(R.string.pg_fr_skip), fontSize = 16.sp)
                 }
             }
@@ -114,8 +120,10 @@ fun FirstRunGuide(onDone: () -> Unit, onFind: () -> Unit, modifier: Modifier = M
                 label = "firstRun",
                 modifier = Modifier.weight(1f)
             ) { p ->
+                // Scrolls only when a page is taller than the space (small phones, large text).
+                BoxWithConstraints(Modifier.fillMaxSize()) {
                 Column(
-                    Modifier.fillMaxSize(),
+                    Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).heightIn(min = maxHeight),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -125,12 +133,15 @@ fun FirstRunGuide(onDone: () -> Unit, onFind: () -> Unit, modifier: Modifier = M
                             Page(stringResource(R.string.pg_fr1_title), stringResource(R.string.pg_fr1_body))
                         }
                         1 -> {
-                            Badge { Icon(Icons.Filled.VpnKey, null, tint = Palette.Sky, modifier = Modifier.size(44.dp)) }
+                            // What Android is about to show, so the real prompt isn't a surprise.
+                            VpnPromptMock()
                             Page(stringResource(R.string.pg_fr2_title), stringResource(R.string.pg_fr2_body))
+                            Note(stringResource(R.string.pg_fr_nothing_leaves))
                         }
                         else -> {
                             Badge { Icon(Icons.Filled.AutoAwesome, null, tint = Palette.Sky, modifier = Modifier.size(44.dp)) }
                             Page(stringResource(R.string.pg_fr3_title), stringResource(R.string.pg_fr3_body))
+                            Note(stringResource(R.string.pg_fr_stop_any_time))
                             if (vpnNote == false) {
                                 Text(
                                     stringResource(R.string.pg_fr2_denied), color = Palette.Warning, fontSize = 14.sp,
@@ -140,7 +151,10 @@ fun FirstRunGuide(onDone: () -> Unit, onFind: () -> Unit, modifier: Modifier = M
                         }
                     }
                 }
+                }
             }
+            // The main button sits in the same place on every page; the row under it is kept
+            // (empty on the first two pages) so it never moves.
             when (page) {
                 0 -> PrimaryButton(
                     stringResource(R.string.pg_fr_next), onClick = { page = 1 },
@@ -154,12 +168,14 @@ fun FirstRunGuide(onDone: () -> Unit, onFind: () -> Unit, modifier: Modifier = M
                     },
                     modifier = Modifier.fillMaxWidth(), height = 64
                 )
-                else -> {
-                    PrimaryButton(
-                        stringResource(R.string.pg_fr3_find), onClick = onFind, icon = Icons.Filled.AutoAwesome,
-                        modifier = Modifier.fillMaxWidth(), height = 64
-                    )
-                    TextButton(onClick = onDone, modifier = Modifier.fillMaxWidth().padding(top = 6.dp).heightIn(min = 48.dp)) {
+                else -> PrimaryButton(
+                    stringResource(R.string.pg_fr3_find), onClick = onFind, icon = Icons.Filled.AutoAwesome,
+                    modifier = Modifier.fillMaxWidth(), height = 64
+                )
+            }
+            Box(Modifier.fillMaxWidth().padding(top = 6.dp).heightIn(min = 48.dp), contentAlignment = Alignment.Center) {
+                if (page == PAGES - 1) {
+                    TextButton(onClick = onDone, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                         Text(stringResource(R.string.pg_fr3_later), fontSize = 16.sp)
                     }
                 }
@@ -179,6 +195,55 @@ private fun Page(title: String, body: String) {
         body, fontSize = 17.sp, lineHeight = 25.sp, color = Palette.TextSecondary, textAlign = TextAlign.Center,
         modifier = Modifier.padding(top = 14.dp)
     )
+}
+
+@Composable
+private fun Note(text: String) {
+    Text(
+        text, fontSize = 15.sp, lineHeight = 21.sp, fontWeight = FontWeight.SemiBold, color = Palette.Sky,
+        textAlign = TextAlign.Center, modifier = Modifier.padding(top = 12.dp)
+    )
+}
+
+/** A small drawing of Android's VPN permission prompt; OK is the button to press. */
+@Composable
+private fun VpnPromptMock() {
+    val title = stringResource(R.string.pg_fr_vpn_mock_title)
+    val body = stringResource(R.string.pg_fr_vpn_mock_body)
+    Column(
+        Modifier
+            .widthIn(max = 300.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(Color(0xFF2A3142))
+            .border(1.dp, Color.White.copy(alpha = 0.12f), RoundedCornerShape(20.dp))
+            .clearAndSetSemantics { contentDescription = "$title. $body" }
+            .padding(start = 18.dp, end = 10.dp, top = 16.dp, bottom = 6.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Filled.VpnKey, null, tint = Palette.Sky, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(10.dp))
+            Text(title, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
+        }
+        Text(
+            body, fontSize = 14.sp, lineHeight = 19.sp, color = Palette.TextSecondary,
+            modifier = Modifier.padding(top = 8.dp, end = 8.dp)
+        )
+        Row(Modifier.fillMaxWidth().padding(top = 6.dp), horizontalArrangement = Arrangement.End) {
+            Text(
+                stringResource(R.string.pg_cancel), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = Palette.TextSecondary,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)
+            )
+            Text(
+                stringResource(R.string.pg_fr_vpn_mock_ok), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(50))
+                    .background(Palette.Glow)
+                    .border(2.dp, Palette.Sky, RoundedCornerShape(50))
+                    .padding(horizontal = 18.dp, vertical = 8.dp)
+            )
+        }
+    }
 }
 
 @Composable

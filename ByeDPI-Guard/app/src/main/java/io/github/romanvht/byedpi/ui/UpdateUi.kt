@@ -213,12 +213,10 @@ fun UpdatesGroup() {
             transitionSpec = { fadeIn(tween(Motion.MEDIUM)) togetherWith fadeOut(tween(Motion.FAST)) },
             label = "updateStatus"
         ) { (i, t, text) ->
-            Row(
-                Modifier.fillMaxWidth().padding(top = 12.dp).glassInset().padding(horizontal = 14.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(i, null, tint = t, modifier = Modifier.size(22.dp))
-                Spacer(Modifier.width(12.dp))
+            // A plain status line, not a box that looks like a button.
+            Row(Modifier.fillMaxWidth().padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(i, null, tint = t, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(10.dp))
                 Text(text, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
             }
         }
@@ -251,7 +249,7 @@ fun UpdatesGroup() {
                 onClick = { AppUpdates.checkNow(ctx) },
                 enabled = !state.busy,
                 icon = Icons.Filled.Refresh,
-                modifier = Modifier.fillMaxWidth().padding(top = 14.dp)
+                modifier = Modifier.fillMaxWidth().padding(top = 14.dp).heightIn(min = 48.dp)
             )
         }
         SwitchRow(

@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.PriorityHigh
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -87,6 +88,10 @@ object ShieldShape : Shape {
         Outline.Generic(shieldPath(size))
 }
 
+private val WarnTop = Color(0xFFFBBF24)
+private val WarnBottom = Color(0xFFB45309)
+private val OffRim = Color(0xFF8494AD)
+
 /** Width : height of the shield. */
 private const val SHIELD_RATIO = 17.2f / 21.1f
 
@@ -95,6 +100,7 @@ private const val SHIELD_RATIO = 17.2f / 21.1f
  *  - Off: dark shield, gray rim, power glyph
  *  - Connecting: rim lights up, shield-shaped waves radiate outward, spinner inside
  *  - On: blue gradient shield with a breathing glow and a check mark
+ *  - Weak (on, but most live checks fail): amber shield and glow with a "!"
  *  - Failed: red rim, retry glyph
  */
 @Composable
@@ -102,10 +108,12 @@ fun ShieldButton(
     state: ConnectionState,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    weak: Boolean = false,
     height: Dp = 196.dp
 ) {
     val connecting = state is ConnectionState.Connecting
     val connected = state is ConnectionState.Connected
+    val warn = connected && weak
     val failed = state is ConnectionState.Failed
     val haptics = LocalHapticFeedback.current
 
@@ -119,6 +127,7 @@ fun ShieldButton(
 
     val top by animateColorAsState(
         when {
+            warn -> WarnTop
             connected -> Palette.Sky
             connecting -> Color(0xFF2B4C8F)
             else -> Palette.SurfaceHigher
@@ -127,6 +136,7 @@ fun ShieldButton(
     )
     val bottom by animateColorAsState(
         when {
+            warn -> WarnBottom
             connected -> Palette.AccentBlue
             connecting -> Palette.SurfaceHigh
             else -> Palette.Surface
@@ -136,9 +146,10 @@ fun ShieldButton(
     val rim by animateColorAsState(
         when {
             failed -> Palette.Error
+            warn -> Palette.Warning
             connected -> Palette.Sky
             connecting -> Palette.Glow
-            else -> Palette.Gray
+            else -> OffRim // a little lighter than the card borders, so the idle shield stands out
         },
         tween(Motion.SLOW), label = "shieldRim"
     )
@@ -146,6 +157,7 @@ fun ShieldButton(
         if (connected || connecting) Color.White else Palette.TextSecondary, tween(Motion.SLOW), label = "glyph"
     )
     val glowAlpha by animateFloatAsState(if (connected) 1f else 0f, tween(Motion.SLOW), label = "glowAlpha")
+    val glowColor by animateColorAsState(if (warn) Palette.Warning else Palette.Glow, tween(Motion.SLOW), label = "glowColor")
 
     val interaction = remember { MutableInteractionSource() }
     val shieldW = height * SHIELD_RATIO
@@ -161,7 +173,7 @@ fun ShieldButton(
             if (glowAlpha > 0f) {
                 drawCircle(
                     brush = Brush.radialGradient(
-                        listOf(Palette.Glow.copy(alpha = 0.42f * glowAlpha * breathe), Color.Transparent),
+                        listOf(glowColor.copy(alpha = 0.42f * glowAlpha * breathe), Color.Transparent),
                         center = c, radius = size.minDimension / 2f
                     ),
                     radius = size.minDimension / 2f, center = c
@@ -179,7 +191,7 @@ fun ShieldButton(
                 } else {
                     // A quiet halo outline so the idle shield still reads as a button.
                     scale(1.12f, pivot) {
-                        drawPath(path, rim.copy(alpha = if (connected) 0.35f * breathe else 0.22f), style = Stroke(1.5.dp.toPx()))
+                        drawPath(path, rim.copy(alpha = if (connected) 0.35f * breathe else 0.30f), style = Stroke(1.5.dp.toPx()))
                     }
                 }
             }
@@ -194,12 +206,13 @@ fun ShieldButton(
         // TalkBack: the action ("Connect") plus whether it is on now ("Protected").
         val stateLabel = stringResource(
             when {
+                warn -> R.string.pg_connect_weak
                 connected -> R.string.pg_notif_protected
                 connecting -> R.string.pg_status_connecting
                 failed -> R.string.pg_status_error
                 else -> R.string.pg_status_disconnected
             }
-        )
+        ).let { if (warn) it.lowercase().replaceFirstChar { c -> c.uppercase() } else it }
         Box(
             Modifier
                 .size(shieldW, height)
@@ -217,6 +230,7 @@ fun ShieldButton(
         ) {
             AnimatedContent(
                 targetState = when {
+                    warn -> 4
                     connected -> 2
                     connecting -> 1
                     failed -> 3
@@ -237,6 +251,7 @@ fun ShieldButton(
                         modifier = Modifier.size(height * 0.24f)
                     )
                     2 -> Icon(Icons.Rounded.Check, null, tint = Color.White, modifier = Modifier.size(glyphSize))
+                    4 -> Icon(Icons.Rounded.PriorityHigh, null, tint = Color.White, modifier = Modifier.size(glyphSize))
                     3 -> Icon(Icons.Rounded.Refresh, null, tint = Palette.Error, modifier = Modifier.size(glyphSize))
                     else -> Icon(Icons.Filled.PowerSettingsNew, null, tint = glyph, modifier = Modifier.size(glyphSize))
                 }

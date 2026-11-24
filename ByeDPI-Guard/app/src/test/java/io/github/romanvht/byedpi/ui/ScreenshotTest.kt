@@ -195,4 +195,14 @@ class ScreenshotTest(private val locale: String) {
             }
         }
     }
+
+    @Test
+    fun connectWeak() = shot {
+        GlassBackground {
+            ConnectScreen(
+                ConnectionState.Connected(io.github.romanvht.byedpi.data.Mode.VPN), LiveMetrics(310, 22),
+                ActiveProfile("TLS record split (SNI)", "-s1 -r1+s", "VPN"), onToggle = {}, struggling = true
+            )
+        }
+    }
 }
